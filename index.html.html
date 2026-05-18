@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0f0f; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
+  --accent:#c8a96e; --accent-dim:rgba(200,169,110,0.12);
+  --text:#e8e4dc; --text-dim:#888; --text-muted:#555;
+  --red:#e05252; --green:#52a852; --yellow:#c8a040; --blue:#5289c8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:300;}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.logo{font-family:'Playfair Display',serif;font-size:17px;color:var(--accent);}
+.logo span{color:var(--text-dim);font-size:11px;margin-left:6px;font-family:'IBM Plex Sans',sans-serif;}
+.header-right{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);padding:0 14px;}
+.tab{padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;user-select:none;}
+.tab:hover{color:var(--text-dim);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* PANEL */
+.panel{display:none;padding:14px;}
+.panel.active{display:block;}
+
+/* STATUS FILTER BAR */
+.filter-bar{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;}
+.fchip{padding:4px 10px;border-radius:20px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border:1px solid var(--border);color:var(--text-muted);background:var(--surface);transition:all .12s;white-space:nowrap;}
+.fchip:hover{border-color:var(--accent);color:var(--accent);}
+.fchip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.fchip .n{margin-left:4px;opacity:.7;}
+
+/* STATS */
+.stats{display:flex;gap:1px;margin-bottom:12px;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+.stat{flex:1;padding:8px 10px;background:var(--surface);border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat-value{font-family:'Playfair Display',serif;font-size:18px;color:var(--accent);line-height:1;margin-bottom:2px;}
+.stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:140px;}
+.search-wrap svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
+
+/* INPUTS */
+input[type=text],input[type=date],input[type=number],select,textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:6px 10px;transition:border-color .15s;width:100%;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+.search-wrap input{padding-left:28px;}
+select{cursor:pointer;}
+option{background:var(--surface2);}
+
+/* TABLE */
+.table-wrap{border:1px solid var(--border);border-radius:2px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:500px;}
+thead{background:var(--surface2);}
+th{text-align:left;padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface);}
+td{padding:8px 8px;color:var(--text-dim);vertical-align:middle;font-size:11px;}
+td.name{color:var(--text);font-weight:400;}
+td.mono{font-family:'IBM Plex Mono',monospace;font-size:10px;}
+.empty-row td{text-align:center;padding:32px;color:var(--text-muted);}
+
+/* PILLS */
+.pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:500;}
+.pill-active{background:rgba(82,168,82,.15);color:var(--green);}
+.pill-expired{background:rgba(224,82,82,.15);color:var(--red);}
+.pill-pending{background:rgba(200,160,64,.15);color:var(--yellow);}
+.pill-open{background:rgba(82,168,82,.15);color:var(--green);}
+.pill-closed{background:rgba(136,136,136,.1);color:var(--text-muted);}
+.pill-hold{background:rgba(200,160,64,.15);color:var(--yellow);}
+.pill-new{background:rgba(224,82,82,.15);color:var(--red);}
+.pill-review{background:rgba(200,160,64,.15);color:var(--yellow);}
+.pill-iconverted{background:rgba(82,168,82,.15);color:var(--green);}
+.pill-iclosed{background:rgba(136,136,136,.1);color:var(--text-muted);}
+.deadline-ok{color:var(--text-dim);}
+.deadline-warn{color:var(--yellow);}
+.deadline-over{color:var(--red);}
+
+/* BUTTONS */
+.btn{padding:6px 12px;border-radius:2px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;transition:all .15s;letter-spacing:.03em;}
+.btn-primary{background:var(--accent);color:#0f0f0f;}
+.btn-primary:hover{background:#d4b87e;}
+.btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:4px 8px;font-size:10px;}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);}
+
+/* ACTIONS */
+.actions{display:flex;gap:4px;}
+.icon-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:3px;border-radius:2px;transition:color .1s;font-size:13px;}
+.icon-btn:hover{color:var(--accent);}
+.icon-btn.del:hover{color:var(--red);}
+
+/* BADGE */
+.badge{font-family:'IBM Plex Mono',monospace;font-size:9px;background:var(--surface2);padding:1px 5px;border-radius:10px;color:var(--text-muted);}
+.badge.red{background:rgba(224,82,82,.15);color:var(--red);}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:2px;width:min(560px,98vw);max-height:92vh;overflow-y:auto;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Playfair Display',serif;font-size:17px;}
+.modal-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+.field-group{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+label{display:block;font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+textarea{resize:vertical;min-height:64px;}
+.form-field{display:flex;flex-direction:column;}
+
+/* UPDATE LOG */
+.update-log{display:flex;flex-direction:column;gap:6px;}
+.update-log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.update-log-header label{margin:0;}
+.update-entry{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:2px;padding:7px 10px;display:flex;gap:8px;align-items:flex-start;}
+.update-entry-body{flex:1;min-width:0;}
+.update-entry-ts{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:2px;}
+.update-entry-text{font-size:12px;color:var(--text-dim);line-height:1.5;word-break:break-word;}
+.update-add-row{display:flex;gap:6px;align-items:flex-start;}
+.update-add-row textarea{flex:1;min-height:48px;font-size:12px;}
+.update-empty{font-size:11px;color:var(--text-muted);font-style:italic;padding:6px 0;}
+
+/* INTAKE */
+.intake-form-header{background:var(--accent-dim);border-bottom:1px solid rgba(200,169,110,.2);padding:16px 20px;}
+.intake-form-header h2{font-family:'Playfair Display',serif;font-size:17px;color:var(--accent);margin-bottom:3px;}
+.intake-form-header p{font-size:11px;color:var(--text-muted);line-height:1.5;}
+.intake-form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.attach-list{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
+.attach-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:5px 8px;}
+.attach-item span{flex:1;font-family:'IBM Plex Mono',monospace;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.attach-remove{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;}
+.attach-remove:hover{color:var(--red);}
+.file-upload-area{border:1px dashed var(--border);border-radius:2px;padding:12px;text-align:center;color:var(--text-muted);font-size:11px;cursor:pointer;transition:border-color .15s;}
+.file-upload-area:hover{border-color:var(--accent);color:var(--accent);}
+.convert-btn{background:var(--accent-dim);border:1px solid rgba(200,169,110,.3);color:var(--accent);border-radius:2px;padding:4px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;white-space:nowrap;}
+.convert-btn:hover{background:var(--accent);color:#0f0f0f;}
+
+/* ICS */
+.ics-options{display:flex;flex-direction:column;gap:8px;}
+.ics-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;}
+.ics-row-info{display:flex;flex-direction:column;gap:2px;}
+.ics-row-name{font-size:12px;color:var(--text);}
+.ics-row-date{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);}
+.reminder-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--accent-dim);border:1px solid rgba(200,169,110,.2);border-radius:2px;}
+.reminder-row label{margin:0;color:var(--accent);font-size:10px;white-space:nowrap;}
+.reminder-row input{width:60px;}
+.reminder-note{font-size:11px;color:var(--text-muted);line-height:1.5;padding:8px 12px;background:var(--surface2);border-radius:2px;border:1px solid var(--border);}
+
+/* TOAST */
+#toast{position:fixed;bottom:16px;right:16px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:10px 14px;font-size:12px;border-radius:2px;opacity:0;transform:translateY(6px);transition:all .2s;pointer-events:none;z-index:999;}
+#toast.show{opacity:1;transform:translateY(0);}
+
+/* HIDDEN SIDEBAR ITEMS (JS still needs them) */
+.sidebar-item{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Contracker <span>/ Legal & Business Affairs</span></div>
+  <div id="g-auth-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"></div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" id="tab-contracts">Contracts</div>
+  <div class="tab" id="tab-matters">Legal Matters</div>
+  <div class="tab" id="tab-intake">Legal Intake</div>
+</div>
+
+<!-- ═══ CONTRACTS PANEL ═══ -->
+<div class="panel active" id="panel-contracts">
+
+  <!-- Hidden sidebar items for JS filter compatibility -->
+  <nav style="display:none">
+    <div class="sidebar-item active" data-filter="all"></div>
+    <div class="sidebar-item" data-filter="active"></div>
+    <div class="sidebar-item" data-filter="pending"></div>
+    <div class="sidebar-item" data-filter="expired/terminated"></div>
+    <div class="sidebar-item" data-filter="soon30"></div>
+    <div class="sidebar-item" data-filter="soon60"></div>
+    <div class="sidebar-item" data-filter="soon90"></div>
+    <div class="sidebar-item" data-filter="soon120"></div>
+    <div class="sidebar-item" data-filter="soon180"></div>
+    <span class="badge" id="badge-all"></span>
+    <span class="badge" id="badge-active"></span>
+    <span class="badge" id="badge-pending"></span>
+    <span class="badge red" id="badge-expired/terminated"></span>
+    <span class="badge red" id="badge-soon30"></span>
+    <span class="badge" id="badge-soon60"></span>
+    <span class="badge" id="badge-soon90"></span>
+    <span class="badge" id="badge-soon120"></span>
+    <span class="badge" id="badge-soon180"></span>
+  </nav>
+
+  <!-- Visible filter chips -->
+  <div class="filter-bar" id="cFilterBar">
+    <div class="fchip active" data-filter="all" onclick="setFilter('all',this);syncChips('cFilterBar')">All <span class="n" id="fc-all">0</span></div>
+    <div class="fchip" data-filter="active" onclick="setFilter('active',this);syncChips('cFilterBar')">Active <span class="n" id="fc-active">0</span></div>
+    <div class="fchip" data-filter="pending" onclick="setFilter('pending',this);syncChips('cFilterBar')">Pending <span class="n" id="fc-pending">0</span></div>
+    <div class="fchip" data-filter="expired/terminated" onclick="setFilter('expired/terminated',this);syncChips('cFilterBar')">Expired/Term. <span class="n" id="fc-exp">0</span></div>
+    <div class="fchip" data-filter="soon30" onclick="setFilter('soon30',this);syncChips('cFilterBar')">≤30d <span class="n" id="fc-s30">0</span></div>
+    <div class="fchip" data-filter="soon60" onclick="setFilter('soon60',this);syncChips('cFilterBar')">≤60d <span class="n" id="fc-s60">0</span></div>
+    <div class="fchip" data-filter="soon90" onclick="setFilter('soon90',this);syncChips('cFilterBar')">≤90d <span class="n" id="fc-s90">0</span></div>
+    <div class="fchip" data-filter="soon120" onclick="setFilter('soon120',this);syncChips('cFilterBar')">≤120d <span class="n" id="fc-s120">0</span></div>
+    <div class="fchip" data-filter="soon180" onclick="setFilter('soon180',this);syncChips('cFilterBar')">≤180d <span class="n" id="fc-s180">0</span></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="s-total">0</div><div class="stat-label">Total</div></div>
+    <div class="stat"><div class="stat-value" id="s-active">0</div><div class="stat-label">Active</div></div>
+    <div class="stat"><div class="stat-value" id="s-expiring">0</div><div class="stat-label">≤30d</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Search…">
+    </div>
+    <select id="divisionFilter" style="width:auto">
+      <option value="">All Divisions</option>
+      <option>Corporate</option><option>INSP</option><option>CrossRidge</option><option>Ministry</option>
+    </select>
+    <select id="departmentFilter" style="width:auto"><option value="">All Depts</option></select>
+    <select id="typeFilter" style="width:auto">
+      <option value="">All Types</option>
+      <option>Service Agreement</option><option>NDA</option><option>License Agreement</option>
+      <option>Letter Agreement</option><option>Lease</option><option>Amendment</option>
+      <option>Distribution Agr - Western Bound</option><option>Distribution Agr - INSP</option>
+      <option>Other</option>
+    </select>
+    <select id="sortSel" style="width:auto">
+      <option value="name">Name</option><option value="end">Expiration</option><option value="status">Status</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" id="btn-csv">↓ CSV</button>
+    <button class="btn btn-ghost btn-sm" id="btn-ics">📅 Outlook</button>
+    <button class="btn btn-primary btn-sm" id="btn-new">+ New Contract</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>File No.</th><th>Counterparty</th><th>Contract Name</th><th>Division</th>
+        <th>Dept</th><th>Type</th><th>Status</th><th>Assigned</th>
+        <th>Effective</th><th>Expiration</th><th>Updates</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div><!-- end #panel-contracts -->
+
+<!-- ═══ LEGAL MATTERS PANEL ═══ -->
+<div class="panel" id="panel-matters">
+
+  <nav style="display:none">
+    <div class="sidebar-item active" data-mfilter="all"></div>
+    <div class="sidebar-item" data-mfilter="open"></div>
+    <div class="sidebar-item" data-mfilter="on hold"></div>
+    <div class="sidebar-item" data-mfilter="closed"></div>
+    <div class="sidebar-item" data-mfilter="type:Litigation"></div>
+    <div class="sidebar-item" data-mfilter="type:Employment"></div>
+    <div class="sidebar-item" data-mfilter="type:IP"></div>
+    <div class="sidebar-item" data-mfilter="type:Real Estate"></div>
+    <div class="sidebar-item" data-mfilter="type:Corporate"></div>
+    <div class="sidebar-item" data-mfilter="type:Regulatory"></div>
+    <div class="sidebar-item" data-mfilter="type:Payment Dispute"></div>
+    <div class="sidebar-item" data-mfilter="type:Other"></div>
+    <span id="mbadge-all"></span><span id="mbadge-open"></span>
+    <span id="mbadge-on hold"></span><span id="mbadge-closed"></span>
+    <span id="mbadge-type:Litigation"></span><span id="mbadge-type:Employment"></span>
+    <span id="mbadge-type:IP"></span><span id="mbadge-type:Real Estate"></span>
+    <span id="mbadge-type:Corporate"></span><span id="mbadge-type:Regulatory"></span>
+    <span id="mbadge-type:Payment Dispute"></span><span id="mbadge-type:Other"></span>
+  </nav>
+
+  <div class="filter-bar" id="mFilterBar">
+    <div class="fchip active" data-mfilter="all" onclick="mSetFilter('all',this);syncChips('mFilterBar')">All</div>
+    <div class="fchip" data-mfilter="open" onclick="mSetFilter('open',this);syncChips('mFilterBar')">Open</div>
+    <div class="fchip" data-mfilter="on hold" onclick="mSetFilter('on hold',this);syncChips('mFilterBar')">On Hold</div>
+    <div class="fchip" data-mfilter="closed" onclick="mSetFilter('closed',this);syncChips('mFilterBar')">Closed</div>
+    <div class="fchip" data-mfilter="type:Litigation" onclick="mSetFilter('type:Litigation',this);syncChips('mFilterBar')">Litigation</div>
+    <div class="fchip" data-mfilter="type:Employment" onclick="mSetFilter('type:Employment',this);syncChips('mFilterBar')">Employment</div>
+    <div class="fchip" data-mfilter="type:IP" onclick="mSetFilter('type:IP',this);syncChips('mFilterBar')">IP</div>
+    <div class="fchip" data-mfilter="type:Real Estate" onclick="mSetFilter('type:Real Estate',this);syncChips('mFilterBar')">Real Estate</div>
+    <div class="fchip" data-mfilter="type:Corporate" onclick="mSetFilter('type:Corporate',this);syncChips('mFilterBar')">Corporate</div>
+    <div class="fchip" data-mfilter="type:Regulatory" onclick="mSetFilter('type:Regulatory',this);syncChips('mFilterBar')">Regulatory</div>
+    <div class="fchip" data-mfilter="type:Payment Dispute" onclick="mSetFilter('type:Payment Dispute',this);syncChips('mFilterBar')">Payment Dispute</div>
+    <div class="fchip" data-mfilter="type:Other" onclick="mSetFilter('type:Other',this);syncChips('mFilterBar')">Other</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="ms-total">0</div><div class="stat-label">Total</div></div>
+    <div class="stat"><div class="stat-value" id="ms-open">0</div><div class="stat-label">Open</div></div>
+    <div class="stat"><div class="stat-value" id="ms-hold">0</div><div class="stat-label">On Hold</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="mSearchInput" placeholder="Search…">
+    </div>
+    <select id="mDivisionFilter" style="width:auto">
+      <option value="">All Divisions</option>
+      <option>Corporate</option><option>INSP</option><option>CrossRidge</option><option>Ministry</option>
+    </select>
+    <select id="mDepartmentFilter" style="width:auto"><option value="">All Depts</option></select>
+    <select id="mTypeFilter" style="width:auto">
+      <option value="">All Types</option>
+      <option>Litigation</option><option>Employment</option><option>IP</option>
+      <option>Real Estate</option><option>Corporate</option><option>Regulatory</option>
+      <option>Payment Dispute</option><option>Other</option>
+    </select>
+    <select id="mSortSel" style="width:auto">
+      <option value="name">Name</option><option value="opened">Opened</option><option value="status">Status</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" id="btn-matters-csv">↓ CSV</button>
+    <button class="btn btn-primary btn-sm" id="btn-new-matter">+ New Matter</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Matter Name</th><th>Matter No.</th><th>Division</th><th>Dept</th>
+        <th>Type</th><th>Status</th><th>Counsel</th><th>Assigned</th>
+        <th>Opened</th><th>Closed</th><th>Updates</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="mtbody"></tbody>
+    </table>
+  </div>
+</div><!-- end #panel-matters -->
+
+<!-- ═══ LEGAL INTAKE PANEL ═══ -->
+<div class="panel" id="panel-intake">
+
+  <nav style="display:none">
+    <div class="sidebar-item active" data-ifilter="all"></div>
+    <div class="sidebar-item" data-ifilter="new"></div>
+    <div class="sidebar-item" data-ifilter="in review"></div>
+    <div class="sidebar-item" data-ifilter="converted"></div>
+    <div class="sidebar-item" data-ifilter="closed"></div>
+    <div class="sidebar-item" data-ifilter="type:Contract Review"></div>
+    <div class="sidebar-item" data-ifilter="type:Other"></div>
+    <span id="ibadge-all"></span><span id="ibadge-new"></span>
+    <span id="ibadge-in review"></span><span id="ibadge-converted"></span><span id="ibadge-closed"></span>
+    <span id="ibadge-type:Contract Review"></span><span id="ibadge-type:Other"></span>
+  </nav>
+
+  <div class="filter-bar" id="iFilterBar">
+    <div class="fchip active" data-ifilter="all" onclick="iSetFilter('all',this);syncChips('iFilterBar')">All</div>
+    <div class="fchip" data-ifilter="new" onclick="iSetFilter('new',this);syncChips('iFilterBar')">New</div>
+    <div class="fchip" data-ifilter="in review" onclick="iSetFilter('in review',this);syncChips('iFilterBar')">In Review</div>
+    <div class="fchip" data-ifilter="converted" onclick="iSetFilter('converted',this);syncChips('iFilterBar')">Converted</div>
+    <div class="fchip" data-ifilter="closed" onclick="iSetFilter('closed',this);syncChips('iFilterBar')">Closed</div>
+    <div class="fchip" data-ifilter="type:Contract Review" onclick="iSetFilter('type:Contract Review',this);syncChips('iFilterBar')">Contract Review</div>
+    <div class="fchip" data-ifilter="type:Other" onclick="iSetFilter('type:Other',this);syncChips('iFilterBar')">Other</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="is-total">0</div><div class="stat-label">Total</div></div>
+    <div class="stat"><div class="stat-value" id="is-new">0</div><div class="stat-label">New</div></div>
+    <div class="stat"><div class="stat-value" id="is-review">0</div><div class="stat-label">In Review</div></div>
+    <div class="stat"><div class="stat-value" id="is-converted">0</div><div class="stat-label">Converted</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="iSearchInput" placeholder="Search…">
+    </div>
+    <select id="iTypeFilter" style="width:auto">
+      <option value="">All Types</option>
+      <option>Contract Review</option><option>Other</option>
+    </select>
+    <select id="iSortSel" style="width:auto">
+      <option value="submitted">Newest</option><option value="needby">Need-by</option>
+      <option value="status">Status</option><option value="requestor">Requestor</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" id="btn-intake-csv">↓ CSV</button>
+    <button class="btn btn-primary btn-sm" id="btn-new-intake">+ New Request</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Submitted</th><th>Requestor</th><th>Dept</th><th>Type</th>
+        <th>Description</th><th>Need-by</th><th>Status</th><th>Assigned</th>
+        <th>Attach</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="itbody"></tbody>
+    </table>
+  </div>
+</div><!-- end #panel-intake -->
+
+<!-- INTAKE SUBMISSION MODAL (client-facing) -->
+<div class="modal-backdrop" id="intake-modal">
+  <div class="modal" style="width:600px">
+    <div class="modal-header" style="display:none">
+      <div class="modal-title" id="intake-modal-title"></div>
+      <button class="modal-close" id="btn-intake-close">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div class="intake-form-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <h2>Legal Intake Request</h2>
+          <button class="modal-close" id="btn-intake-close-2" style="font-size:20px;background:none;border:none;color:rgba(200,169,110,0.6);cursor:pointer">×</button>
+        </div>
+        <p>Complete the fields below and click Submit. A member of the Legal team will follow up with you. For urgent matters, please also contact Marsha McClurkin-Wade directly.</p>
+      </div>
+      <div class="intake-form-body">
+        <div class="field-group">
+          <div class="form-field">
+            <label>Requestor Name *</label>
+            <input type="text" id="if-requestor" placeholder="Your full name">
+          </div>
+          <div class="form-field">
+            <label>Your Department *</label>
+            <select id="if-dept">
+              <option value="">— Select —</option>
+              <optgroup label="Corporate">
+                <option>Corporate / Aviation</option>
+                <option>Corporate / Finance</option>
+                <option>Corporate / HR</option>
+                <option>Corporate / Media Ops &amp; Tech</option>
+                <option>Corporate / Other</option>
+              </optgroup>
+              <optgroup label="INSP">
+                <option>INSP / WWD</option>
+                <option>INSP / WWS</option>
+                <option>INSP / Marketing</option>
+                <option>INSP / Creative</option>
+                <option>INSP / Digital-Social</option>
+                <option>INSP / Other</option>
+              </optgroup>
+              <optgroup label="CrossRidge">
+                <option>CrossRidge / CrossRidge North</option>
+                <option>CrossRidge / CrossRidge South</option>
+                <option>CrossRidge / CRMA</option>
+                <option>CrossRidge / Other</option>
+              </optgroup>
+              <optgroup label="Ministry">
+                <option>Ministry / Ministry</option>
+                <option>Ministry / Facilities</option>
+                <option>Ministry / Security</option>
+                <option>Ministry / Other</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Type of Request *</label>
+            <select id="if-type">
+              <option value="">— Select —</option>
+              <option>Contract Review</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Need-by Date</label>
+            <input type="date" id="if-needby">
+          </div>
+        </div>
+        <div class="form-field" id="if-counterparty-wrap" style="display:none">
+          <label>Counterparty Name</label>
+          <input type="text" id="if-counterparty" placeholder="Company or individual name" autocomplete="off" list="intake-party-list">
+          <datalist id="intake-party-list"></datalist>
+        </div>
+        <div class="form-field">
+          <label>Brief Description *</label>
+          <textarea id="if-description" placeholder="Describe your request in plain language. Include relevant parties, amounts, deadlines, or context that would help Legal understand the situation." style="min-height:96px"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Attachments</label>
+          <div class="file-upload-area" id="if-dropzone">
+            Click to attach files (Word, PDF, Excel) or drag and drop here
+            <input type="file" id="if-file-input" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
+          </div>
+          <div class="attach-list" id="if-attach-list"></div>
+        </div>
+        <div class="form-field">
+          <label>OneDrive / SharePoint Link</label>
+          <input type="text" id="if-link" placeholder="Paste a OneDrive or SharePoint link to relevant documents">
+        </div>
+      </div>
+    </div>
+    <div class="intake-form-footer">
+      <button class="btn btn-ghost" id="btn-intake-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-intake-submit">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- INTAKE REVIEW MODAL (Legal-facing) -->
+<div class="modal-backdrop" id="intake-review-modal">
+  <div class="modal" style="width:620px">
+    <div class="modal-header">
+      <div class="modal-title">Review Request</div>
+      <button class="modal-close" id="btn-review-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="review-detail"></div>
+      <div class="field-group" style="margin-top:16px">
+        <div class="form-field">
+          <label>Queue Status</label>
+          <select id="rv-status">
+            <option>New</option>
+            <option>In Review</option>
+            <option>Converted</option>
+            <option>Closed</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Assign To (Attorney)</label>
+          <input type="text" id="rv-assigned" placeholder="Attorney name" autocomplete="off" list="assigned-list">
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:12px">
+        <label>Legal Notes (internal only)</label>
+        <textarea id="rv-notes" placeholder="Internal notes, triage observations…"></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        <button class="convert-btn" id="btn-convert-contract">→ Convert to Contract</button>
+        <button class="convert-btn" id="btn-convert-matter">→ Convert to Legal Matter</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-review-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-review-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="matter-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="matter-modal-title">New Legal Matter</div>
+      <button class="modal-close" id="btn-matter-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <div class="form-field">
+          <label>Matter Number</label>
+          <input type="text" id="mf-num" placeholder="e.g. LM-2026-001">
+        </div>
+        <div class="form-field">
+          <label>Status</label>
+          <select id="mf-status">
+            <option>Open</option>
+            <option>On Hold</option>
+            <option>Closed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Matter Name / Description *</label>
+        <input type="text" id="mf-name" placeholder="e.g. DeltaVision Station Dispute">
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Division</label>
+          <select id="mf-division">
+            <option value="">— Select —</option>
+            <option>Corporate</option>
+            <option>INSP</option>
+            <option>CrossRidge</option>
+            <option>Ministry</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Department</label>
+          <select id="mf-department" disabled>
+            <option value="">— Select Division first —</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Matter Type</label>
+          <select id="mf-type">
+            <option>Litigation</option>
+            <option>Employment</option>
+            <option>IP</option>
+            <option>Real Estate</option>
+            <option>Corporate</option>
+            <option>Regulatory</option>
+            <option>Payment Dispute</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Outside Counsel</label>
+          <input type="text" id="mf-counsel" placeholder="Firm / Attorney name" autocomplete="off" list="counsel-list">
+          <datalist id="counsel-list"></datalist>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Date Opened</label>
+          <input type="date" id="mf-opened">
+        </div>
+        <div class="form-field">
+          <label>Date Closed</label>
+          <input type="date" id="mf-closed">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Assigned To</label>
+          <input type="text" id="mf-assigned" placeholder="Name" autocomplete="off" list="assigned-list">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Notes</label>
+        <textarea id="mf-notes" placeholder="Key facts, contacts, strategy notes…"></textarea>
+      </div>
+      <div class="update-log" id="mf-updates-wrap">
+        <div class="update-log-header">
+          <label>Updates</label>
+        </div>
+        <div class="update-add-row">
+          <textarea id="mf-update-input" placeholder="Add a timestamped update…"></textarea>
+          <button class="btn btn-ghost btn-sm" id="btn-add-matter-update" style="white-space:nowrap;align-self:flex-end">+ Add</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <label style="margin:0;cursor:pointer;color:var(--text-muted);font-size:11px;display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:normal;font-family:'IBM Plex Sans',sans-serif">
+            <input type="file" id="mf-update-file" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
+            📎 Attach files to update
+          </label>
+          <span style="font-size:10px;color:var(--text-muted);font-style:italic">(beta: filename only)</span>
+        </div>
+        <div class="attach-list" id="mf-update-attach-list"></div>
+        <div id="mf-update-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-matter-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-matter-save">Save Matter</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTRACT MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">New Contract</div>
+      <button class="modal-close" id="btn-modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <div class="form-field">
+          <label>File Number</label>
+          <input type="text" id="f-filenum" placeholder="e.g. 2026-001">
+        </div>
+        <div class="form-field">
+          <label>Related File Numbers</label>
+          <input type="text" id="f-related" placeholder="e.g. 2026-002, 2026-003">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Contract Name *</label>
+        <input type="text" id="f-name" placeholder="e.g. DeltaVision Letter Agreement">
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Counterparty *</label>
+          <input type="text" id="f-party" placeholder="Company / Individual" autocomplete="off" list="party-list">
+          <datalist id="party-list"></datalist>
+        </div>
+        <div class="form-field">
+          <label>Division</label>
+          <select id="f-division">
+            <option value="">— Select —</option>
+            <option>Corporate</option>
+            <option>INSP</option>
+            <option>CrossRidge</option>
+            <option>Ministry</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Department</label>
+          <select id="f-department" disabled>
+            <option value="">— Select Division first —</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Status</label>
+          <select id="f-status">
+            <option>Pending</option>
+            <option>Active</option>
+            <option>Expired/Terminated</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Type</label>
+          <select id="f-type">
+            <option>Service Agreement</option>
+            <option>NDA</option>
+            <option>License Agreement</option>
+            <option>Letter Agreement</option>
+            <option>Lease</option>
+            <option>Amendment</option>
+            <option>Distribution Agr - Western Bound</option>
+            <option>Distribution Agr - INSP</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Assigned To</label>
+          <input type="text" id="f-assigned" placeholder="Name" autocomplete="off" list="assigned-list">
+          <datalist id="assigned-list"></datalist>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Effective Date</label>
+          <input type="date" id="f-start">
+        </div>
+        <div class="form-field">
+          <label>Expiration Date</label>
+          <input type="date" id="f-end">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Remind Me (days before expiry)</label>
+          <input type="number" id="f-remind" placeholder="e.g. 30, 60, 90" min="1" max="365">
+        </div>
+        <div class="form-field">
+          <label>Auto-Renewal?</label>
+          <select id="f-renewal">
+            <option value="">None</option>
+            <option value="30">30-day notice required</option>
+            <option value="60">60-day notice required</option>
+            <option value="90">90-day notice required</option>
+            <option value="custom">See notes</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Notes</label>
+        <textarea id="f-notes" placeholder="Key terms, contact info, reminders…"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Attachments</label>
+        <div class="file-upload-area" id="f-dropzone">
+          Click to attach files (Word, PDF, Excel) or drag and drop here
+          <input type="file" id="f-file-input" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
+        </div>
+        <div class="attach-list" id="f-attach-list"></div>
+      </div>
+      <div class="form-field">
+        <label>OneDrive / SharePoint Link</label>
+        <input type="text" id="f-link" placeholder="Paste a OneDrive or SharePoint link to related documents">
+      </div>
+      <div class="update-log" id="f-updates-wrap">
+        <div class="update-log-header">
+          <label>Updates</label>
+        </div>
+        <div class="update-add-row">
+          <textarea id="f-update-input" placeholder="Add a timestamped update…"></textarea>
+          <button class="btn btn-ghost btn-sm" id="btn-add-update" style="white-space:nowrap;align-self:flex-end">+ Add</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <label style="margin:0;cursor:pointer;color:var(--text-muted);font-size:11px;display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:normal;font-family:'IBM Plex Sans',sans-serif">
+            <input type="file" id="f-update-file" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
+            📎 Attach files to update
+          </label>
+          <span style="font-size:10px;color:var(--text-muted);font-style:italic">(beta: filename only)</span>
+        </div>
+        <div class="attach-list" id="f-update-attach-list"></div>
+        <div id="f-update-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-modal-save">Save Contract</button>
+    </div>
+  </div>
+</div>
+
+<!-- ICS MODAL -->
+<div class="modal-backdrop" id="ics-modal">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title">Export to Outlook Calendar</div>
+      <button class="modal-close" id="btn-ics-close">×</button>
+    </div>
+    <div class="modal-body" id="ics-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-ics-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-ics-download">↓ Download .ics File</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let contracts = [];
+let editId = null;
+let activeFilter = 'all';
+let cAttachments = [];
+
+// ── GOOGLE SHEETS CONFIG ──────────────────────────────────────────────────────
+// PASTE YOUR VALUES HERE after completing the setup guide:
+const GSHEETS_CLIENT_ID   = '532999432935-989rf9dnesh1cbctfgthd01lb00dg7r5.apps.googleusercontent.com';      // from Google Cloud Console
+const GSHEETS_SPREADSHEET_ID = '1yfXfu_yRgHDPdZGWJf2VNgTdmK_GFIJCT7mqmIcHi8I'; // from your Google Sheet URL
+const GSHEETS_SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+
+let gToken = null;        // OAuth access token
+let gSyncing = false;     // prevent concurrent syncs
+
+// Sheet tab names — must match exactly in your Google Sheet
+const SHEET_CONTRACTS = 'Contracts';
+const SHEET_MATTERS   = 'Legal Matters';
+const SHEET_INTAKE    = 'Legal Intake';
+
+// Column headers for each sheet (order matters — matches row serialization below)
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','notes','link','attachments','updates','value'];
+const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates'];
+const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes'];
+
+// ── GOOGLE AUTH ───────────────────────────────────────────────────────────────
+function gSignIn() {
+  if (!GSHEETS_CLIENT_ID || !GSHEETS_SPREADSHEET_ID ||
+      GSHEETS_CLIENT_ID === 'YOUR_CLIENT_ID_HERE' ||
+      GSHEETS_SPREADSHEET_ID === 'YOUR_SPREADSHEET_ID_HERE') {
+    toast('Please add your Client ID to the app first — see setup guide.');
+    return;
+  }
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(GSHEETS_CLIENT_ID)}` +
+    `&redirect_uri=${encodeURIComponent(window.location.href.split('?')[0])}` +
+    `&response_type=token` +
+    `&scope=${encodeURIComponent(GSHEETS_SCOPES)}` +
+    `&prompt=select_account`;
+  window.location.href = authUrl;
+}
+
+function gSignOut() {
+  gToken = null;
+  sessionStorage.removeItem('g_token');
+  sessionStorage.removeItem('g_token_exp');
+  updateAuthUI(false);
+  toast('Signed out.');
+}
+
+function gCheckToken() {
+  // Check URL hash for token (OAuth implicit flow callback)
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.slice(1));
+    gToken = params.get('access_token');
+    const expiresIn = parseInt(params.get('expires_in') || '3600');
+    sessionStorage.setItem('g_token', gToken);
+    sessionStorage.setItem('g_token_exp', Date.now() + expiresIn * 1000);
+    window.history.replaceState(null, '', window.location.pathname);
+    updateAuthUI(true);
+    toast('Signed in to Google — loading your data…');
+    gLoadAll();
+    return true;
+  }
+  // Restore from session
+  const saved = sessionStorage.getItem('g_token');
+  const exp   = parseInt(sessionStorage.getItem('g_token_exp') || '0');
+  if (saved && Date.now() < exp) {
+    gToken = saved;
+    updateAuthUI(true);
+    gLoadAll();
+    return true;
+  }
+  updateAuthUI(false);
+  return false;
+}
+
+function updateAuthUI(signedIn) {
+  const bar = document.getElementById('g-auth-bar');
+  if (!bar) return;
+  if (signedIn) {
+    bar.innerHTML = `<span style="color:var(--green);font-size:11px">● Connected to Google Sheets</span>
+      <button class="btn btn-ghost btn-sm" onclick="gLoadAll()">↺ Sync</button>
+      <button class="btn btn-ghost btn-sm" onclick="gSignOut()">Sign Out</button>`;
+  } else {
+    bar.innerHTML = `<span style="color:var(--text-muted);font-size:11px">Not connected</span>
+      <button class="btn btn-primary btn-sm" onclick="gSignIn()">🔗 Sign in with Google</button>`;
+  }
+}
+
+function gSetSyncing(on) {
+  gSyncing = on;
+  const bar = document.getElementById('g-auth-bar');
+  if (!bar) return;
+  const syncEl = bar.querySelector('.g-sync-status');
+  if (on) {
+    if (!syncEl) {
+      const s = document.createElement('span');
+      s.className = 'g-sync-status';
+      s.style.cssText = 'font-size:10px;color:var(--text-muted);font-style:italic;margin-left:6px';
+      s.textContent = 'saving…';
+      bar.appendChild(s);
+    }
+  } else {
+    if (syncEl) syncEl.remove();
+  }
+}
+
+// ── SHEETS API HELPERS ────────────────────────────────────────────────────────
+async function gRequest(method, url, body) {
+  if (!gToken) return null;
+  try {
+    const opts = {
+      method,
+      headers: { 'Authorization': `Bearer ${gToken}`, 'Content-Type': 'application/json' }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(url, opts);
+    if (res.status === 401) { gSignOut(); toast('Google session expired — please sign in again.'); return null; }
+    return res.ok ? res.json() : null;
+  } catch(e) { console.error('Sheets API error:', e); return null; }
+}
+
+async function gEnsureSheet(sheetName, headers) {
+  // Check sheet exists; create if not
+  const meta = await gRequest('GET',
+    `https://sheets.googleapis.com/v4/spreadsheets/${GSHEETS_SPREADSHEET_ID}?fields=sheets.properties.title`);
+  if (!meta) return;
+  const exists = meta.sheets?.some(s => s.properties.title === sheetName);
+  if (!exists) {
+    await gRequest('POST',
+      `https://sheets.googleapis.com/v4/spreadsheets/${GSHEETS_SPREADSHEET_ID}:batchUpdate`,
+      { requests: [{ addSheet: { properties: { title: sheetName } } }] });
+    // Write headers
+    await gRequest('PUT',
+      `https://sheets.googleapis.com/v4/spreadsheets/${GSHEETS_SPREADSHEET_ID}/values/${encodeURIComponent(sheetName+'!A1')}?valueInputOption=RAW`,
+      { values: [headers] });
+  }
+}
+
+async function gWriteSheet(sheetName, headers, rows) {
+  const values = [headers, ...rows];
+  await gRequest('PUT',
+    `https://sheets.googleapis.com/v4/spreadsheets/${GSHEETS_SPREADSHEET_ID}/values/${encodeURIComponent(sheetName+'!A1')}?valueInputOption=RAW`,
+    { values });
+}
+
+async function gReadSheet(sheetName) {
+  const res = await gRequest('GET',
+    `https://sheets.googleapis.com/v4/spreadsheets/${GSHEETS_SPREADSHEET_ID}/values/${encodeURIComponent(sheetName+'!A1:ZZ')}`);
+  return res?.values || [];
+}
+
+// Serialize / deserialize complex fields
+function jsonCell(v) { try { return JSON.stringify(v); } catch(e) { return ''; } }
+function parseCell(v) { try { return v ? JSON.parse(v) : null; } catch(e) { return null; } }
+
+function contractToRow(c) {
+  return [c.id,c.filenum,c.related,c.name,c.party,c.division,c.department,c.type,c.status,c.assigned,
+    c.start,c.end,c.remind,c.renewal,c.notes,c.link,jsonCell(c.attachments),jsonCell(c.updates),c.value||''];
+}
+function rowToContract(row, headers) {
+  const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
+  o.attachments = parseCell(o.attachments) || [];
+  o.updates     = parseCell(o.updates)     || [];
+  return o;
+}
+function matterToRow(m) {
+  return [m.id,m.num,m.name,m.division,m.department,m.type,m.status,m.counsel,m.assigned,
+    m.opened,m.closed,m.notes,jsonCell(m.updates)];
+}
+function rowToMatter(row, headers) {
+  const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
+  o.updates = parseCell(o.updates) || [];
+  return o;
+}
+function intakeToRow(r) {
+  return [r.id,r.submitted,r.requestor,r.dept,r.type,r.counterparty,r.needby,r.description,
+    r.link,jsonCell(r.attachments),r.status,r.assigned,r.legalNotes];
+}
+function rowToIntake(row, headers) {
+  const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
+  o.submitted   = parseInt(o.submitted) || Date.now();
+  o.attachments = parseCell(o.attachments) || [];
+  return o;
+}
+
+// ── LOAD & SAVE ───────────────────────────────────────────────────────────────
+async function gLoadAll() {
+  if (!gToken) return;
+  gSetSyncing(true);
+  try {
+    await Promise.all([
+      gEnsureSheet(SHEET_CONTRACTS, HEADERS_CONTRACTS),
+      gEnsureSheet(SHEET_MATTERS,   HEADERS_MATTERS),
+      gEnsureSheet(SHEET_INTAKE,    HEADERS_INTAKE),
+    ]);
+    const [cRows, mRows, iRows] = await Promise.all([
+      gReadSheet(SHEET_CONTRACTS),
+      gReadSheet(SHEET_MATTERS),
+      gReadSheet(SHEET_INTAKE),
+    ]);
+    // Skip header row [0], parse data rows
+    contracts      = (cRows.slice(1)||[]).filter(r=>r[0]).map(r=>rowToContract(r, HEADERS_CONTRACTS));
+    matters        = (mRows.slice(1)||[]).filter(r=>r[0]).map(r=>rowToMatter(r,   HEADERS_MATTERS));
+    intakeRequests = (iRows.slice(1)||[]).filter(r=>r[0]).map(r=>rowToIntake(r,   HEADERS_INTAKE));
+    render(); renderMatters(); renderIntake();
+    refreshPartyList(); refreshAssignedList(); refreshCounselList(); refreshIntakePartyList();
+    toast('Data loaded from Google Sheets.');
+  } catch(e) { console.error(e); toast('Error loading data.'); }
+  finally { gSetSyncing(false); }
+}
+
+async function gSaveContracts() {
+  if (!gToken) return;
+  gSetSyncing(true);
+  await gWriteSheet(SHEET_CONTRACTS, HEADERS_CONTRACTS, contracts.map(contractToRow));
+  gSetSyncing(false);
+}
+async function gSaveMatters() {
+  if (!gToken) return;
+  gSetSyncing(true);
+  await gWriteSheet(SHEET_MATTERS, HEADERS_MATTERS, matters.map(matterToRow));
+  gSetSyncing(false);
+}
+async function gSaveIntake() {
+  if (!gToken) return;
+  gSetSyncing(true);
+  await gWriteSheet(SHEET_INTAKE, HEADERS_INTAKE, intakeRequests.map(intakeToRow));
+  gSetSyncing(false);
+}
+
+// Override the stub save functions
+function save()  { gSaveContracts(); }
+function mSave() { gSaveMatters(); }
+function iSave() { gSaveIntake(); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function renderCAttachList() {
+  const el = document.getElementById('f-attach-list');
+  if (!el) return;
+  el.innerHTML = cAttachments.map((a,i) =>
+    `<div class="attach-item">
+      <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
+      <button class="attach-remove" data-ci="${i}">✕</button>
+    </div>`
+  ).join('');
+  el.querySelectorAll('.attach-remove').forEach(btn =>
+    btn.addEventListener('click', () => { cAttachments.splice(parseInt(btn.dataset.ci),1); renderCAttachList(); }));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function filtered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const type = document.getElementById('typeFilter').value;
+  const division = document.getElementById('divisionFilter').value;
+  const department = document.getElementById('departmentFilter').value;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d30  = new Date(today); d30.setDate(d30.getDate()+30);
+  const d60  = new Date(today); d60.setDate(d60.getDate()+60);
+  const d90  = new Date(today); d90.setDate(d90.getDate()+90);
+  const d120 = new Date(today); d120.setDate(d120.getDate()+120);
+  const d180 = new Date(today); d180.setDate(d180.getDate()+180);
+
+  const soonMap = { soon30:d30, soon60:d60, soon90:d90, soon120:d120, soon180:d180 };
+
+  return contracts.filter(c => {
+    const end = c.end ? new Date(c.end) : null;
+    if (soonMap[activeFilter]) {
+      if (!end || end < today || end > soonMap[activeFilter]) return false;
+    } else if (activeFilter !== 'all') {
+      if (c.status.toLowerCase() !== activeFilter) return false;
+    }
+    if (type && c.type !== type) return false;
+    if (division && c.division !== division) return false;
+    if (department && c.department !== department) return false;
+    if (q && !`${c.name} ${c.party} ${c.filenum} ${c.related} ${c.assigned} ${c.division} ${c.department} ${c.notes} ${c.type}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function deadlineClass(end) {
+  if (!end) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(end);
+  const diff = Math.ceil((d - today) / 86400000);
+  if (diff < 0) return 'deadline-over';
+  if (diff <= 30) return 'deadline-warn';
+  return 'deadline-ok';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  return `${m}/${day}/${y}`;
+}
+function statusPill(s) {
+  const map = { active:'pill-active', 'expired/terminated':'pill-expired', pending:'pill-pending' };
+  return `<span class="pill ${map[s.toLowerCase()]||''}">${s}</span>`;
+}
+
+function render() {
+  updateBadges();
+  updateStats();
+  const sort = document.getElementById('sortSel').value;
+  let rows = filtered();
+  rows.sort((a,b) => {
+    if (sort==='end') return (a.end||'9999') < (b.end||'9999') ? -1 : 1;
+    if (sort==='status') return a.status.localeCompare(b.status);
+    return a.name.localeCompare(b.name);
+  });
+
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="12">No contracts found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(c => `
+    <tr data-id="${c.id}" class="contract-row">
+      <td class="mono">${c.filenum || '—'}</td>
+      <td>${c.party}</td>
+      <td class="name">${c.name}</td>
+      <td>${c.division || '—'}</td>
+      <td>${c.department || '—'}</td>
+      <td class="mono">${c.type}</td>
+      <td>${statusPill(c.status)}</td>
+      <td>${c.assigned || '—'}</td>
+      <td class="mono">${fmtDate(c.start)}</td>
+      <td class="mono ${deadlineClass(c.end)}">${fmtDate(c.end)}</td>
+      <td class="mono" style="color:var(--text-muted)">${(c.updates||[]).length || '—'}</td>
+      <td class="actions-cell">
+        <div class="actions">
+          <button class="icon-btn btn-edit" data-id="${c.id}" title="Edit">✎</button>
+          ${c.end ? `<button class="icon-btn btn-ics-single" data-id="${c.id}" title="Export to Outlook">📅</button>` : ''}
+          <button class="icon-btn del btn-delete" data-id="${c.id}" title="Delete">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Attach row-level listeners after innerHTML is set
+  tbody.querySelectorAll('.contract-row').forEach(row => {
+    row.addEventListener('click', e => {
+      if (!e.target.closest('.actions-cell')) openModal(row.dataset.id);
+    });
+  });
+  tbody.querySelectorAll('.btn-edit').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(btn.dataset.id); }));
+  tbody.querySelectorAll('.btn-ics-single').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); exportSingleICS(btn.dataset.id); }));
+  tbody.querySelectorAll('.btn-delete').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); deleteContract(btn.dataset.id); }));
+}
+
+function updateBadges() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d30  = new Date(today); d30.setDate(d30.getDate()+30);
+  const d60  = new Date(today); d60.setDate(d60.getDate()+60);
+  const d90  = new Date(today); d90.setDate(d90.getDate()+90);
+  const d120 = new Date(today); d120.setDate(d120.getDate()+120);
+  const d180 = new Date(today); d180.setDate(d180.getDate()+180);
+  const counts = { all:0, active:0, pending:0, 'expired/terminated':0, soon30:0, soon60:0, soon90:0, soon120:0, soon180:0 };
+  contracts.forEach(c => {
+    counts.all++;
+    const s = c.status.toLowerCase();
+    if (counts[s] !== undefined) counts[s]++;
+    const end = c.end ? new Date(c.end) : null;
+    if (end && end >= today) {
+      if (end <= d30)  counts.soon30++;
+      if (end <= d60)  counts.soon60++;
+      if (end <= d90)  counts.soon90++;
+      if (end <= d120) counts.soon120++;
+      if (end <= d180) counts.soon180++;
+    }
+  });
+  Object.keys(counts).forEach(k => {
+    const el = document.getElementById('badge-'+k);
+    if (el) el.textContent = counts[k];
+  });
+}
+
+function updateStats() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d30 = new Date(today); d30.setDate(d30.getDate()+30);
+  document.getElementById('s-total').textContent = contracts.length;
+  document.getElementById('s-active').textContent = contracts.filter(c=>c.status==='Active').length;
+  document.getElementById('s-expiring').textContent = contracts.filter(c=>{
+    const e = c.end ? new Date(c.end):null;
+    return e && e>=today && e<=d30;
+  }).length;
+}
+
+function refreshIntakePartyList() {
+  // Pull from both contracts (c.party) and past intake requests (if-counterparty)
+  const names = [...new Set([
+    ...contracts.map(c => c.party),
+    ...intakeRequests.map(r => r.counterparty)
+  ].filter(Boolean))].sort();
+  const dl = document.getElementById('intake-party-list');
+  if (dl) dl.innerHTML = names.map(n => `<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+}
+
+// ── COUNTERPARTY AUTOCOMPLETE ─────────────────────────────────────────────────
+function refreshPartyList() {
+  const names = [...new Set(contracts.map(c => c.party).filter(Boolean))].sort();
+  const dl = document.getElementById('party-list');
+  dl.innerHTML = names.map(n => `<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+}
+
+function refreshAssignedList() {
+  const names = [...new Set([
+    ...contracts.map(c => c.assigned),
+    ...matters.map(m => m.assigned)
+  ].filter(Boolean))].sort();
+  const dl = document.getElementById('assigned-list');
+  if (dl) dl.innerHTML = names.map(n => `<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+}
+
+// ── DEPARTMENTS ───────────────────────────────────────────────────────────────
+const DEPT_MAP = {
+  'Corporate':  ['Aviation','Finance','HR','Media Ops & Tech','Other'],
+  'INSP':       ['WWD','WWS','Marketing','Creative','Digital-Social','Other'],
+  'CrossRidge': ['CrossRidge North','CrossRidge South','CRMA','Other'],
+  'Ministry':   ['Ministry','Facilities','Security','Other'],
+};
+
+function updateDepartments(selectVal) {
+  const div = document.getElementById('f-division').value;
+  const sel = document.getElementById('f-department');
+  const depts = DEPT_MAP[div] || [];
+  if (!depts.length) {
+    sel.innerHTML = '<option value="">— Select Division first —</option>';
+    sel.disabled = true;
+  } else {
+    sel.innerHTML = '<option value="">— Select —</option>' +
+      depts.map(d => `<option${d === selectVal ? ' selected' : ''}>${d}</option>`).join('');
+    sel.disabled = false;
+    if (selectVal && depts.includes(selectVal)) sel.value = selectVal;
+  }
+}
+
+function updateDeptFilter() {
+  const div = document.getElementById('divisionFilter').value;
+  const sel = document.getElementById('departmentFilter');
+  const depts = DEPT_MAP[div] || [];
+  sel.innerHTML = '<option value="">All Departments</option>' +
+    depts.map(d => `<option>${d}</option>`).join('');
+  sel.disabled = !depts.length;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(id) {
+  editId = id || null;
+  const c = id ? contracts.find(x=>x.id===id) : null;
+  document.getElementById('modal-title').textContent = c ? 'Edit Contract' : 'New Contract';
+  document.getElementById('f-name').value = c?.name || '';
+  document.getElementById('f-party').value = c?.party || '';
+  document.getElementById('f-division').value = c?.division || '';
+  updateDepartments(c?.department);
+  document.getElementById('f-type').value = c?.type || 'Service Agreement';
+  document.getElementById('f-status').value = c?.status || 'Active';
+  document.getElementById('f-filenum').value = c?.filenum || '';
+  document.getElementById('f-related').value = c?.related || '';
+  document.getElementById('f-assigned').value = c?.assigned || '';
+  document.getElementById('f-start').value = c?.start || '';
+  document.getElementById('f-end').value = c?.end || '';
+  document.getElementById('f-remind').value = c?.remind || '';
+  document.getElementById('f-renewal').value = c?.renewal || '';
+  document.getElementById('f-notes').value = c?.notes || '';
+  document.getElementById('f-link').value = c?.link || '';
+  cAttachments = c?.attachments ? [...c.attachments] : [];
+  renderCAttachList();
+  renderUpdateLog('f-update-list', c?.updates || []);
+  document.getElementById('f-update-input').value = '';
+  cUpdateAttachments = [];
+  renderUpdateAttachPending('f-update-attach-list', cUpdateAttachments);
+  const fi = document.getElementById('f-file-input');
+  if (fi) fi.value = '';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('f-name').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editId = null;
+}
+
+function saveContract() {
+  const name = document.getElementById('f-name').value.trim();
+  const party = document.getElementById('f-party').value.trim();
+  if (!name || !party) { toast('Name and counterparty are required.'); return; }
+  const data = {
+    id: editId || uid(),
+    name, party,
+    division: document.getElementById('f-division').value,
+    department: document.getElementById('f-department').value,
+    type: document.getElementById('f-type').value,
+    status: document.getElementById('f-status').value,
+    filenum: document.getElementById('f-filenum').value.trim(),
+    related: document.getElementById('f-related').value.trim(),
+    assigned: document.getElementById('f-assigned').value.trim(),
+    start: document.getElementById('f-start').value,
+    end: document.getElementById('f-end').value,
+    remind: document.getElementById('f-remind').value,
+    renewal: document.getElementById('f-renewal').value,
+    notes: document.getElementById('f-notes').value.trim(),
+    link: document.getElementById('f-link').value.trim(),
+    attachments: [...cAttachments],
+    updates: editId ? (contracts.find(x=>x.id===editId)?.updates || []) : [],
+  };
+  if (editId) {
+    const i = contracts.findIndex(c=>c.id===editId);
+    contracts[i] = data;
+    toast('Contract updated.');
+  } else {
+    contracts.push(data);
+    toast('Contract added.');
+  }
+  save(); closeModal(); render(); refreshPartyList(); refreshAssignedList();
+}
+
+function deleteContract(id) {
+  if (!confirm('Delete this contract?')) return;
+  contracts = contracts.filter(c=>c.id!==id);
+  save(); toast('Deleted.'); render();
+}
+
+// ── ICS EXPORT ────────────────────────────────────────────────────────────────
+function icsDate(dateStr) {
+  // Returns YYYYMMDD for all-day events
+  return dateStr.replace(/-/g,'');
+}
+
+function icsEscape(s) {
+  return (s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+
+function buildICSEvent(c, reminderDays) {
+  if (!c.end) return null;
+  const uid = `contract-${c.id}@contractdesk`;
+  const dtstart = icsDate(c.end);
+  // Next day for DTEND on all-day events
+  const endDate = new Date(c.end + 'T00:00:00');
+  endDate.setDate(endDate.getDate()+1);
+  const dtend = endDate.toISOString().slice(0,10).replace(/-/g,'');
+
+  const remind = reminderDays || c.remind || 30;
+  const renewalNote = c.renewal ? ` | Auto-renewal: ${c.renewal}-day cancellation notice required.` : '';
+  const description = icsEscape(`Contract: ${c.name}\nCounterparty: ${c.party}\nType: ${c.type}\nStatus: ${c.status}${renewalNote}${c.notes ? '\n\nNotes: '+c.notes : ''}`);
+
+  const summary = c.renewal
+    ? `⚠️ AUTO-RENEWAL: ${c.name} — ${c.renewal}-day notice deadline`
+    : `📋 CONTRACT EXPIRES: ${c.name}`;
+
+  let alarmBlock = '';
+  if (remind) {
+    alarmBlock = `BEGIN:VALARM\r\nTRIGGER:-P${remind}D\r\nACTION:DISPLAY\r\nDESCRIPTION:Reminder: ${icsEscape(c.name)} expires in ${remind} days\r\nEND:VALARM\r\n`;
+    // If auto-renewal, add a second alarm at the notice deadline
+    if (c.renewal) {
+      alarmBlock += `BEGIN:VALARM\r\nTRIGGER:-P${c.renewal}D\r\nACTION:DISPLAY\r\nDESCRIPTION:AUTO-RENEWAL NOTICE DEADLINE: ${icsEscape(c.name)} — send cancellation today if not renewing\r\nEND:VALARM\r\n`;
+    }
+  }
+
+  return `BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTART;VALUE=DATE:${dtstart}\r\nDTEND;VALUE=DATE:${dtend}\r\nSUMMARY:${icsEscape(summary)}\r\nDESCRIPTION:${description}\r\n${alarmBlock}END:VEVENT`;
+}
+
+function buildICS(contractList, reminderDays) {
+  const events = contractList
+    .filter(c => c.end)
+    .map(c => buildICSEvent(c, reminderDays))
+    .filter(Boolean)
+    .join('\r\n');
+
+  return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Contracker//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:Contract Deadlines\r\nX-WR-CALDESC:Contract expiry and renewal reminders\r\n${events}\r\nEND:VCALENDAR`;
+}
+
+function downloadICSBlob(icsContent, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([icsContent], {type:'text/calendar;charset=utf-8'}));
+  a.download = filename;
+  a.click();
+}
+
+// Single-contract ICS (from table row)
+function exportSingleICS(id) {
+  const c = contracts.find(x=>x.id===id);
+  if (!c || !c.end) { toast('No expiry date set on this contract.'); return; }
+  const ics = buildICS([c], c.remind || 30);
+  downloadICSBlob(ics, `${c.name.replace(/[^a-z0-9]/gi,'_')}.ics`);
+  toast('Calendar event downloaded — open to add to Outlook.');
+}
+
+// Bulk ICS modal
+let _icsReminderDays = 30;
+function openICSModal() {
+  const withDates = contracts.filter(c=>c.end);
+  if (!withDates.length) { toast('No contracts have expiry dates set.'); return; }
+  _icsReminderDays = 30;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const rows = withDates
+    .sort((a,b)=>a.end<b.end?-1:1)
+    .map(c => {
+      const d = new Date(c.end+'T00:00:00');
+      const diff = Math.ceil((d-today)/86400000);
+      const diffLabel = diff < 0 ? `<span style="color:var(--red)">${Math.abs(diff)}d overdue</span>`
+        : diff <= 30 ? `<span style="color:var(--yellow)">${diff}d away</span>`
+        : `<span style="color:var(--text-muted)">${diff}d away</span>`;
+      const renewBadge = c.renewal ? `<span class="pill pill-pending" style="font-size:10px;margin-left:6px">↺ auto-renew</span>` : '';
+      return `<div class="ics-row">
+        <div class="ics-row-info">
+          <div class="ics-row-name">${c.name}${renewBadge}</div>
+          <div class="ics-row-date">Expires ${c.end} &nbsp;·&nbsp; ${diffLabel}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="exportSingleICS('${c.id}');closeICSModal()">↓ Single</button>
+      </div>`;
+    }).join('');
+
+  document.getElementById('ics-body').innerHTML = `
+    <div class="reminder-row">
+      <label>Default reminder (days before expiry):</label>
+      <input type="number" value="30" min="1" max="365" style="width:70px" oninput="_icsReminderDays=parseInt(this.value)||30">
+    </div>
+    <div class="ics-options">${rows}</div>
+    <div class="reminder-note">
+      ℹ️ The downloaded <strong>.ics</strong> file contains all contracts with expiry dates. Double-click it to import into Outlook — each contract becomes a calendar event with a pop-up reminder at the specified number of days before expiry. Contracts marked with auto-renewal get a <em>second</em> reminder at the cancellation notice deadline.
+    </div>
+  `;
+  document.getElementById('ics-modal').classList.add('open');
+}
+
+function closeICSModal() {
+  document.getElementById('ics-modal').classList.remove('open');
+}
+
+function downloadICS() {
+  const withDates = contracts.filter(c=>c.end);
+  const ics = buildICS(withDates, _icsReminderDays);
+  downloadICSBlob(ics, `contract_deadlines_${new Date().toISOString().slice(0,10)}.ics`);
+  toast('Calendar file downloaded — open to import into Outlook.');
+  closeICSModal();
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const cols = ['File No.','Name','Counterparty','Division','Department','Type','Status','Effective','Expires','Notes'];
+  const rows = contracts.map(c=>[c.filenum,c.name,c.party,c.division,c.department,c.type,c.status,c.start,c.end,c.notes]
+    .map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(','));
+  const csv = [cols.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `contracts_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('Exported to CSV.');
+}
+
+// ── SEED DATA ─────────────────────────────────────────────────────────────────
+if (!contracts.length) {
+  contracts = [
+    { id:uid(), name:'DeltaVision Fox Fee Letter Agreement', party:'DeltaVision', type:'Letter Agreement', status:'Active', value:'1170000', start:'2025-08-14', end:'2026-08-14', notes:'Fox affiliate fee reimbursement. ~$1.17M claim. Outside counsel: Bert Braverman / DWT.' },
+    { id:uid(), name:'Rincon True-Up Agreement', party:'Rincon', type:'Service Agreement', status:'Active', value:'2600000', start:'2024-06-01', end:'2026-06-01', notes:'~$2.6M true-up payments. Bancorp auto-lease assignment still on Imagicomm books.' },
+    { id:uid(), name:'Marquee Tower Site Use Agreement', party:'Marquee', type:'Other', status:'Active', value:'', start:'2024-01-01', end:'2026-12-31', notes:'Tower site access issues. Ongoing.' },
+    { id:uid(), name:'INSP Shared Services Agreement', party:'INSP, LLC', type:'Service Agreement', status:'Active', value:'', start:'2025-01-01', end:'2026-12-31', notes:'~$100k+/mo. Termination: 30-day general / 5-day for indemnification failure.' },
+    { id:uid(), name:'Bombardier Challenger 604 Dry Lease (N29CU)', party:'INC / Imagicomm Enterprises', type:'Lease', status:'Active', value:'', start:'2024-03-01', end:'2026-03-01', notes:'Dry lease agreement for N29CU between Imagicomm Enterprises and INC.' },
+    { id:uid(), name:'StreamTV Show Europe Sponsorship', party:'Questex', type:'Other', status:'Expired/Terminated', value:'3000', start:'2025-09-01', end:'2026-05-01', notes:'€3,000. Lisbon conference. INSP sponsorship.' },
+  ];
+  save();
+}
+
+render();
+refreshPartyList();
+
+// ── LEGAL MATTERS DATA & LOGIC ────────────────────────────────────────────────
+let matters = [];
+let mEditId = null;
+let mActiveFilter = 'all';
+
+function mSave() { /* in-memory only for beta */ }
+
+function mFilteredMatters() {
+  const q = document.getElementById('mSearchInput').value.toLowerCase();
+  const div = document.getElementById('mDivisionFilter').value;
+  const dept = document.getElementById('mDepartmentFilter').value;
+  const type = document.getElementById('mTypeFilter').value;
+
+  return matters.filter(m => {
+    if (mActiveFilter === 'all') { /* no status filter */ }
+    else if (mActiveFilter.startsWith('type:')) {
+      if (m.type !== mActiveFilter.slice(5)) return false;
+    } else {
+      if (m.status.toLowerCase() !== mActiveFilter) return false;
+    }
+    if (div && m.division !== div) return false;
+    if (dept && m.department !== dept) return false;
+    if (type && m.type !== type) return false;
+    if (q && !`${m.name} ${m.num} ${m.counsel} ${m.assigned} ${m.division} ${m.department} ${m.type} ${m.notes}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function mStatusPill(s) {
+  const map = { 'open':'pill-open', 'on hold':'pill-hold', 'closed':'pill-closed' };
+  return `<span class="pill ${map[s.toLowerCase()]||''}">${s}</span>`;
+}
+
+function renderMatters() {
+  mUpdateBadges();
+  mUpdateStats();
+  const sort = document.getElementById('mSortSel').value;
+  let rows = mFilteredMatters();
+  rows.sort((a,b) => {
+    if (sort==='opened') return (a.opened||'9999') < (b.opened||'9999') ? -1 : 1;
+    if (sort==='status') return a.status.localeCompare(b.status);
+    if (sort==='type') return a.type.localeCompare(b.type);
+    return a.name.localeCompare(b.name);
+  });
+
+  const tbody = document.getElementById('mtbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="12">No matters found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(m => `
+    <tr data-mid="${m.id}" class="matter-row">
+      <td class="name">${m.name}</td>
+      <td class="mono">${m.num || '—'}</td>
+      <td>${m.division || '—'}</td>
+      <td>${m.department || '—'}</td>
+      <td class="mono">${m.type}</td>
+      <td>${mStatusPill(m.status)}</td>
+      <td>${m.counsel || '—'}</td>
+      <td>${m.assigned || '—'}</td>
+      <td class="mono">${fmtDate(m.opened)}</td>
+      <td class="mono">${fmtDate(m.closed)}</td>
+      <td class="mono" style="color:var(--text-muted)">${(m.updates||[]).length || '—'}</td>
+      <td class="actions-cell">
+        <div class="actions">
+          <button class="icon-btn mbtn-edit" data-mid="${m.id}" title="Edit">✎</button>
+          <button class="icon-btn del mbtn-delete" data-mid="${m.id}" title="Delete">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('.matter-row').forEach(row => {
+    row.addEventListener('click', e => {
+      if (!e.target.closest('.actions-cell')) openMatterModal(row.dataset.mid);
+    });
+  });
+  tbody.querySelectorAll('.mbtn-edit').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); openMatterModal(btn.dataset.mid); }));
+  tbody.querySelectorAll('.mbtn-delete').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); deleteMatter(btn.dataset.mid); }));
+}
+
+function mUpdateBadges() {
+  const counts = { all:0, open:0, 'on hold':0, closed:0,
+    'type:Litigation':0,'type:Employment':0,'type:IP':0,
+    'type:Real Estate':0,'type:Corporate':0,'type:Regulatory':0,'type:Payment Dispute':0,'type:Other':0 };
+  matters.forEach(m => {
+    counts.all++;
+    const s = m.status.toLowerCase();
+    if (counts[s] !== undefined) counts[s]++;
+    const tk = 'type:'+m.type;
+    if (counts[tk] !== undefined) counts[tk]++;
+  });
+  Object.keys(counts).forEach(k => {
+    const el = document.getElementById('mbadge-'+k);
+    if (el) el.textContent = counts[k];
+  });
+}
+
+function mUpdateStats() {
+  document.getElementById('ms-total').textContent = matters.length;
+  document.getElementById('ms-open').textContent = matters.filter(m=>m.status==='Open').length;
+  document.getElementById('ms-hold').textContent = matters.filter(m=>m.status==='On Hold').length;
+}
+
+function mSetFilter(f, el) {
+  mActiveFilter = f;
+  document.querySelectorAll('#panel-matters .sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  renderMatters();
+}
+
+function openMatterModal(id) {
+  mEditId = id || null;
+  const m = id ? matters.find(x=>x.id===id) : null;
+  document.getElementById('matter-modal-title').textContent = m ? 'Edit Legal Matter' : 'New Legal Matter';
+  document.getElementById('mf-num').value = m?.num || '';
+  document.getElementById('mf-name').value = m?.name || '';
+  document.getElementById('mf-division').value = m?.division || '';
+  updateMatterDepartments(m?.department);
+  document.getElementById('mf-type').value = m?.type || 'Litigation';
+  document.getElementById('mf-status').value = m?.status || 'Open';
+  document.getElementById('mf-counsel').value = m?.counsel || '';
+  document.getElementById('mf-opened').value = m?.opened || '';
+  document.getElementById('mf-closed').value = m?.closed || '';
+  document.getElementById('mf-assigned').value = m?.assigned || '';
+  document.getElementById('mf-notes').value = m?.notes || '';
+  renderUpdateLog('mf-update-list', m?.updates || []);
+  document.getElementById('mf-update-input').value = '';
+  mUpdateAttachments = [];
+  renderUpdateAttachPending('mf-update-attach-list', mUpdateAttachments);
+  document.getElementById('matter-modal').classList.add('open');
+  setTimeout(() => document.getElementById('mf-name').focus(), 100);
+}
+
+function closeMatterModal() {
+  document.getElementById('matter-modal').classList.remove('open');
+  mEditId = null;
+}
+
+function saveMatter() {
+  const name = document.getElementById('mf-name').value.trim();
+  if (!name) { toast('Matter name is required.'); return; }
+  const data = {
+    id: mEditId || uid(),
+    num: document.getElementById('mf-num').value.trim(),
+    name,
+    division: document.getElementById('mf-division').value,
+    department: document.getElementById('mf-department').value,
+    type: document.getElementById('mf-type').value,
+    status: document.getElementById('mf-status').value,
+    counsel: document.getElementById('mf-counsel').value.trim(),
+    opened: document.getElementById('mf-opened').value,
+    closed: document.getElementById('mf-closed').value,
+    assigned: document.getElementById('mf-assigned').value.trim(),
+    notes: document.getElementById('mf-notes').value.trim(),
+    updates: mEditId ? (matters.find(x=>x.id===mEditId)?.updates || []) : [],
+  };
+  if (mEditId) {
+    const i = matters.findIndex(m=>m.id===mEditId);
+    matters[i] = data;
+    toast('Matter updated.');
+  } else {
+    matters.push(data);
+    toast('Matter added.');
+  }
+  mSave(); closeMatterModal(); renderMatters(); refreshCounselList(); refreshAssignedList();
+}
+
+function deleteMatter(id) {
+  if (!confirm('Delete this matter?')) return;
+  matters = matters.filter(m=>m.id!==id);
+  mSave(); toast('Deleted.'); renderMatters();
+}
+
+function updateMatterDepartments(selectVal) {
+  const div = document.getElementById('mf-division').value;
+  const sel = document.getElementById('mf-department');
+  const depts = DEPT_MAP[div] || [];
+  if (!depts.length) {
+    sel.innerHTML = '<option value="">— Select Division first —</option>';
+    sel.disabled = true;
+  } else {
+    sel.innerHTML = '<option value="">— Select —</option>' +
+      depts.map(d => `<option${d===selectVal?' selected':''}>${d}</option>`).join('');
+    sel.disabled = false;
+  }
+}
+
+function updateMatterDeptFilter() {
+  const div = document.getElementById('mDivisionFilter').value;
+  const sel = document.getElementById('mDepartmentFilter');
+  const depts = DEPT_MAP[div] || [];
+  sel.innerHTML = '<option value="">All Departments</option>' +
+    depts.map(d=>`<option>${d}</option>`).join('');
+  sel.disabled = !depts.length;
+}
+
+function refreshCounselList() {
+  const names = [...new Set(matters.map(m=>m.counsel).filter(Boolean))].sort();
+  const dl = document.getElementById('counsel-list');
+  if (dl) dl.innerHTML = names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+}
+
+function exportMattersCSV() {
+  const cols = ['Matter No.','Name','Division','Department','Type','Status','Outside Counsel','Opened','Closed','Notes'];
+  const rows = matters.map(m=>[m.num,m.name,m.division,m.department,m.type,m.status,m.counsel,m.opened,m.closed,m.notes]
+    .map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(','));
+  const csv = [cols.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `legal_matters_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('Exported to CSV.');
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  const isContracts = tab === 'contracts';
+  const isMatters   = tab === 'matters';
+  const isIntake    = tab === 'intake';
+  ['contracts','matters','intake'].forEach(t => {
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  if (isMatters) renderMatters();
+  if (isIntake)  renderIntake();
+}
+
+// ── UPDATE LOG ────────────────────────────────────────────────────────────────
+let cUpdateAttachments = [];  // pending attachments for next contract update
+let mUpdateAttachments = [];  // pending attachments for next matter update
+
+function fmtTimestamp(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) +
+    ' · ' + d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
+}
+
+function renderUpdateAttachPending(listId, attachArr) {
+  const el = document.getElementById(listId);
+  if (!el) return;
+  el.innerHTML = attachArr.map((a,i) =>
+    `<div class="attach-item">
+      <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
+      <button class="attach-remove" data-uai="${i}" data-ual="${listId}">✕</button>
+    </div>`
+  ).join('');
+  el.querySelectorAll('.attach-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const arr = btn.dataset.ual === 'f-update-attach-list' ? cUpdateAttachments : mUpdateAttachments;
+      arr.splice(parseInt(btn.dataset.uai), 1);
+      renderUpdateAttachPending(btn.dataset.ual, arr);
+    });
+  });
+}
+
+function renderUpdateLog(listId, updates) {
+  const el = document.getElementById(listId);
+  if (!updates.length) {
+    el.innerHTML = '<div class="update-empty">No updates yet.</div>';
+    return;
+  }
+  el.innerHTML = [...updates].reverse().map((u,i) => {
+    const realIdx = updates.length - 1 - i;
+    const attachHtml = u.attachments?.length
+      ? `<div style="margin-top:5px;display:flex;flex-direction:column;gap:3px">${
+          u.attachments.map(a =>
+            `<div class="attach-item" style="padding:3px 7px">
+              <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
+            </div>`
+          ).join('')
+        }</div>` : '';
+    return `<div class="update-entry" data-uidx="${realIdx}">
+      <div class="update-entry-body">
+        <div class="update-entry-ts">${fmtTimestamp(u.ts)}</div>
+        <div class="update-entry-text">${u.text.replace(/</g,'&lt;')}</div>
+        ${attachHtml}
+      </div>
+      <button class="icon-btn del update-del-btn" data-listid="${listId}" data-uidx="${realIdx}" title="Delete update">✕</button>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.update-del-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteUpdate(btn.dataset.listid, parseInt(btn.dataset.uidx));
+    });
+  });
+}
+
+function deleteUpdate(listId, idx) {
+  if (!confirm('Delete this update?')) return;
+  if (listId === 'f-update-list') {
+    const c = contracts.find(x=>x.id===editId);
+    if (c) { c.updates.splice(idx,1); save(); renderUpdateLog('f-update-list', c.updates); render(); }
+  } else {
+    const m = matters.find(x=>x.id===mEditId);
+    if (m) { m.updates.splice(idx,1); mSave(); renderUpdateLog('mf-update-list', m.updates); renderMatters(); }
+  }
+}
+
+function addContractUpdate() {
+  const text = document.getElementById('f-update-input').value.trim();
+  if (!text && !cUpdateAttachments.length) return;
+  if (!editId) { toast('Save the contract first before adding updates.'); return; }
+  const c = contracts.find(x=>x.id===editId);
+  if (!c) return;
+  if (!c.updates) c.updates = [];
+  c.updates.push({ ts: Date.now(), text: text || '(attachment only)', attachments: [...cUpdateAttachments] });
+  cUpdateAttachments = [];
+  renderUpdateAttachPending('f-update-attach-list', cUpdateAttachments);
+  save(); render();
+  renderUpdateLog('f-update-list', c.updates);
+  document.getElementById('f-update-input').value = '';
+  document.getElementById('f-update-file').value = '';
+  toast('Update added.');
+}
+
+function addMatterUpdate() {
+  const text = document.getElementById('mf-update-input').value.trim();
+  if (!text && !mUpdateAttachments.length) return;
+  if (!mEditId) { toast('Save the matter first before adding updates.'); return; }
+  const m = matters.find(x=>x.id===mEditId);
+  if (!m) return;
+  if (!m.updates) m.updates = [];
+  m.updates.push({ ts: Date.now(), text: text || '(attachment only)', attachments: [...mUpdateAttachments] });
+  mUpdateAttachments = [];
+  renderUpdateAttachPending('mf-update-attach-list', mUpdateAttachments);
+  mSave(); renderMatters();
+  renderUpdateLog('mf-update-list', m.updates);
+  document.getElementById('mf-update-input').value = '';
+  document.getElementById('mf-update-file').value = '';
+  toast('Update added.');
+}
+
+// ── LEGAL INTAKE DATA & LOGIC ─────────────────────────────────────────────────
+let intakeRequests = [];
+let iActiveFilter = 'all';
+let iEditId = null;
+let iAttachments = []; // {name, size} — file metadata only (no binary in localStorage)
+
+function iSave() { /* in-memory only for beta */ }
+
+function iStatusPill(s) {
+  const map = { 'new':'pill-new', 'in review':'pill-review', 'converted':'pill-iconverted', 'closed':'pill-iclosed' };
+  return `<span class="pill ${map[s.toLowerCase()]||''}">${s}</span>`;
+}
+
+function iFilteredRequests() {
+  const q = document.getElementById('iSearchInput').value.toLowerCase();
+  const type = document.getElementById('iTypeFilter').value;
+  return intakeRequests.filter(r => {
+    if (iActiveFilter === 'all') { /* no filter */ }
+    else if (iActiveFilter.startsWith('type:')) {
+      if (r.type !== iActiveFilter.slice(5)) return false;
+    } else {
+      if (r.status.toLowerCase() !== iActiveFilter) return false;
+    }
+    if (type && r.type !== type) return false;
+    if (q && !`${r.requestor} ${r.dept} ${r.type} ${r.description} ${r.link} ${r.assigned}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderIntake() {
+  iUpdateBadges();
+  iUpdateStats();
+  const sort = document.getElementById('iSortSel').value;
+  let rows = iFilteredRequests();
+  rows.sort((a,b) => {
+    if (sort==='needby') return (a.needby||'9999') < (b.needby||'9999') ? -1 : 1;
+    if (sort==='status') return a.status.localeCompare(b.status);
+    if (sort==='requestor') return a.requestor.localeCompare(b.requestor);
+    return (b.submitted||0) - (a.submitted||0); // newest first
+  });
+
+  const tbody = document.getElementById('itbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No requests found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const attachTxt = r.attachments?.length ? `${r.attachments.length} file${r.attachments.length>1?'s':''}` : (r.link ? '🔗 link' : '—');
+    const descSnippet = r.description.length > 60 ? r.description.slice(0,60)+'…' : r.description;
+    return `<tr data-rid="${r.id}" class="intake-row">
+      <td class="mono" style="white-space:nowrap">${fmtDate(new Date(r.submitted).toISOString().slice(0,10))}</td>
+      <td>${r.requestor}</td>
+      <td style="font-size:12px">${r.dept}</td>
+      <td class="mono" style="font-size:12px">${r.type}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${descSnippet}</td>
+      <td class="mono ${r.needby && new Date(r.needby)<new Date()?'deadline-over':r.needby&&Math.ceil((new Date(r.needby)-new Date())/86400000)<=7?'deadline-warn':''}">${fmtDate(r.needby)}</td>
+      <td>${iStatusPill(r.status)}</td>
+      <td>${r.assigned||'—'}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${attachTxt}</td>
+      <td class="actions-cell">
+        <div class="actions">
+          <button class="icon-btn ibtn-review" data-rid="${r.id}" title="Review">✎</button>
+          <button class="icon-btn del ibtn-delete" data-rid="${r.id}" title="Delete">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('.intake-row').forEach(row => {
+    row.addEventListener('click', e => { if (!e.target.closest('.actions-cell')) openReviewModal(row.dataset.rid); });
+  });
+  tbody.querySelectorAll('.ibtn-review').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); openReviewModal(btn.dataset.rid); }));
+  tbody.querySelectorAll('.ibtn-delete').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); deleteIntakeRequest(btn.dataset.rid); }));
+}
+
+function iUpdateBadges() {
+  const counts = { all:0, new:0, 'in review':0, converted:0, closed:0,
+    'type:Contract Review':0,'type:Other':0 };
+  intakeRequests.forEach(r => {
+    counts.all++;
+    const s = r.status.toLowerCase();
+    if (counts[s] !== undefined) counts[s]++;
+    const tk = 'type:'+r.type;
+    if (counts[tk] !== undefined) counts[tk]++;
+  });
+  Object.keys(counts).forEach(k => {
+    const el = document.getElementById('ibadge-'+k);
+    if (el) el.textContent = counts[k];
+  });
+}
+
+function iUpdateStats() {
+  document.getElementById('is-total').textContent = intakeRequests.length;
+  document.getElementById('is-new').textContent = intakeRequests.filter(r=>r.status==='New').length;
+  document.getElementById('is-review').textContent = intakeRequests.filter(r=>r.status==='In Review').length;
+  document.getElementById('is-converted').textContent = intakeRequests.filter(r=>r.status==='Converted').length;
+}
+
+function iSetFilter(f, el) {
+  iActiveFilter = f;
+  document.querySelectorAll('#panel-intake .sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  renderIntake();
+}
+
+// ── INTAKE SUBMISSION MODAL ───────────────────────────────────────────────────
+function openIntakeModal() {
+  iAttachments = [];
+  document.getElementById('if-requestor').value = '';
+  document.getElementById('if-dept').value = '';
+  document.getElementById('if-type').value = '';
+  document.getElementById('if-counterparty').value = '';
+  document.getElementById('if-counterparty-wrap').style.display = 'none';
+  document.getElementById('if-needby').value = '';
+  document.getElementById('if-description').value = '';
+  document.getElementById('if-link').value = '';
+  document.getElementById('if-file-input').value = '';
+  renderAttachList();
+  document.getElementById('intake-modal').classList.add('open');
+  setTimeout(() => document.getElementById('if-requestor').focus(), 100);
+}
+
+function closeIntakeModal() {
+  document.getElementById('intake-modal').classList.remove('open');
+}
+
+function renderAttachList() {
+  const el = document.getElementById('if-attach-list');
+  el.innerHTML = iAttachments.map((a,i) =>
+    `<div class="attach-item">
+      <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
+      <button class="attach-remove" data-ai="${i}">✕</button>
+    </div>`
+  ).join('');
+  el.querySelectorAll('.attach-remove').forEach(btn =>
+    btn.addEventListener('click', () => { iAttachments.splice(parseInt(btn.dataset.ai),1); renderAttachList(); }));
+}
+
+function submitIntakeRequest() {
+  const requestor = document.getElementById('if-requestor').value.trim();
+  const dept = document.getElementById('if-dept').value;
+  const type = document.getElementById('if-type').value;
+  const description = document.getElementById('if-description').value.trim();
+  if (!requestor || !dept || !type || !description) { toast('Please fill in all required fields.'); return; }
+  const req = {
+    id: uid(),
+    submitted: Date.now(),
+    requestor, dept, type, description,
+    needby: document.getElementById('if-needby').value,
+    counterparty: document.getElementById('if-counterparty').value.trim(),
+    link: document.getElementById('if-link').value.trim(),
+    attachments: [...iAttachments],
+    status: 'New',
+    assigned: '',
+    legalNotes: '',
+  };
+  intakeRequests.unshift(req);
+  iSave(); closeIntakeModal(); renderIntake(); refreshIntakePartyList();
+  toast('Request submitted. Legal will be in touch.');
+}
+
+// ── INTAKE REVIEW MODAL (Legal) ───────────────────────────────────────────────
+function openReviewModal(id) {
+  iEditId = id;
+  const r = intakeRequests.find(x=>x.id===id);
+  if (!r) return;
+
+  const attachHtml = r.attachments?.length
+    ? r.attachments.map(a=>`<div class="attach-item"><span>📄 ${a.name}</span></div>`).join('')
+    : '';
+  const linkHtml = r.link
+    ? `<a href="${r.link}" target="_blank" style="color:var(--accent);font-size:12px;word-break:break-all">${r.link}</a>`
+    : '';
+
+  document.getElementById('review-detail').innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px">
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Submitted</div><div style="font-size:12px">${fmtTimestamp(r.submitted)}</div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Requestor</div><div style="font-size:13px;font-weight:500">${r.requestor}</div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Department</div><div style="font-size:12px">${r.dept}</div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Type</div><div style="font-size:12px">${r.type}</div></div>
+        ${r.counterparty ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Counterparty</div><div style="font-size:12px">${r.counterparty}</div></div>` : ''}
+        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Need-by</div><div style="font-size:12px">${fmtDate(r.needby)}</div></div>
+      </div>
+      <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Description</div><div style="font-size:13px;color:var(--text-dim);line-height:1.5">${r.description.replace(/</g,'&lt;')}</div></div>
+      ${attachHtml ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Attachments</div>${attachHtml}</div>` : ''}
+      ${linkHtml ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">OneDrive Link</div>${linkHtml}</div>` : ''}
+    </div>`;
+
+  document.getElementById('rv-status').value = r.status;
+  document.getElementById('rv-assigned').value = r.assigned || '';
+  document.getElementById('rv-notes').value = r.legalNotes || '';
+  document.getElementById('intake-review-modal').classList.add('open');
+}
+
+function closeReviewModal() {
+  document.getElementById('intake-review-modal').classList.remove('open');
+  iEditId = null;
+}
+
+function saveReview() {
+  const r = intakeRequests.find(x=>x.id===iEditId);
+  if (!r) return;
+  r.status = document.getElementById('rv-status').value;
+  r.assigned = document.getElementById('rv-assigned').value.trim();
+  r.legalNotes = document.getElementById('rv-notes').value.trim();
+  iSave(); closeReviewModal(); renderIntake(); refreshAssignedList();
+  toast('Request updated.');
+}
+
+function deleteIntakeRequest(id) {
+  if (!confirm('Delete this request?')) return;
+  intakeRequests = intakeRequests.filter(r=>r.id!==id);
+  iSave(); renderIntake(); toast('Deleted.');
+}
+
+function convertToContract() {
+  const r = intakeRequests.find(x=>x.id===iEditId);
+  if (!r) return;
+  r.status = 'Converted'; iSave(); closeReviewModal(); renderIntake();
+  switchTab('contracts');
+  openModal();
+  // Carry over counterparty, requestor, department, notes, link, assigned
+  if (r.counterparty) document.getElementById('f-party').value = r.counterparty;
+  // Pre-populate division/department from requester's dept (format: "Division / Dept")
+  if (r.dept) {
+    const parts = r.dept.split(' / ');
+    if (parts.length === 2) {
+      document.getElementById('f-division').value = parts[0].trim();
+      updateDepartments(parts[1].trim());
+    }
+  }
+  document.getElementById('f-notes').value = `[From Legal Intake]\nRequestor: ${r.requestor} — ${r.dept}${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}\n\n${r.description}${r.link?'\n\nOneDrive: '+r.link:''}`;
+  document.getElementById('f-assigned').value = r.assigned || '';
+  refreshPartyList();
+  toast('Converted to Contract — complete the form and save.');
+}
+
+function convertToMatter() {
+  const r = intakeRequests.find(x=>x.id===iEditId);
+  if (!r) return;
+  r.status = 'Converted'; iSave(); closeReviewModal(); renderIntake();
+  switchTab('matters');
+  openMatterModal();
+  document.getElementById('mf-name').value = r.description.slice(0,80);
+  document.getElementById('mf-notes').value = `[From Legal Intake — ${r.requestor}, ${r.dept}]\n${r.description}${r.link?'\n\nOneDrive: '+r.link:''}`;
+  document.getElementById('mf-assigned').value = r.assigned || '';
+  toast('Converted to Legal Matter — complete the form and save.');
+}
+
+function exportIntakeCSV() {
+  const cols = ['Submitted','Requestor','Department','Type','Description','Need-by','Status','Assigned To','OneDrive Link','Legal Notes'];
+  const rows = intakeRequests.map(r=>[
+    new Date(r.submitted).toLocaleString(),r.requestor,r.dept,r.type,r.description,r.needby,r.status,r.assigned,r.link,r.legalNotes
+  ].map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(','));
+  const csv = [cols.join(','),...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `legal_intake_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('Exported to CSV.');
+}
+
+// ── EVENT WIRING ──────────────────────────────────────────────────────────────
+// Header buttons
+document.getElementById('btn-csv').addEventListener('click', exportCSV);
+document.getElementById('btn-ics').addEventListener('click', openICSModal);
+document.getElementById('btn-new').addEventListener('click', () => openModal());
+
+// Contract modal
+document.getElementById('btn-modal-close').addEventListener('click', closeModal);
+document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
+document.getElementById('btn-modal-save').addEventListener('click', saveContract);
+document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// ICS modal
+document.getElementById('btn-ics-close').addEventListener('click', closeICSModal);
+document.getElementById('btn-ics-cancel').addEventListener('click', closeICSModal);
+document.getElementById('btn-ics-download').addEventListener('click', downloadICS);
+document.getElementById('ics-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeICSModal(); });
+
+// Sidebar filters
+document.querySelectorAll('.sidebar-item[data-filter]').forEach(el => {
+  el.addEventListener('click', () => setFilter(el.dataset.filter, el));
+});
+
+// Toolbar
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('divisionFilter').addEventListener('change', () => { updateDeptFilter(); render(); });
+document.getElementById('departmentFilter').addEventListener('change', render);
+document.getElementById('typeFilter').addEventListener('change', render);
+document.getElementById('sortSel').addEventListener('change', render);
+
+// Contract modal file attachment
+document.getElementById('f-dropzone').addEventListener('click', () => document.getElementById('f-file-input').click());
+document.getElementById('f-file-input').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
+  });
+  renderCAttachList();
+});
+document.getElementById('f-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
+document.getElementById('f-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
+document.getElementById('f-dropzone').addEventListener('drop', e => {
+  e.preventDefault(); e.currentTarget.style.borderColor='';
+  Array.from(e.dataTransfer.files).forEach(f => {
+    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
+  });
+  renderCAttachList();
+});
+
+// Update log file attachments
+document.getElementById('f-update-file').addEventListener('click', function(e) { e.stopPropagation(); });
+document.querySelector('label[for="f-update-file"], #f-update-file').closest ? null : null;
+document.getElementById('f-update-file').parentElement.addEventListener('click', () => document.getElementById('f-update-file').click());
+document.getElementById('f-update-file').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (!cUpdateAttachments.find(a=>a.name===f.name)) cUpdateAttachments.push({name:f.name, size:f.size});
+  });
+  renderUpdateAttachPending('f-update-attach-list', cUpdateAttachments);
+});
+document.getElementById('mf-update-file').parentElement.addEventListener('click', () => document.getElementById('mf-update-file').click());
+document.getElementById('mf-update-file').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (!mUpdateAttachments.find(a=>a.name===f.name)) mUpdateAttachments.push({name:f.name, size:f.size});
+  });
+  renderUpdateAttachPending('mf-update-attach-list', mUpdateAttachments);
+});
+
+// Division → Department cascade in form
+document.getElementById('f-division').addEventListener('change', () => updateDepartments());
+
+// Update log buttons
+document.getElementById('btn-add-update').addEventListener('click', addContractUpdate);
+document.getElementById('f-update-input').addEventListener('keydown', e => { if (e.key==='Enter' && e.ctrlKey) addContractUpdate(); });
+document.getElementById('btn-add-matter-update').addEventListener('click', addMatterUpdate);
+document.getElementById('mf-update-input').addEventListener('keydown', e => { if (e.key==='Enter' && e.ctrlKey) addMatterUpdate(); });
+
+// Tabs
+document.getElementById('tab-contracts').addEventListener('click', () => switchTab('contracts'));
+document.getElementById('tab-matters').addEventListener('click', () => switchTab('matters'));
+
+// Legal Matter modal
+document.getElementById('btn-new-matter').addEventListener('click', () => openMatterModal());
+document.getElementById('btn-matter-close').addEventListener('click', closeMatterModal);
+document.getElementById('btn-matter-cancel').addEventListener('click', closeMatterModal);
+document.getElementById('btn-matter-save').addEventListener('click', saveMatter);
+document.getElementById('matter-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeMatterModal(); });
+
+// Legal Matters toolbar
+document.getElementById('mSearchInput').addEventListener('input', renderMatters);
+document.getElementById('mDivisionFilter').addEventListener('change', () => { updateMatterDeptFilter(); renderMatters(); });
+document.getElementById('mDepartmentFilter').addEventListener('change', renderMatters);
+document.getElementById('mTypeFilter').addEventListener('change', renderMatters);
+document.getElementById('mSortSel').addEventListener('change', renderMatters);
+
+// Legal Matters CSV export
+document.getElementById('btn-matters-csv').addEventListener('click', exportMattersCSV);
+
+// Legal Matters sidebar filters
+document.querySelectorAll('#panel-matters .sidebar-item[data-mfilter]').forEach(el => {
+  el.addEventListener('click', () => mSetFilter(el.dataset.mfilter, el));
+});
+
+// Matter division cascade
+document.getElementById('mf-division').addEventListener('change', () => updateMatterDepartments());
+
+// Intake tab
+document.getElementById('tab-intake').addEventListener('click', () => switchTab('intake'));
+
+// Intake submission modal
+document.getElementById('btn-new-intake').addEventListener('click', openIntakeModal);
+document.getElementById('btn-intake-close').addEventListener('click', closeIntakeModal);
+document.getElementById('btn-intake-close-2').addEventListener('click', closeIntakeModal);
+document.getElementById('btn-intake-cancel').addEventListener('click', closeIntakeModal);
+document.getElementById('btn-intake-submit').addEventListener('click', submitIntakeRequest);
+document.getElementById('intake-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeIntakeModal(); });
+
+// File attachment
+document.getElementById('if-dropzone').addEventListener('click', () => document.getElementById('if-file-input').click());
+document.getElementById('if-file-input').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (!iAttachments.find(a=>a.name===f.name)) iAttachments.push({name:f.name, size:f.size});
+  });
+  renderAttachList();
+});
+document.getElementById('if-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
+document.getElementById('if-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
+document.getElementById('if-dropzone').addEventListener('drop', e => {
+  e.preventDefault(); e.currentTarget.style.borderColor='';
+  Array.from(e.dataTransfer.files).forEach(f => {
+    if (!iAttachments.find(a=>a.name===f.name)) iAttachments.push({name:f.name, size:f.size});
+  });
+  renderAttachList();
+});
+
+// Intake review modal
+document.getElementById('btn-review-close').addEventListener('click', closeReviewModal);
+document.getElementById('btn-review-cancel').addEventListener('click', closeReviewModal);
+document.getElementById('btn-review-save').addEventListener('click', saveReview);
+document.getElementById('btn-convert-contract').addEventListener('click', convertToContract);
+document.getElementById('btn-convert-matter').addEventListener('click', convertToMatter);
+document.getElementById('intake-review-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeReviewModal(); });
+
+// Intake toolbar
+document.getElementById('iSearchInput').addEventListener('input', renderIntake);
+document.getElementById('iTypeFilter').addEventListener('change', renderIntake);
+document.getElementById('iSortSel').addEventListener('change', renderIntake);
+
+// Intake sidebar filters
+document.querySelectorAll('#panel-intake .sidebar-item[data-ifilter]').forEach(el => {
+  el.addEventListener('click', () => iSetFilter(el.dataset.ifilter, el));
+});
+
+// Show/hide counterparty field based on request type
+document.getElementById('if-type').addEventListener('change', function() {
+  const wrap = document.getElementById('if-counterparty-wrap');
+  wrap.style.display = this.value === 'Contract Review' ? '' : 'none';
+  if (this.value !== 'Contract Review') document.getElementById('if-counterparty').value = '';
+  refreshIntakePartyList();
+});
+
+// Intake CSV export
+document.getElementById('btn-intake-csv').addEventListener('click', exportIntakeCSV);
+
+// Init intake
+renderIntake();
+refreshIntakePartyList();
+
+// Init matters
+refreshCounselList();
+refreshAssignedList();
+
+// Init Google Auth
+gCheckToken();
+
+
+
+// ── CHIP SYNC HELPER ──────────────────────────────────────────────────────────
+function syncChips(barId) {
+  // Chips handle their own active state via onclick, just keep one active
+  const bar = document.getElementById(barId);
+  if (!bar) return;
+}
+
+// ── OVERRIDE switchTab for panel-based layout ─────────────────────────────────
+function switchTab(tab) {
+  ['contracts','matters','intake'].forEach(t => {
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  if (tab==='matters') renderMatters();
+  if (tab==='intake')  renderIntake();
+}
+
+// Wire tabs
+document.getElementById('tab-contracts').addEventListener('click', () => switchTab('contracts'));
+document.getElementById('tab-matters').addEventListener('click',   () => switchTab('matters'));
+document.getElementById('tab-intake').addEventListener('click',    () => switchTab('intake'));
+</script>
+</body>
+</html>
