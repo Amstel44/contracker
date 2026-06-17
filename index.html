@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contracker</title>
+<title>LegalTrack</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 :root {
   --bg:#0f0f0f; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
@@ -148,6 +151,18 @@ textarea{resize:vertical;min-height:64px;}
 .convert-btn{background:var(--accent-dim);border:1px solid rgba(200,169,110,.3);color:var(--accent);border-radius:2px;padding:4px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;white-space:nowrap;}
 .convert-btn:hover{background:var(--accent);color:#0f0f0f;}
 
+/* AI SUMMARY */
+.ai-summary-wrap{border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-top:6px;}
+.ai-summary-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.ai-summary-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;}
+.ai-summary-actions{display:flex;gap:6px;}
+.ai-summary-body textarea{border:none;border-radius:0;background:var(--surface);min-height:180px;font-size:12px;line-height:1.6;resize:vertical;}
+.ai-summary-body textarea:focus{border:none;outline:none;box-shadow:inset 0 0 0 1px var(--accent);}
+.ai-summary-loading{padding:24px;text-align:center;color:var(--text-muted);font-size:12px;font-style:italic;}
+.btn-ai{background:var(--accent-dim);border:1px solid rgba(200,169,110,0.3);color:var(--accent);border-radius:2px;padding:5px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.btn-ai:hover{background:var(--accent);color:#0f0f0f;}
+.btn-ai:disabled{opacity:0.4;cursor:not-allowed;}
+
 /* ICS */
 .ics-options{display:flex;flex-direction:column;gap:8px;}
 .ics-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;}
@@ -170,13 +185,16 @@ textarea{resize:vertical;min-height:64px;}
 <body>
 
 <header>
-  <div class="logo">Contracker <span>/ Legal & Business Affairs</span></div>
-  <div id="g-auth-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"></div>
+  <div class="logo">LegalTrack <span>/ Legal & Business Affairs</span></div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <button class="btn-ai" id="btn-gen-pptx" style="font-size:11px;padding:5px 12px">📊 Budget Presentation</button>
+    <div id="g-auth-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"></div>
+  </div>
 </header>
 
 <div class="tabs">
   <div class="tab active" id="tab-contracts">Contracts</div>
-  <div class="tab" id="tab-matters">Legal Matters</div>
+  <div class="tab" id="tab-matters">Other Legal Matters</div>
   <div class="tab" id="tab-intake">Legal Intake</div>
 </div>
 
@@ -237,8 +255,8 @@ textarea{resize:vertical;min-height:64px;}
     <select id="typeFilter" style="width:auto">
       <option value="">All Types</option>
       <option>Service Agreement</option><option>NDA</option><option>License Agreement</option>
-      <option>Letter Agreement</option><option>Lease</option><option>Amendment</option>
-      <option>Distribution Agr - Western Bound</option><option>Distribution Agr - INSP</option>
+      <option>Letter Agreement</option><option>CrossRidge Lease</option><option>Amendment</option>
+      <option>Distribution Agr - Western Bound</option><option>Distribution Agr - INSP</option><option>Distribution Agr - OND</option>
       <option>Other</option>
     </select>
     <select id="sortSel" style="width:auto">
@@ -326,7 +344,7 @@ textarea{resize:vertical;min-height:64px;}
       <option value="name">Name</option><option value="opened">Opened</option><option value="status">Status</option>
     </select>
     <button class="btn btn-ghost btn-sm" id="btn-matters-csv">↓ CSV</button>
-    <button class="btn btn-primary btn-sm" id="btn-new-matter">+ New Matter</button>
+    <button class="btn btn-primary btn-sm" id="btn-new-matter">+ New Other Matter</button>
   </div>
 
   <div class="table-wrap">
@@ -351,20 +369,16 @@ textarea{resize:vertical;min-height:64px;}
     <div class="sidebar-item" data-ifilter="converted"></div>
     <div class="sidebar-item" data-ifilter="closed"></div>
     <div class="sidebar-item" data-ifilter="type:Contract Review"></div>
-    <div class="sidebar-item" data-ifilter="type:Other"></div>
+    <div class="sidebar-item" data-ifilter="type:Other Legal Matter"></div>
     <span id="ibadge-all"></span><span id="ibadge-new"></span>
     <span id="ibadge-in review"></span><span id="ibadge-converted"></span><span id="ibadge-closed"></span>
-    <span id="ibadge-type:Contract Review"></span><span id="ibadge-type:Other"></span>
+    <span id="ibadge-type:Contract Review"></span><span id="ibadge-type:Other Legal Matter"></span>
   </nav>
 
   <div class="filter-bar" id="iFilterBar">
     <div class="fchip active" data-ifilter="all" onclick="iSetFilter('all',this);syncChips('iFilterBar')">All</div>
     <div class="fchip" data-ifilter="new" onclick="iSetFilter('new',this);syncChips('iFilterBar')">New</div>
     <div class="fchip" data-ifilter="in review" onclick="iSetFilter('in review',this);syncChips('iFilterBar')">In Review</div>
-    <div class="fchip" data-ifilter="converted" onclick="iSetFilter('converted',this);syncChips('iFilterBar')">Converted</div>
-    <div class="fchip" data-ifilter="closed" onclick="iSetFilter('closed',this);syncChips('iFilterBar')">Closed</div>
-    <div class="fchip" data-ifilter="type:Contract Review" onclick="iSetFilter('type:Contract Review',this);syncChips('iFilterBar')">Contract Review</div>
-    <div class="fchip" data-ifilter="type:Other" onclick="iSetFilter('type:Other',this);syncChips('iFilterBar')">Other</div>
   </div>
 
   <div class="stats">
@@ -373,6 +387,12 @@ textarea{resize:vertical;min-height:64px;}
     <div class="stat"><div class="stat-value" id="is-review">0</div><div class="stat-label">In Review</div></div>
     <div class="stat"><div class="stat-value" id="is-converted">0</div><div class="stat-label">Converted</div></div>
   </div>
+  <div style="font-size:10px;color:var(--text-muted);margin-bottom:10px;font-family:'IBM Plex Mono',monospace">
+    Age (biz days): &nbsp;
+    <span style="color:var(--yellow)">■</span> &gt;24 hrs unactioned &nbsp;
+    <span style="color:var(--red)">■</span> &gt;48 hrs unactioned &nbsp;
+    (weekends &amp; holidays excluded)
+  </div>
 
   <div class="toolbar">
     <div class="search-wrap">
@@ -380,8 +400,8 @@ textarea{resize:vertical;min-height:64px;}
       <input type="text" id="iSearchInput" placeholder="Search…">
     </div>
     <select id="iTypeFilter" style="width:auto">
-      <option value="">All Types</option>
-      <option>Contract Review</option><option>Other</option>
+      <option value="">Type</option>
+      <option>Contract Review</option><option>Other Legal Matter</option>
     </select>
     <select id="iSortSel" style="width:auto">
       <option value="submitted">Newest</option><option value="needby">Need-by</option>
@@ -413,7 +433,7 @@ textarea{resize:vertical;min-height:64px;}
     <div class="modal-body" style="padding:0">
       <div class="intake-form-header">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <h2>Legal Intake Request</h2>
+          <h2>Legal Intake Form</h2>
           <button class="modal-close" id="btn-intake-close-2" style="font-size:20px;background:none;border:none;color:rgba(200,169,110,0.6);cursor:pointer">×</button>
         </div>
         <p>Complete the fields below and click Submit. A member of the Legal team will follow up with you. For urgent matters, please also contact Marsha McClurkin-Wade directly.</p>
@@ -464,7 +484,7 @@ textarea{resize:vertical;min-height:64px;}
             <select id="if-type">
               <option value="">— Select —</option>
               <option>Contract Review</option>
-              <option>Other</option>
+              <option>Other Legal Matter</option>
             </select>
           </div>
           <div class="form-field">
@@ -476,6 +496,14 @@ textarea{resize:vertical;min-height:64px;}
           <label>Counterparty Name</label>
           <input type="text" id="if-counterparty" placeholder="Company or individual name" autocomplete="off" list="intake-party-list">
           <datalist id="intake-party-list"></datalist>
+        </div>
+        <div class="form-field" id="if-agr-type-wrap" style="display:none">
+          <label>Type of Agreement</label>
+          <select id="if-agr-type">
+            <option value="">— Select —</option>
+            <option>New Agreement</option>
+            <option>Change to an Existing Agreement</option>
+          </select>
         </div>
         <div class="form-field">
           <label>Brief Description *</label>
@@ -532,7 +560,7 @@ textarea{resize:vertical;min-height:64px;}
       </div>
       <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
         <button class="convert-btn" id="btn-convert-contract">→ Convert to Contract</button>
-        <button class="convert-btn" id="btn-convert-matter">→ Convert to Legal Matter</button>
+        <button class="convert-btn" id="btn-convert-matter">→ Convert to Other Legal Matter</button>
       </div>
     </div>
     <div class="modal-footer">
@@ -545,7 +573,7 @@ textarea{resize:vertical;min-height:64px;}
 <div class="modal-backdrop" id="matter-modal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="matter-modal-title">New Legal Matter</div>
+      <div class="modal-title" id="matter-modal-title">New Other Legal Matter</div>
       <button class="modal-close" id="btn-matter-close">×</button>
     </div>
     <div class="modal-body">
@@ -605,6 +633,16 @@ textarea{resize:vertical;min-height:64px;}
           <datalist id="counsel-list"></datalist>
         </div>
       </div>
+      <div class="form-field">
+        <label>Outside Counsel — Scope / Area of Involvement</label>
+        <textarea id="mf-counsel-scope" placeholder="Brief description of this firm's involvement (e.g. broadcast regulatory, litigation counsel for DeltaVision dispute)…" style="min-height:56px"></textarea>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Outside Counsel Fees ($)</label>
+          <input type="number" id="mf-counsel-fees" placeholder="Leave blank — Marsha to fill from AvidXchange" min="0">
+        </div>
+      </div>
       <div class="field-group">
         <div class="form-field">
           <label>Date Opened</label>
@@ -625,7 +663,30 @@ textarea{resize:vertical;min-height:64px;}
         <label>Notes</label>
         <textarea id="mf-notes" placeholder="Key facts, contacts, strategy notes…"></textarea>
       </div>
-      <div class="update-log" id="mf-updates-wrap">
+      <div class="form-field">
+        <label>Attachments</label>
+        <div class="file-upload-area" id="mf-dropzone">
+          Click to attach files (Word, PDF, Excel) or drag and drop here
+          <input type="file" id="mf-file-input" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
+        </div>
+        <div class="attach-list" id="mf-attach-list"></div>
+        <div style="margin-top:8px">
+          <button class="btn-ai" id="btn-ai-summary-m" disabled>✦ Generate AI Summary</button>
+        </div>
+        <div id="mf-ai-summary-wrap" style="display:none" class="ai-summary-wrap">
+          <div class="ai-summary-header">
+            <span class="ai-summary-label">✦ AI Summary — editable</span>
+            <div class="ai-summary-actions">
+              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-m-copy">Copy</button>
+              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-m-notes">→ Notes</button>
+              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-m-clear">✕</button>
+            </div>
+          </div>
+          <div class="ai-summary-body">
+            <textarea id="mf-ai-summary-text" placeholder="AI summary will appear here…"></textarea>
+          </div>
+        </div>
+      </div>
         <div class="update-log-header">
           <label>Updates</label>
         </div>
@@ -665,8 +726,8 @@ textarea{resize:vertical;min-height:64px;}
           <input type="text" id="f-filenum" placeholder="e.g. 2026-001">
         </div>
         <div class="form-field">
-          <label>Related File Numbers</label>
-          <input type="text" id="f-related" placeholder="e.g. 2026-002, 2026-003">
+          <label>Related File Numbers / Links, if any</label>
+          <input type="text" id="f-related" placeholder="e.g. 2026-002, 2026-003 or OneDrive/SharePoint URL">
         </div>
       </div>
       <div class="form-field">
@@ -692,11 +753,17 @@ textarea{resize:vertical;min-height:64px;}
       </div>
       <div class="field-group">
         <div class="form-field">
-          <label>Department</label>
+          <label id="f-department-label">Department</label>
           <select id="f-department" disabled>
             <option value="">— Select Division first —</option>
           </select>
         </div>
+        <div class="form-field">
+          <label>Requester</label>
+          <input type="text" id="f-requester" placeholder="Name of requester">
+        </div>
+      </div>
+      <div class="field-group">
         <div class="form-field">
           <label>Status</label>
           <select id="f-status">
@@ -714,10 +781,11 @@ textarea{resize:vertical;min-height:64px;}
             <option>NDA</option>
             <option>License Agreement</option>
             <option>Letter Agreement</option>
-            <option>Lease</option>
+            <option>CrossRidge Lease</option>
             <option>Amendment</option>
             <option>Distribution Agr - Western Bound</option>
             <option>Distribution Agr - INSP</option>
+            <option>Distribution Agr - OND</option>
             <option>Other</option>
           </select>
         </div>
@@ -726,6 +794,11 @@ textarea{resize:vertical;min-height:64px;}
           <input type="text" id="f-assigned" placeholder="Name" autocomplete="off" list="assigned-list">
           <datalist id="assigned-list"></datalist>
         </div>
+      </div>
+      <div class="form-field" id="f-territory-wrap" style="display:none">
+        <label>Territory</label>
+        <input type="text" id="f-territory" placeholder="e.g. Nordic/Benelux, North America, Worldwide…" autocomplete="off" list="territory-list">
+        <datalist id="territory-list"></datalist>
       </div>
       <div class="field-group">
         <div class="form-field">
@@ -739,10 +812,6 @@ textarea{resize:vertical;min-height:64px;}
       </div>
       <div class="field-group">
         <div class="form-field">
-          <label>Remind Me (days before expiry)</label>
-          <input type="number" id="f-remind" placeholder="e.g. 30, 60, 90" min="1" max="365">
-        </div>
-        <div class="form-field">
           <label>Auto-Renewal?</label>
           <select id="f-renewal">
             <option value="">None</option>
@@ -752,6 +821,24 @@ textarea{resize:vertical;min-height:64px;}
             <option value="custom">See notes</option>
           </select>
         </div>
+        <div class="form-field" id="f-notice-deadline-wrap" style="display:none">
+          <label>Notice Deadline <span id="f-notice-calc-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">(auto-calculated — edit to override)</span></label>
+          <input type="date" id="f-notice-deadline">
+        </div>
+      </div>
+      <div class="field-group" id="f-remind-wrap" style="display:none">
+        <div class="form-field">
+          <label>Remind Me (x Days before Notice Deadline)</label>
+          <input type="number" id="f-remind" placeholder="e.g. 30, 60, 90" min="1" max="365">
+        </div>
+      </div>
+      <div id="f-nonrenewal-wrap" style="display:none;margin-top:4px">
+        <button class="btn-ai" id="btn-gen-nonrenewal" type="button">📄 Generate Notice of Non-Renewal Letter</button>
+        <span style="font-size:10px;color:var(--text-muted);font-style:italic;margin-left:8px">Downloads as .docx</span>
+      </div>
+      <div class="form-field" id="f-requester-desc-wrap" style="display:none">
+        <label>Requester Description</label>
+        <textarea id="f-requester-desc" readonly style="background:var(--surface2);color:var(--text-muted);cursor:default;border-style:dashed;min-height:72px"></textarea>
       </div>
       <div class="form-field">
         <label>Notes</label>
@@ -764,10 +851,22 @@ textarea{resize:vertical;min-height:64px;}
           <input type="file" id="f-file-input" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
         </div>
         <div class="attach-list" id="f-attach-list"></div>
-      </div>
-      <div class="form-field">
-        <label>OneDrive / SharePoint Link</label>
-        <input type="text" id="f-link" placeholder="Paste a OneDrive or SharePoint link to related documents">
+        <div style="margin-top:8px">
+          <button class="btn-ai" id="btn-ai-summary-c" disabled>✦ Generate AI Summary</button>
+        </div>
+        <div id="f-ai-summary-wrap" style="display:none" class="ai-summary-wrap">
+          <div class="ai-summary-header">
+            <span class="ai-summary-label">✦ AI Summary — editable</span>
+            <div class="ai-summary-actions">
+              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-c-copy">Copy</button>
+              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-c-notes">→ Notes</button>
+              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-c-clear">✕</button>
+            </div>
+          </div>
+          <div class="ai-summary-body">
+            <textarea id="f-ai-summary-text" placeholder="AI summary will appear here…"></textarea>
+          </div>
+        </div>
       </div>
       <div class="update-log" id="f-updates-wrap">
         <div class="update-log-header">
@@ -836,11 +935,39 @@ const SHEET_MATTERS   = 'Legal Matters';
 const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
-const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','notes','link','attachments','updates','value'];
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary'];
 const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes'];
 
-// ── GOOGLE AUTH ───────────────────────────────────────────────────────────────
+// ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
+// Replaces the deprecated OAuth implicit redirect flow (response_type=token).
+// GIS opens a Google-managed popup on user gesture and returns the access token
+// via callback — the token never appears in the URL.
+let gTokenClient = null;
+
+function gInitTokenClient() {
+  if (gTokenClient) return gTokenClient;
+  if (!window.google || !google.accounts || !google.accounts.oauth2) return null;
+  gTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GSHEETS_CLIENT_ID,
+    scope: GSHEETS_SCOPES,
+    callback: (resp) => {
+      if (resp.error) {
+        toast('Google sign-in failed: ' + (resp.error_description || resp.error));
+        return;
+      }
+      gToken = resp.access_token;
+      const expiresIn = parseInt(resp.expires_in || '3600');
+      sessionStorage.setItem('g_token', gToken);
+      sessionStorage.setItem('g_token_exp', Date.now() + expiresIn * 1000);
+      updateAuthUI(true);
+      toast('Signed in to Google — loading your data…');
+      gLoadAll();
+    },
+  });
+  return gTokenClient;
+}
+
 function gSignIn() {
   if (!GSHEETS_CLIENT_ID || !GSHEETS_SPREADSHEET_ID ||
       GSHEETS_CLIENT_ID === 'YOUR_CLIENT_ID_HERE' ||
@@ -848,13 +975,13 @@ function gSignIn() {
     toast('Please add your Client ID to the app first — see setup guide.');
     return;
   }
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `client_id=${encodeURIComponent(GSHEETS_CLIENT_ID)}` +
-    `&redirect_uri=${encodeURIComponent(window.location.href.split('?')[0])}` +
-    `&response_type=token` +
-    `&scope=${encodeURIComponent(GSHEETS_SCOPES)}` +
-    `&prompt=select_account`;
-  window.location.href = authUrl;
+  const client = gInitTokenClient();
+  if (!client) {
+    toast('Google sign-in library not loaded yet — check your connection and try again.');
+    return;
+  }
+  // Triggered by a button click (user gesture), so the popup is not blocked.
+  client.requestAccessToken();
 }
 
 function gSignOut() {
@@ -866,21 +993,9 @@ function gSignOut() {
 }
 
 function gCheckToken() {
-  // Check URL hash for token (OAuth implicit flow callback)
-  const hash = window.location.hash;
-  if (hash.includes('access_token')) {
-    const params = new URLSearchParams(hash.slice(1));
-    gToken = params.get('access_token');
-    const expiresIn = parseInt(params.get('expires_in') || '3600');
-    sessionStorage.setItem('g_token', gToken);
-    sessionStorage.setItem('g_token_exp', Date.now() + expiresIn * 1000);
-    window.history.replaceState(null, '', window.location.pathname);
-    updateAuthUI(true);
-    toast('Signed in to Google — loading your data…');
-    gLoadAll();
-    return true;
-  }
-  // Restore from session
+  // GIS delivers tokens via the initTokenClient callback, not a URL fragment,
+  // so there is no longer a redirect hash to parse here. Just restore a token
+  // that is still valid within this browser session.
   const saved = sessionStorage.getItem('g_token');
   const exp   = parseInt(sessionStorage.getItem('g_token_exp') || '0');
   if (saved && Date.now() < exp) {
@@ -975,7 +1090,8 @@ function parseCell(v) { try { return v ? JSON.parse(v) : null; } catch(e) { retu
 
 function contractToRow(c) {
   return [c.id,c.filenum,c.related,c.name,c.party,c.division,c.department,c.type,c.status,c.assigned,
-    c.start,c.end,c.remind,c.renewal,c.notes,c.link,jsonCell(c.attachments),jsonCell(c.updates),c.value||''];
+    c.start,c.end,c.remind,c.renewal,c.noticeDeadline||'',c.notes,
+    jsonCell(c.attachments),jsonCell(c.updates),c.value||'',c.territory||'',c.requester||'',c.requesterDesc||'',c.aiSummary||''];
 }
 function rowToContract(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -1076,8 +1192,14 @@ function toast(msg) {
 
 // ── FILTER ────────────────────────────────────────────────────────────────────
 function setFilter(f, el) {
+  // Clicking the active filter deselects back to All
+  if (activeFilter === f && f !== 'all') {
+    const allChip = document.querySelector('#cFilterBar .fchip[data-filter="all"]');
+    setFilter('all', allChip);
+    return;
+  }
   activeFilter = f;
-  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#cFilterBar .fchip').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   render();
 }
@@ -1260,6 +1382,8 @@ const DEPT_MAP = {
 function updateDepartments(selectVal) {
   const div = document.getElementById('f-division').value;
   const sel = document.getElementById('f-department');
+  const lbl = document.getElementById('f-department-label');
+  if (lbl) lbl.textContent = div === 'CrossRidge' ? 'Subdivision' : 'Department';
   const depts = DEPT_MAP[div] || [];
   if (!depts.length) {
     sel.innerHTML = '<option value="">— Select Division first —</option>';
@@ -1270,10 +1394,58 @@ function updateDepartments(selectVal) {
     sel.disabled = false;
     if (selectVal && depts.includes(selectVal)) sel.value = selectVal;
   }
+  updateContractTypes();
+}
+
+function updateContractTypes(preserveVal) {
+  const div = document.getElementById('f-division').value;
+  const dept = document.getElementById('f-department').value;
+  const sel = document.getElementById('f-type');
+  const current = preserveVal !== undefined ? preserveVal : sel.value;
+
+  const isWWD = dept === 'WWD';
+  const isCrossRidge = div === 'CrossRidge';
+
+  let types;
+  if (isWWD) {
+    // WWD: only Distribution Agreements and Other
+    types = [
+      'Distribution Agr - Western Bound',
+      'Distribution Agr - INSP',
+      'Distribution Agr - OND',
+      'Other'
+    ];
+  } else {
+    // All other departments: base types
+    types = [
+      'Service Agreement', 'NDA', 'License Agreement', 'Letter Agreement',
+      'Amendment', 'Other'
+    ];
+    // CrossRidge Lease only if CrossRidge division
+    if (isCrossRidge) types.splice(4, 0, 'CrossRidge Lease');
+  }
+
+  sel.innerHTML = types.map(t =>
+    `<option${t === current ? ' selected' : ''}>${t}</option>`
+  ).join('');
+
+  // If previously selected type is no longer available, reset to first
+  if (current && !types.includes(current)) sel.selectedIndex = 0;
+}
+
+function refreshTerritoryList() {
+  const names = [...new Set(contracts.map(c => c.territory).filter(Boolean))].sort();
+  const dl = document.getElementById('territory-list');
+  if (dl) dl.innerHTML = names.map(n => `<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+}
+
+function toggleTerritoryField(type) {
+  const show = ['Distribution Agr - Western Bound','Distribution Agr - OND'].includes(type);
+  document.getElementById('f-territory-wrap').style.display = show ? '' : 'none';
+  if (!show) document.getElementById('f-territory').value = '';
 }
 
 function updateDeptFilter() {
-  const div = document.getElementById('divisionFilter').value;
   const sel = document.getElementById('departmentFilter');
   const depts = DEPT_MAP[div] || [];
   sel.innerHTML = '<option value="">All Departments</option>' +
@@ -1290,7 +1462,13 @@ function openModal(id) {
   document.getElementById('f-party').value = c?.party || '';
   document.getElementById('f-division').value = c?.division || '';
   updateDepartments(c?.department);
+  document.getElementById('f-requester').value = c?.requester || '';
+  updateContractTypes(c?.type);
   document.getElementById('f-type').value = c?.type || 'Service Agreement';
+  // Territory — show only for applicable distribution agreement types
+  const showTerritory = ['Distribution Agr - Western Bound','Distribution Agr - OND'].includes(c?.type);
+  document.getElementById('f-territory-wrap').style.display = showTerritory ? '' : 'none';
+  document.getElementById('f-territory').value = c?.territory || '';
   document.getElementById('f-status').value = c?.status || 'Active';
   document.getElementById('f-filenum').value = c?.filenum || '';
   document.getElementById('f-related').value = c?.related || '';
@@ -1299,10 +1477,23 @@ function openModal(id) {
   document.getElementById('f-end').value = c?.end || '';
   document.getElementById('f-remind').value = c?.remind || '';
   document.getElementById('f-renewal').value = c?.renewal || '';
+  document.getElementById('f-notice-deadline').value = c?.noticeDeadline || '';
+  document.getElementById('f-notice-deadline').dataset.auto = c?.noticeDeadlineAuto ? 'true' : 'false';
+  const hasRenewal = !!(c?.renewal);
+  document.getElementById('f-notice-deadline-wrap').style.display = hasRenewal ? '' : 'none';
+  document.getElementById('f-remind-wrap').style.display = hasRenewal ? '' : 'none';
+  document.getElementById('f-nonrenewal-wrap').style.display = hasRenewal ? '' : 'none';
   document.getElementById('f-notes').value = c?.notes || '';
-  document.getElementById('f-link').value = c?.link || '';
+  // Requester Description — read-only, only shown if populated from intake
+  const rdesc = c?.requesterDesc || '';
+  document.getElementById('f-requester-desc').value = rdesc;
+  document.getElementById('f-requester-desc-wrap').style.display = rdesc ? '' : 'none';
   cAttachments = c?.attachments ? [...c.attachments] : [];
   renderCAttachList();
+  document.getElementById('f-ai-summary-wrap').style.display = 'none';
+  document.getElementById('f-ai-summary-text').value = c?.aiSummary || '';
+  if (c?.aiSummary) document.getElementById('f-ai-summary-wrap').style.display = '';
+  document.getElementById('btn-ai-summary-c').disabled = cAttachments.length === 0;
   renderUpdateLog('f-update-list', c?.updates || []);
   document.getElementById('f-update-input').value = '';
   cUpdateAttachments = [];
@@ -1310,6 +1501,7 @@ function openModal(id) {
   const fi = document.getElementById('f-file-input');
   if (fi) fi.value = '';
   document.getElementById('modal').classList.add('open');
+  updateContractTypes(c?.type);
   setTimeout(()=>document.getElementById('f-name').focus(), 100);
 }
 function closeModal() {
@@ -1326,7 +1518,9 @@ function saveContract() {
     name, party,
     division: document.getElementById('f-division').value,
     department: document.getElementById('f-department').value,
+    requester: document.getElementById('f-requester').value.trim(),
     type: document.getElementById('f-type').value,
+    territory: document.getElementById('f-territory').value.trim(),
     status: document.getElementById('f-status').value,
     filenum: document.getElementById('f-filenum').value.trim(),
     related: document.getElementById('f-related').value.trim(),
@@ -1335,9 +1529,12 @@ function saveContract() {
     end: document.getElementById('f-end').value,
     remind: document.getElementById('f-remind').value,
     renewal: document.getElementById('f-renewal').value,
+    noticeDeadline: document.getElementById('f-notice-deadline').value,
+    noticeDeadlineAuto: document.getElementById('f-notice-deadline').dataset.auto === 'true',
     notes: document.getElementById('f-notes').value.trim(),
-    link: document.getElementById('f-link').value.trim(),
+    requesterDesc: document.getElementById('f-requester-desc').value.trim(),
     attachments: [...cAttachments],
+    aiSummary: document.getElementById('f-ai-summary-text').value.trim(),
     updates: editId ? (contracts.find(x=>x.id===editId)?.updates || []) : [],
   };
   if (editId) {
@@ -1348,7 +1545,7 @@ function saveContract() {
     contracts.push(data);
     toast('Contract added.');
   }
-  save(); closeModal(); render(); refreshPartyList(); refreshAssignedList();
+  save(); closeModal(); render(); refreshPartyList(); refreshAssignedList(); refreshTerritoryList();
 }
 
 function deleteContract(id) {
@@ -1369,28 +1566,40 @@ function icsEscape(s) {
 
 function buildICSEvent(c, reminderDays) {
   if (!c.end) return null;
-  const uid = `contract-${c.id}@contractdesk`;
+  const uid = `contract-${c.id}@legaltrack`;
   const dtstart = icsDate(c.end);
-  // Next day for DTEND on all-day events
   const endDate = new Date(c.end + 'T00:00:00');
   endDate.setDate(endDate.getDate()+1);
   const dtend = endDate.toISOString().slice(0,10).replace(/-/g,'');
 
   const remind = reminderDays || c.remind || 30;
-  const renewalNote = c.renewal ? ` | Auto-renewal: ${c.renewal}-day cancellation notice required.` : '';
+  const hasRenewal = !!(c.renewal);
+  const noticeDate = c.noticeDeadline || null;
+
+  const renewalNote = hasRenewal
+    ? ` | Auto-renewal: ${c.renewal}-day cancellation notice required.${noticeDate ? ' Notice deadline: '+noticeDate+'.' : ''}`
+    : '';
   const description = icsEscape(`Contract: ${c.name}\nCounterparty: ${c.party}\nType: ${c.type}\nStatus: ${c.status}${renewalNote}${c.notes ? '\n\nNotes: '+c.notes : ''}`);
 
-  const summary = c.renewal
-    ? `⚠️ AUTO-RENEWAL: ${c.name} — ${c.renewal}-day notice deadline`
+  const summary = hasRenewal
+    ? `⚠️ AUTO-RENEWAL: ${c.name}${noticeDate ? ' — Notice deadline: '+noticeDate : ''}`
     : `📋 CONTRACT EXPIRES: ${c.name}`;
 
   let alarmBlock = '';
-  if (remind) {
+  if (hasRenewal && noticeDate) {
+    // Primary alarm: X days before the Notice Deadline date
+    // Calculate days between notice deadline and expiration for TRIGGER offset from DTSTART (expiry)
+    const expiryMs = new Date(c.end + 'T00:00:00').getTime();
+    const noticeMs = new Date(noticeDate + 'T00:00:00').getTime();
+    const daysBeforeExpiry = Math.ceil((expiryMs - noticeMs) / 86400000);
+    const reminderTriggerDays = daysBeforeExpiry + parseInt(remind || 30);
+
+    alarmBlock = `BEGIN:VALARM\r\nTRIGGER:-P${reminderTriggerDays}D\r\nACTION:DISPLAY\r\nDESCRIPTION:REMINDER: ${icsEscape(c.name)} — right of non-renewal expires in ${remind} days (by ${noticeDate})\r\nEND:VALARM\r\n`;
+    // Second alarm: on the notice deadline itself
+    alarmBlock += `BEGIN:VALARM\r\nTRIGGER:-P${daysBeforeExpiry}D\r\nACTION:DISPLAY\r\nDESCRIPTION:TODAY IS NOTICE DEADLINE: ${icsEscape(c.name)} — send non-renewal notice today if not renewing\r\nEND:VALARM\r\n`;
+  } else if (remind) {
+    // No notice deadline set — fall back to X days before expiration
     alarmBlock = `BEGIN:VALARM\r\nTRIGGER:-P${remind}D\r\nACTION:DISPLAY\r\nDESCRIPTION:Reminder: ${icsEscape(c.name)} expires in ${remind} days\r\nEND:VALARM\r\n`;
-    // If auto-renewal, add a second alarm at the notice deadline
-    if (c.renewal) {
-      alarmBlock += `BEGIN:VALARM\r\nTRIGGER:-P${c.renewal}D\r\nACTION:DISPLAY\r\nDESCRIPTION:AUTO-RENEWAL NOTICE DEADLINE: ${icsEscape(c.name)} — send cancellation today if not renewing\r\nEND:VALARM\r\n`;
-    }
   }
 
   return `BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTART;VALUE=DATE:${dtstart}\r\nDTEND;VALUE=DATE:${dtend}\r\nSUMMARY:${icsEscape(summary)}\r\nDESCRIPTION:${description}\r\n${alarmBlock}END:VEVENT`;
@@ -1403,7 +1612,7 @@ function buildICS(contractList, reminderDays) {
     .filter(Boolean)
     .join('\r\n');
 
-  return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Contracker//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:Contract Deadlines\r\nX-WR-CALDESC:Contract expiry and renewal reminders\r\n${events}\r\nEND:VCALENDAR`;
+  return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//LegalTrack//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:Contract Deadlines\r\nX-WR-CALDESC:Contract expiry and renewal reminders\r\n${events}\r\nEND:VCALENDAR`;
 }
 
 function downloadICSBlob(icsContent, filename) {
@@ -1609,8 +1818,13 @@ function mUpdateStats() {
 }
 
 function mSetFilter(f, el) {
+  if (mActiveFilter === f && f !== 'all') {
+    const allChip = document.querySelector('#mFilterBar .fchip[data-mfilter="all"]');
+    mSetFilter('all', allChip);
+    return;
+  }
   mActiveFilter = f;
-  document.querySelectorAll('#panel-matters .sidebar-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#mFilterBar .fchip').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   renderMatters();
 }
@@ -1626,10 +1840,18 @@ function openMatterModal(id) {
   document.getElementById('mf-type').value = m?.type || 'Litigation';
   document.getElementById('mf-status').value = m?.status || 'Open';
   document.getElementById('mf-counsel').value = m?.counsel || '';
+  document.getElementById('mf-counsel-scope').value = m?.counselScope || '';
+  document.getElementById('mf-counsel-fees').value = m?.counselFees || '';
   document.getElementById('mf-opened').value = m?.opened || '';
   document.getElementById('mf-closed').value = m?.closed || '';
   document.getElementById('mf-assigned').value = m?.assigned || '';
   document.getElementById('mf-notes').value = m?.notes || '';
+  mAttachments = m?.attachments ? [...m.attachments] : [];
+  renderMAttachList();
+  document.getElementById('mf-ai-summary-wrap').style.display = 'none';
+  document.getElementById('mf-ai-summary-text').value = m?.aiSummary || '';
+  if (m?.aiSummary) document.getElementById('mf-ai-summary-wrap').style.display = '';
+  document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
   renderUpdateLog('mf-update-list', m?.updates || []);
   document.getElementById('mf-update-input').value = '';
   mUpdateAttachments = [];
@@ -1655,10 +1877,14 @@ function saveMatter() {
     type: document.getElementById('mf-type').value,
     status: document.getElementById('mf-status').value,
     counsel: document.getElementById('mf-counsel').value.trim(),
+    counselScope: document.getElementById('mf-counsel-scope').value.trim(),
+    counselFees: document.getElementById('mf-counsel-fees').value,
     opened: document.getElementById('mf-opened').value,
     closed: document.getElementById('mf-closed').value,
     assigned: document.getElementById('mf-assigned').value.trim(),
     notes: document.getElementById('mf-notes').value.trim(),
+    attachments: [...mAttachments],
+    aiSummary: document.getElementById('mf-ai-summary-text').value.trim(),
     updates: mEditId ? (matters.find(x=>x.id===mEditId)?.updates || []) : [],
   };
   if (mEditId) {
@@ -1735,6 +1961,7 @@ function switchTab(tab) {
 // ── UPDATE LOG ────────────────────────────────────────────────────────────────
 let cUpdateAttachments = [];  // pending attachments for next contract update
 let mUpdateAttachments = [];  // pending attachments for next matter update
+let mAttachments = [];        // main matter attachments
 
 function fmtTimestamp(ts) {
   const d = new Date(ts);
@@ -1839,7 +2066,119 @@ function addMatterUpdate() {
   toast('Update added.');
 }
 
-// ── LEGAL INTAKE DATA & LOGIC ─────────────────────────────────────────────────
+// ── BUSINESS DAY AGE CALCULATION ─────────────────────────────────────────────
+
+// Returns Easter Sunday date for a given year (Anonymous Gregorian algorithm)
+function getEaster(year) {
+  const a = year % 19, b = Math.floor(year/100), c = year % 100;
+  const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3), h = (19*a+b-d-g+15) % 30;
+  const i = Math.floor(c/4), k = c % 4;
+  const l = (32+2*e+2*i-h-k) % 7;
+  const m = Math.floor((a+11*h+22*l)/451);
+  const month = Math.floor((h+l-7*m+114)/31); // 1-based
+  const day = ((h+l-7*m+114) % 31) + 1;
+  return new Date(year, month-1, day);
+}
+
+// Returns Good Friday date for a given year
+function getGoodFriday(year) {
+  const easter = getEaster(year);
+  const gf = new Date(easter);
+  gf.setDate(gf.getDate() - 2);
+  return gf;
+}
+
+// Returns nth weekday of a month (e.g. 4th Thursday of November)
+function nthWeekday(year, month, weekday, n) {
+  const d = new Date(year, month, 1);
+  let count = 0;
+  while (true) {
+    if (d.getDay() === weekday) { count++; if (count === n) return new Date(d); }
+    d.setDate(d.getDate()+1);
+  }
+}
+
+// Returns last weekday of a month (e.g. last Monday of May)
+function lastWeekday(year, month, weekday) {
+  const d = new Date(year, month+1, 0); // last day of month
+  while (d.getDay() !== weekday) d.setDate(d.getDate()-1);
+  return d;
+}
+
+function getHolidays(year) {
+  const holidays = new Set();
+  const add = d => holidays.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+
+  // Fixed-date holidays — shift to observed weekday if on weekend
+  const fixed = [
+    new Date(year, 0, 1),   // New Year's Day - Jan 1
+    new Date(year, 6, 4),   // Independence Day - Jul 4
+    new Date(year, 11, 24), // Christmas Eve - Dec 24
+    new Date(year, 11, 25), // Christmas Day - Dec 25
+  ];
+  fixed.forEach(d => {
+    const day = d.getDay();
+    if (day === 0) { const obs = new Date(d); obs.setDate(obs.getDate()+1); add(obs); }
+    else if (day === 6) { const obs = new Date(d); obs.setDate(obs.getDate()-1); add(obs); }
+    else add(d);
+  });
+
+  // Floating holidays
+  add(lastWeekday(year, 4, 1));    // Memorial Day — last Monday of May
+  add(nthWeekday(year, 8, 1, 1));  // Labor Day — 1st Monday of September
+
+  const thanksgiving = nthWeekday(year, 10, 4, 4); // 4th Thursday of November
+  add(thanksgiving);
+  const dayAfter = new Date(thanksgiving); dayAfter.setDate(dayAfter.getDate()+1);
+  add(dayAfter); // Day after Thanksgiving
+
+  add(getGoodFriday(year)); // Good Friday
+
+  return holidays;
+}
+
+// Cache holidays for recent years
+const HOLIDAY_CACHE = {};
+function isHoliday(date) {
+  const year = date.getFullYear();
+  if (!HOLIDAY_CACHE[year]) HOLIDAY_CACHE[year] = getHolidays(year);
+  const key = `${year}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  return HOLIDAY_CACHE[year].has(key);
+}
+
+function businessHoursSince(submittedTs) {
+  const start = new Date(submittedTs);
+  const now = new Date();
+  let hours = 0;
+  const cursor = new Date(start);
+  while (cursor < now) {
+    const day = cursor.getDay();
+    if (day !== 0 && day !== 6 && !isHoliday(cursor)) {
+      hours++;
+    }
+    cursor.setHours(cursor.getHours()+1);
+  }
+  return hours;
+}
+
+function fmtAge(submittedTs) {
+  const bizHours = businessHoursSince(submittedTs);
+  const days = Math.floor(bizHours / 24);
+  const hrs  = bizHours % 24;
+  if (days > 0) return `${days}d ${hrs}h ago (biz)`;
+  if (hrs > 0)  return `${hrs}h ago (biz)`;
+  return 'Just now';
+}
+
+function ageClass(submittedTs, status) {
+  // Only flag New and In Review — Converted/Closed don't need urgency coloring
+  if (status === 'Converted' || status === 'Closed') return '';
+  const bizHours = businessHoursSince(submittedTs);
+  if (bizHours >= 48) return 'deadline-over';   // red
+  if (bizHours >= 24) return 'deadline-warn';   // yellow
+  return '';
+}
 let intakeRequests = [];
 let iActiveFilter = 'all';
 let iEditId = null;
@@ -1889,7 +2228,10 @@ function renderIntake() {
     const attachTxt = r.attachments?.length ? `${r.attachments.length} file${r.attachments.length>1?'s':''}` : (r.link ? '🔗 link' : '—');
     const descSnippet = r.description.length > 60 ? r.description.slice(0,60)+'…' : r.description;
     return `<tr data-rid="${r.id}" class="intake-row">
-      <td class="mono" style="white-space:nowrap">${fmtDate(new Date(r.submitted).toISOString().slice(0,10))}</td>
+      <td style="white-space:nowrap">
+        <div class="mono" style="font-size:10px">${fmtDate(new Date(r.submitted).toISOString().slice(0,10))}</div>
+        <div class="${ageClass(r.submitted, r.status)}" style="font-size:10px;margin-top:2px">${fmtAge(r.submitted)}</div>
+      </td>
       <td>${r.requestor}</td>
       <td style="font-size:12px">${r.dept}</td>
       <td class="mono" style="font-size:12px">${r.type}</td>
@@ -1918,7 +2260,7 @@ function renderIntake() {
 
 function iUpdateBadges() {
   const counts = { all:0, new:0, 'in review':0, converted:0, closed:0,
-    'type:Contract Review':0,'type:Other':0 };
+    'type:Contract Review':0,'type:Other Legal Matter':0 };
   intakeRequests.forEach(r => {
     counts.all++;
     const s = r.status.toLowerCase();
@@ -1940,8 +2282,13 @@ function iUpdateStats() {
 }
 
 function iSetFilter(f, el) {
+  if (iActiveFilter === f && f !== 'all') {
+    const allChip = document.querySelector('#iFilterBar .fchip[data-ifilter="all"]');
+    iSetFilter('all', allChip);
+    return;
+  }
   iActiveFilter = f;
-  document.querySelectorAll('#panel-intake .sidebar-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#iFilterBar .fchip').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   renderIntake();
 }
@@ -1954,6 +2301,8 @@ function openIntakeModal() {
   document.getElementById('if-type').value = '';
   document.getElementById('if-counterparty').value = '';
   document.getElementById('if-counterparty-wrap').style.display = 'none';
+  document.getElementById('if-agr-type').value = '';
+  document.getElementById('if-agr-type-wrap').style.display = 'none';
   document.getElementById('if-needby').value = '';
   document.getElementById('if-description').value = '';
   document.getElementById('if-link').value = '';
@@ -1991,6 +2340,7 @@ function submitIntakeRequest() {
     requestor, dept, type, description,
     needby: document.getElementById('if-needby').value,
     counterparty: document.getElementById('if-counterparty').value.trim(),
+    agrType: document.getElementById('if-agr-type').value,
     link: document.getElementById('if-link').value.trim(),
     attachments: [...iAttachments],
     status: 'New',
@@ -2023,6 +2373,7 @@ function openReviewModal(id) {
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Department</div><div style="font-size:12px">${r.dept}</div></div>
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Type</div><div style="font-size:12px">${r.type}</div></div>
         ${r.counterparty ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Counterparty</div><div style="font-size:12px">${r.counterparty}</div></div>` : ''}
+        ${r.agrType ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Agreement Type</div><div style="font-size:12px">${r.agrType}</div></div>` : ''}
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Need-by</div><div style="font-size:12px">${fmtDate(r.needby)}</div></div>
       </div>
       <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Description</div><div style="font-size:13px;color:var(--text-dim);line-height:1.5">${r.description.replace(/</g,'&lt;')}</div></div>
@@ -2065,6 +2416,12 @@ function convertToContract() {
   openModal();
   // Carry over counterparty, requestor, department, notes, link, assigned
   if (r.counterparty) document.getElementById('f-party').value = r.counterparty;
+  if (r.requestor) document.getElementById('f-requester').value = r.requestor;
+  // Populate read-only Requester Description from intake
+  if (r.description) {
+    document.getElementById('f-requester-desc').value = r.description;
+    document.getElementById('f-requester-desc-wrap').style.display = '';
+  }
   // Pre-populate division/department from requester's dept (format: "Division / Dept")
   if (r.dept) {
     const parts = r.dept.split(' / ');
@@ -2073,7 +2430,7 @@ function convertToContract() {
       updateDepartments(parts[1].trim());
     }
   }
-  document.getElementById('f-notes').value = `[From Legal Intake]\nRequestor: ${r.requestor} — ${r.dept}${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}\n\n${r.description}${r.link?'\n\nOneDrive: '+r.link:''}`;
+  document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}`.trim();
   document.getElementById('f-assigned').value = r.assigned || '';
   refreshPartyList();
   toast('Converted to Contract — complete the form and save.');
@@ -2088,7 +2445,7 @@ function convertToMatter() {
   document.getElementById('mf-name').value = r.description.slice(0,80);
   document.getElementById('mf-notes').value = `[From Legal Intake — ${r.requestor}, ${r.dept}]\n${r.description}${r.link?'\n\nOneDrive: '+r.link:''}`;
   document.getElementById('mf-assigned').value = r.assigned || '';
-  toast('Converted to Legal Matter — complete the form and save.');
+  toast('Converted to Other Legal Matter — complete the form and save.');
 }
 
 function exportIntakeCSV() {
@@ -2102,6 +2459,527 @@ function exportIntakeCSV() {
   a.download = `legal_intake_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   toast('Exported to CSV.');
+}
+
+// ── MATTER ATTACH LIST ────────────────────────────────────────────────────────
+function renderMAttachList() {
+  const el = document.getElementById('mf-attach-list');
+  if (!el) return;
+  el.innerHTML = mAttachments.map((a,i) =>
+    `<div class="attach-item">
+      <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
+      <button class="attach-remove" data-mi="${i}">✕</button>
+    </div>`
+  ).join('');
+  el.querySelectorAll('.attach-remove').forEach(btn =>
+    btn.addEventListener('click', () => {
+      mAttachments.splice(parseInt(btn.dataset.mi),1);
+      renderMAttachList();
+      document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
+    }));
+}
+
+// ── AI SUMMARY ENGINE ─────────────────────────────────────────────────────────
+const AI_SUMMARY_PROMPT = `You are a legal analyst reviewing a document for an in-house legal team at a cable television network. Analyze the attached document and provide a concise structured summary with the following sections:
+
+**COUNTERPARTY:** [Full legal name of the counterparty]
+**NAME OF AGREEMENT:** [Official name/title of the agreement]
+**TERM:** [Effective date, expiration date, and duration]
+**AUTO-RENEWAL:** [Auto-renewal terms, notice requirements to cancel, or "None"]
+**KEY OBLIGATIONS:** [Bullet points of the primary obligations of each party — be specific]
+**NOTABLE RISK FLAGS:** [Any provisions that warrant legal attention — indemnification exposure, unusual termination rights, IP assignments, limitation of liability gaps, governing law issues, or other red flags. If none, state "None identified."]
+
+Be concise and precise. Use plain legal language. If a section cannot be determined from the document, state "Not specified."`;
+
+async function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    // For PDFs and binary files, read as ArrayBuffer then extract text
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      reader.onload = e => {
+        // Extract readable text from PDF binary (basic extraction)
+        const arr = new Uint8Array(e.target.result);
+        let text = '';
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i] > 31 && arr[i] < 127) text += String.fromCharCode(arr[i]);
+          else if (arr[i] === 10 || arr[i] === 13) text += '\n';
+        }
+        // Clean up PDF noise — extract readable runs
+        const clean = text.replace(/[^\x20-\x7E\n]/g, ' ')
+          .replace(/\s{3,}/g, ' ').replace(/(\w)\s(\w)/g, '$1 $2').trim();
+        resolve(clean.slice(0, 40000));
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    } else {
+      // For .txt, .docx (text portion), read as text
+      reader.onload = e => resolve((e.target.result || '').slice(0, 40000));
+      reader.onerror = reject;
+      reader.readAsText(file);
+    }
+  });
+}
+
+async function generateAISummary(fileInputId, wrapId, textareaId, btnId, pendingFiles) {
+  const btn = document.getElementById(btnId);
+  const wrap = document.getElementById(wrapId);
+  const textarea = document.getElementById(textareaId);
+
+  // Get the actual File objects from the file input
+  const fileInput = document.getElementById(fileInputId);
+  const files = fileInput?.files?.length ? Array.from(fileInput.files) :
+    (pendingFiles?.length ? pendingFiles : []);
+
+  if (!files.length) {
+    toast('Please attach a file first.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '✦ Generating…';
+  wrap.style.display = '';
+  textarea.value = '';
+  textarea.placeholder = 'Reading document and generating summary…';
+
+  try {
+    // Read the first attached file
+    const file = files[0];
+    const docText = await readFileAsText(file);
+
+    if (!docText || docText.length < 100) {
+      textarea.value = 'Could not extract readable text from this file. This may be a scanned PDF or image-based document. Please paste the text content into the Notes field instead.';
+      textarea.placeholder = '';
+      btn.disabled = false;
+      btn.textContent = '✦ Generate AI Summary';
+      return;
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `${AI_SUMMARY_PROMPT}\n\n---DOCUMENT START---\n${docText}\n---DOCUMENT END---`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const summary = data.content?.find(b => b.type === 'text')?.text || 'No summary generated.';
+    textarea.value = summary;
+    textarea.placeholder = 'AI summary will appear here…';
+    toast('AI summary generated — review and edit as needed.');
+  } catch(e) {
+    console.error('AI summary error:', e);
+    textarea.value = 'Error generating summary. Please try again.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✦ Generate AI Summary';
+}
+
+// ── NON-RENEWAL LETTER GENERATOR ─────────────────────────────────────────────
+function fmtDateLong(dateStr) {
+  if (!dateStr) return '[DATE]';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+}
+
+async function generateNonRenewalLetter() {
+  // Gather contract data from form
+  const name      = document.getElementById('f-name').value.trim() || '[CONTRACT NAME]';
+  const party     = document.getElementById('f-party').value.trim() || '[COUNTERPARTY]';
+  const end       = document.getElementById('f-end').value;
+  const notice    = document.getElementById('f-notice-deadline').value;
+  const renewal   = document.getElementById('f-renewal').value;
+  const filenum   = document.getElementById('f-filenum').value.trim();
+  const division  = document.getElementById('f-division').value;
+  const dept      = document.getElementById('f-department').value;
+
+  const today         = fmtDateLong(new Date().toISOString().slice(0,10));
+  const expiryLong    = fmtDateLong(end);
+  const noticeLong    = fmtDateLong(notice);
+  const noticePeriod  = renewal && renewal !== 'custom' ? renewal + ' days' : '[NOTICE PERIOD]';
+
+  if (!window.docx) { toast('Document library not loaded yet — please try again in a moment.'); return; }
+
+  const { Document, Packer, Paragraph, TextRun, AlignmentType, UnderlineType } = window.docx;
+
+  const p = (text, opts = {}) => new Paragraph({
+    alignment: opts.align || AlignmentType.LEFT,
+    spacing: { after: opts.after !== undefined ? opts.after : 200 },
+    children: [new TextRun({
+      text,
+      bold: opts.bold || false,
+      size: opts.size || 24,
+      font: 'Arial',
+      underline: opts.underline ? { type: UnderlineType.SINGLE } : undefined,
+    })]
+  });
+
+  const blank = () => new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: '', font: 'Arial', size: 24 })] });
+
+  const doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840 },
+          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+        }
+      },
+      children: [
+        // Date
+        p(today),
+        blank(),
+
+        // Recipient block
+        p(`${party}`, { bold: false }),
+        p('[Address Line 1]'),
+        p('[City, State, Zip]'),
+        blank(),
+
+        // Re: line
+        new Paragraph({
+          spacing: { after: 200 },
+          children: [
+            new TextRun({ text: 'Re: ', bold: true, font: 'Arial', size: 24 }),
+            new TextRun({ text: `Notice of Non-Renewal — ${name}${filenum ? ' (File No. '+filenum+')' : ''}`, font: 'Arial', size: 24 }),
+          ]
+        }),
+        blank(),
+
+        // Salutation
+        p('Dear [Counterparty Contact Name]:'),
+        blank(),
+
+        // Body paragraph 1
+        new Paragraph({
+          spacing: { after: 200 },
+          children: [
+            new TextRun({ text: 'This letter constitutes formal written notice that ', font: 'Arial', size: 24 }),
+            new TextRun({ text: 'INSP, LLC', bold: true, font: 'Arial', size: 24 }),
+            new TextRun({ text: ` ("INSP") hereby elects not to renew the above-referenced agreement (the "Agreement") with ${party}, currently scheduled to expire on `, font: 'Arial', size: 24 }),
+            new TextRun({ text: expiryLong, bold: true, font: 'Arial', size: 24 }),
+            new TextRun({ text: '.', font: 'Arial', size: 24 }),
+          ]
+        }),
+
+        // Body paragraph 2
+        new Paragraph({
+          spacing: { after: 200 },
+          children: [
+            new TextRun({ text: `Pursuant to the terms of the Agreement, written notice of non-renewal is required at least ${noticePeriod} prior to the expiration date. This notice is being provided on or before the notice deadline of `, font: 'Arial', size: 24 }),
+            new TextRun({ text: noticeLong, bold: true, font: 'Arial', size: 24 }),
+            new TextRun({ text: `, and is therefore timely under the Agreement.`, font: 'Arial', size: 24 }),
+          ]
+        }),
+
+        // Body paragraph 3
+        p('The Agreement will therefore terminate by its terms on ' + expiryLong + '. INSP values its relationship with ' + party + ' and thanks you for your partnership. Please do not hesitate to contact the undersigned if you have any questions regarding this notice or the wind-down of the Agreement.'),
+        blank(),
+
+        // Closing
+        p('Sincerely,'),
+        blank(),
+        blank(),
+
+        // Signature block
+        p('Greg Richardson'),
+        p('SVP & Managing Attorney, Legal & Business Affairs'),
+        p('INSP, LLC'),
+        p('3000 WorldReach Drive'),
+        p('Indian Land, SC 29707', { after: 0 }),
+      ]
+    }]
+  });
+
+  try {
+    const btn = document.getElementById('btn-gen-nonrenewal');
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating…';
+    const blob = await Packer.toBlob(doc);
+    const safeName = name.replace(/[^a-z0-9]/gi, '_').slice(0,40);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Non-Renewal_Notice_${safeName}.docx`;
+    a.click();
+    toast('Non-renewal letter downloaded.');
+    btn.disabled = false;
+    btn.textContent = '📄 Generate Notice of Non-Renewal Letter';
+  } catch(e) {
+    console.error(e);
+    toast('Error generating letter — see console.');
+    document.getElementById('btn-gen-nonrenewal').disabled = false;
+    document.getElementById('btn-gen-nonrenewal').textContent = '📄 Generate Notice of Non-Renewal Letter';
+  }
+}
+
+// ── BUDGET PRESENTATION GENERATOR ────────────────────────────────────────────
+async function generateBudgetPresentation() {
+  const btn = document.getElementById('btn-gen-pptx');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+
+  try {
+    const now = new Date();
+    const year = now.getFullYear();
+    const ytdLabel = `January 1 – ${now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+
+    // ── Gather YTD data ──────────────────────────────────────────────────────
+    const ytdStart = new Date(`${year}-01-01`);
+
+    // YTD contracts
+    const ytdContracts = contracts.filter(c => c.start && new Date(c.start) >= ytdStart);
+    const newContracts  = ytdContracts.filter(c => !['Amendment'].includes(c.type));
+    const amendments    = ytdContracts.filter(c => c.type === 'Amendment');
+
+    // All contracts with updates this year (existing files updated)
+    const updatedContracts = contracts.filter(c =>
+      c.updates?.some(u => new Date(u.ts) >= ytdStart)
+    );
+
+    // YTD matters
+    const ytdMatters = matters.filter(m => m.opened && new Date(m.opened) >= ytdStart);
+
+    // YTD intake
+    const ytdIntake = intakeRequests.filter(r => new Date(r.submitted) >= ytdStart);
+
+    // Volume by Division (contracts + matters combined)
+    const divisionCounts = {};
+    [...contracts, ...matters].forEach(item => {
+      if (!item.division) return;
+      divisionCounts[item.division] = (divisionCounts[item.division]||0) + 1;
+    });
+
+    // Volume by type — contracts
+    const contractTypeCounts = {};
+    contracts.forEach(c => {
+      contractTypeCounts[c.type] = (contractTypeCounts[c.type]||0) + 1;
+    });
+
+    // Matter type counts
+    const matterTypeCounts = {};
+    matters.forEach(m => {
+      matterTypeCounts[m.type] = (matterTypeCounts[m.type]||0) + 1;
+    });
+
+    // Outside counsel — consolidate by firm
+    const counselMap = {};
+    matters.forEach(m => {
+      if (!m.counsel) return;
+      const firm = m.counsel.trim();
+      if (!counselMap[firm]) counselMap[firm] = { fees: 0, scopes: new Set(), count: 0 };
+      counselMap[firm].count++;
+      if (m.counselFees) counselMap[firm].fees += parseFloat(m.counselFees)||0;
+      if (m.counselScope) counselMap[firm].scopes.add(m.counselScope.trim());
+    });
+    const counselRows = Object.entries(counselMap)
+      .sort((a,b) => b[1].fees - a[1].fees || b[1].count - a[1].count)
+      .map(([firm, data]) => ({
+        firm,
+        fees: data.fees ? '$'+data.fees.toLocaleString() : '[See AvidXchange]',
+        scope: [...data.scopes].join('; ') || '[No scope entered]'
+      }));
+
+    // ── Build PPTX ───────────────────────────────────────────────────────────
+    const pres = new PptxGenJS();
+    pres.layout = 'LAYOUT_16x9';
+    pres.title = `INSP Legal — Budget Presentation ${year}`;
+
+    // Color palette — navy/gold to match LegalTrack feel
+    const NAVY  = '1a2340';
+    const GOLD  = 'c8a96e';
+    const WHITE = 'FFFFFF';
+    const LIGHT = 'f0ece4';
+    const GRAY  = '888888';
+    const DKGRAY = '444444';
+
+    // ────────────────────────────────────────────────────────────────────────
+    // SLIDE 1 — COVER
+    // ────────────────────────────────────────────────────────────────────────
+    const s1 = pres.addSlide();
+    s1.background = { color: NAVY };
+
+    // Gold accent bar left
+    s1.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: GOLD }, line: { color: GOLD } });
+
+    // INSP large text treatment
+    s1.addText('INSP', { x: 0.45, y: 0.6, w: 4, h: 1.1, fontSize: 72, bold: true, color: WHITE, fontFace: 'Georgia', margin: 0 });
+    s1.addText('Legal & Business Affairs', { x: 0.45, y: 1.65, w: 7, h: 0.4, fontSize: 16, color: GOLD, fontFace: 'Calibri', charSpacing: 3, margin: 0 });
+
+    // Divider line
+    s1.addShape(pres.shapes.LINE, { x: 0.45, y: 2.2, w: 5.5, h: 0, line: { color: GOLD, width: 1.5 } });
+
+    // Title
+    s1.addText('Budget Presentation', { x: 0.45, y: 2.4, w: 8, h: 0.7, fontSize: 36, bold: true, color: WHITE, fontFace: 'Georgia', margin: 0 });
+    s1.addText(String(year), { x: 0.45, y: 3.05, w: 3, h: 0.55, fontSize: 28, color: GOLD, fontFace: 'Georgia', margin: 0 });
+
+    // Subtitle info
+    s1.addText([
+      { text: `Greg Richardson`, options: { bold: true } },
+      { text: `\nSVP & Managing Attorney`, options: {} },
+      { text: `\n${ytdLabel}`, options: { color: GOLD } },
+    ], { x: 0.45, y: 3.8, w: 7, h: 1.1, fontSize: 13, color: LIGHT, fontFace: 'Calibri', margin: 0 });
+
+    // ────────────────────────────────────────────────────────────────────────
+    // SLIDE 2 — WORK VOLUME
+    // ────────────────────────────────────────────────────────────────────────
+    const s2 = pres.addSlide();
+    s2.background = { color: WHITE };
+
+    // Gold accent bar left
+    s2.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
+
+    // Title
+    s2.addText('Work Volume', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
+    s2.addText(ytdLabel, { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
+
+    // KPI stat boxes
+    const kpis = [
+      { label: 'New Contracts', value: newContracts.length },
+      { label: 'Amendments', value: amendments.length },
+      { label: 'Records Updated', value: updatedContracts.length },
+      { label: 'Legal Matters', value: ytdMatters.length },
+      { label: 'Intake Requests', value: ytdIntake.length },
+    ];
+    const boxW = 1.72, boxH = 0.95, boxY = 1.1, boxGap = 0.1;
+    kpis.forEach((k, i) => {
+      const bx = 0.35 + i * (boxW + boxGap);
+      s2.addShape(pres.shapes.RECTANGLE, { x: bx, y: boxY, w: boxW, h: boxH, fill: { color: NAVY }, line: { color: NAVY } });
+      s2.addText(String(k.value), { x: bx, y: boxY+0.05, w: boxW, h: 0.5, fontSize: 32, bold: true, color: GOLD, fontFace: 'Georgia', align: 'center', margin: 0 });
+      s2.addText(k.label, { x: bx, y: boxY+0.54, w: boxW, h: 0.35, fontSize: 10, color: WHITE, fontFace: 'Calibri', align: 'center', margin: 0 });
+    });
+
+    // Bar chart — Volume by Division
+    const divLabels = Object.keys(divisionCounts);
+    const divValues = divLabels.map(d => divisionCounts[d]);
+
+    // Volume by Department (contracts + matters combined)
+    const deptCounts = {};
+    [...contracts, ...matters].forEach(item => {
+      if (!item.department) return;
+      const key = item.department;
+      deptCounts[key] = (deptCounts[key]||0) + 1;
+    });
+    const deptLabels = Object.entries(deptCounts).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+    const deptValues = deptLabels.map(d => deptCounts[d]);
+
+    if (divLabels.length > 0) {
+      s2.addText('Volume by Division', { x: 0.35, y: 2.2, w: 4.5, h: 0.28, fontSize: 11, bold: true, color: NAVY, fontFace: 'Calibri', margin: 0 });
+      s2.addChart(pres.charts.BAR, [{ name: 'Matters & Contracts', labels: divLabels, values: divValues }], {
+        x: 0.3, y: 2.48, w: 4.6, h: 2.85, barDir: 'col',
+        chartColors: [GOLD, NAVY, '888888', 'c0a060'],
+        chartArea: { fill: { color: 'F8F6F2' } },
+        catAxisLabelColor: DKGRAY, valAxisLabelColor: DKGRAY,
+        valGridLine: { color: 'E0DDD8', size: 0.5 }, catGridLine: { style: 'none' },
+        showValue: true, dataLabelColor: DKGRAY, showLegend: false,
+      });
+    }
+
+    if (deptLabels.length > 0) {
+      s2.addText('Volume by Department', { x: 5.1, y: 2.2, w: 4.6, h: 0.28, fontSize: 11, bold: true, color: NAVY, fontFace: 'Calibri', margin: 0 });
+      s2.addChart(pres.charts.BAR, [{ name: 'Matters & Contracts', labels: deptLabels, values: deptValues }], {
+        x: 5.05, y: 2.48, w: 4.7, h: 2.85, barDir: 'bar',
+        chartColors: [GOLD],
+        chartArea: { fill: { color: 'F8F6F2' } },
+        catAxisLabelColor: DKGRAY, valAxisLabelColor: DKGRAY,
+        valGridLine: { color: 'E0DDD8', size: 0.5 }, catGridLine: { style: 'none' },
+        showValue: true, dataLabelColor: DKGRAY, showLegend: false,
+      });
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // SLIDE 3 — CONTRACT TYPES (new slide)
+    // ────────────────────────────────────────────────────────────────────────
+    const s3 = pres.addSlide();
+    s3.background = { color: WHITE };
+    s3.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
+    s3.addText('Volume by Contract & Matter Type', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
+    s3.addText(ytdLabel, { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
+
+    // Pie chart — Contract Types
+    const typeLabels = Object.keys(contractTypeCounts).filter(t => contractTypeCounts[t] > 0);
+    const typeValues = typeLabels.map(t => contractTypeCounts[t]);
+    if (typeLabels.length > 0) {
+      s3.addText('Contracts by Type', { x: 0.35, y: 1.15, w: 4.5, h: 0.28, fontSize: 11, bold: true, color: NAVY, fontFace: 'Calibri', margin: 0 });
+      s3.addChart(pres.charts.PIE, [{ name: 'Type', labels: typeLabels, values: typeValues }], {
+        x: 0.3, y: 1.4, w: 4.6, h: 3.9,
+        chartColors: [GOLD, NAVY, '888888', 'c0a060', '4a6090', 'a08040', '606880', 'd0b880', '304060', '8090a0'],
+        chartArea: { fill: { color: 'F8F6F2' } },
+        showPercent: true, showLegend: true, legendPos: 'b', legendFontSize: 9,
+        dataLabelColor: WHITE,
+      });
+    }
+
+    // Bar chart — Matter Types
+    const matterTypeLabels = Object.keys(matterTypeCounts).filter(t => matterTypeCounts[t] > 0);
+    const matterTypeValues = matterTypeLabels.map(t => matterTypeCounts[t]);
+    if (matterTypeLabels.length > 0) {
+      s3.addText('Legal Matters by Type', { x: 5.1, y: 1.15, w: 4.6, h: 0.28, fontSize: 11, bold: true, color: NAVY, fontFace: 'Calibri', margin: 0 });
+      s3.addChart(pres.charts.BAR, [{ name: 'Matters', labels: matterTypeLabels, values: matterTypeValues }], {
+        x: 5.05, y: 1.4, w: 4.7, h: 3.9, barDir: 'bar',
+        chartColors: [NAVY],
+        chartArea: { fill: { color: 'F8F6F2' } },
+        catAxisLabelColor: DKGRAY, valAxisLabelColor: DKGRAY,
+        valGridLine: { color: 'E0DDD8', size: 0.5 }, catGridLine: { style: 'none' },
+        showValue: true, dataLabelColor: DKGRAY, showLegend: false,
+      });
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // SLIDE 4 — OUTSIDE COUNSEL
+    // ────────────────────────────────────────────────────────────────────────
+    const s4 = pres.addSlide();
+    s4.background = { color: WHITE };
+
+    s4.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
+    s4.addText('Outside Counsel', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
+    s4.addText(ytdLabel, { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
+
+    if (counselRows.length === 0) {
+      s4.addText('No outside counsel data entered yet.', { x: 0.35, y: 1.5, w: 9, h: 0.5, fontSize: 14, color: GRAY, fontFace: 'Calibri', italic: true, margin: 0 });
+    } else {
+      const tableData = [
+        [
+          { text: 'Firm', options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 11, fontFace: 'Calibri' } },
+          { text: 'Fees (YTD)', options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 11, fontFace: 'Calibri', align: 'center' } },
+          { text: 'Area of Involvement', options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 11, fontFace: 'Calibri' } },
+        ],
+        ...counselRows.map((r, i) => [
+          { text: r.firm, options: { fontSize: 10, fontFace: 'Calibri', fill: { color: i%2===0 ? 'F8F6F2' : WHITE }, color: DKGRAY } },
+          { text: r.fees, options: { fontSize: 10, fontFace: 'Calibri', fill: { color: i%2===0 ? 'F8F6F2' : WHITE }, color: DKGRAY, align: 'center' } },
+          { text: r.scope, options: { fontSize: 10, fontFace: 'Calibri', fill: { color: i%2===0 ? 'F8F6F2' : WHITE }, color: DKGRAY } },
+        ])
+      ];
+
+      s4.addTable(tableData, {
+        x: 0.35, y: 1.15, w: 9.35, h: 0,
+        colW: [2.4, 1.5, 5.45],
+        border: { pt: 0.5, color: 'D8D4CC' },
+        rowH: 0.35,
+      });
+    }
+
+    // Footer on all slides
+    [s1, s2, s3, s4].forEach(slide => {
+      slide.addText(`INSP, LLC  |  Legal & Business Affairs  |  Confidential`, {
+        x: 0.35, y: 5.35, w: 9.3, h: 0.2, fontSize: 8, color: GRAY, fontFace: 'Calibri', align: 'center', margin: 0
+      });
+    });
+
+    // Save
+    await pres.writeFile({ fileName: `LegalTrack_Budget_Presentation_${year}.pptx` });
+    toast('Budget presentation downloaded.');
+  } catch(e) {
+    console.error('PPTX error:', e);
+    toast('Error generating presentation — see console.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '📊 Budget Presentation';
 }
 
 // ── EVENT WIRING ──────────────────────────────────────────────────────────────
@@ -2134,24 +3012,6 @@ document.getElementById('departmentFilter').addEventListener('change', render);
 document.getElementById('typeFilter').addEventListener('change', render);
 document.getElementById('sortSel').addEventListener('change', render);
 
-// Contract modal file attachment
-document.getElementById('f-dropzone').addEventListener('click', () => document.getElementById('f-file-input').click());
-document.getElementById('f-file-input').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(f => {
-    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
-  });
-  renderCAttachList();
-});
-document.getElementById('f-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
-document.getElementById('f-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
-document.getElementById('f-dropzone').addEventListener('drop', e => {
-  e.preventDefault(); e.currentTarget.style.borderColor='';
-  Array.from(e.dataTransfer.files).forEach(f => {
-    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
-  });
-  renderCAttachList();
-});
-
 // Update log file attachments
 document.getElementById('f-update-file').addEventListener('click', function(e) { e.stopPropagation(); });
 document.querySelector('label[for="f-update-file"], #f-update-file').closest ? null : null;
@@ -2170,8 +3030,128 @@ document.getElementById('mf-update-file').addEventListener('change', e => {
   renderUpdateAttachPending('mf-update-attach-list', mUpdateAttachments);
 });
 
-// Division → Department cascade in form
-document.getElementById('f-division').addEventListener('change', () => updateDepartments());
+// Matter modal file attachment
+document.getElementById('mf-dropzone').addEventListener('click', () => document.getElementById('mf-file-input').click());
+document.getElementById('mf-file-input').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (!mAttachments.find(a=>a.name===f.name)) mAttachments.push({name:f.name, size:f.size});
+  });
+  renderMAttachList();
+  document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
+});
+document.getElementById('mf-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
+document.getElementById('mf-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
+document.getElementById('mf-dropzone').addEventListener('drop', e => {
+  e.preventDefault(); e.currentTarget.style.borderColor='';
+  Array.from(e.dataTransfer.files).forEach(f => {
+    if (!mAttachments.find(a=>a.name===f.name)) mAttachments.push({name:f.name, size:f.size});
+  });
+  renderMAttachList();
+  document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
+});
+
+// Enable AI summary button when files are attached (contract)
+document.getElementById('f-dropzone').addEventListener('click', () => document.getElementById('f-file-input').click());
+document.getElementById('f-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
+document.getElementById('f-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
+document.getElementById('f-file-input').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
+  });
+  renderCAttachList();
+  document.getElementById('btn-ai-summary-c').disabled = false;
+});
+document.getElementById('if-file-input').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    if (!iAttachments.find(a=>a.name===f.name)) iAttachments.push({name:f.name, size:f.size});
+  });
+  renderAttachList();
+});
+
+// AI Summary — Contract
+document.getElementById('btn-ai-summary-c').addEventListener('click', () =>
+  generateAISummary('f-file-input', 'f-ai-summary-wrap', 'f-ai-summary-text', 'btn-ai-summary-c', null));
+document.getElementById('btn-ai-summary-c-copy').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('f-ai-summary-text').value);
+  toast('Copied to clipboard.');
+});
+document.getElementById('btn-ai-summary-c-notes').addEventListener('click', () => {
+  const existing = document.getElementById('f-notes').value.trim();
+  const summary = document.getElementById('f-ai-summary-text').value.trim();
+  document.getElementById('f-notes').value = existing ? existing + '\n\n' + summary : summary;
+  toast('Summary added to Notes.');
+});
+document.getElementById('btn-ai-summary-c-clear').addEventListener('click', () => {
+  document.getElementById('f-ai-summary-wrap').style.display = 'none';
+  document.getElementById('f-ai-summary-text').value = '';
+});
+
+// AI Summary — Matter
+document.getElementById('btn-ai-summary-m').addEventListener('click', () =>
+  generateAISummary('mf-file-input', 'mf-ai-summary-wrap', 'mf-ai-summary-text', 'btn-ai-summary-m', null));
+document.getElementById('btn-ai-summary-m-copy').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('mf-ai-summary-text').value);
+  toast('Copied to clipboard.');
+});
+document.getElementById('btn-ai-summary-m-notes').addEventListener('click', () => {
+  const existing = document.getElementById('mf-notes').value.trim();
+  const summary = document.getElementById('mf-ai-summary-text').value.trim();
+  document.getElementById('mf-notes').value = existing ? existing + '\n\n' + summary : summary;
+  toast('Summary added to Notes.');
+});
+document.getElementById('btn-ai-summary-m-clear').addEventListener('click', () => {
+  document.getElementById('mf-ai-summary-wrap').style.display = 'none';
+  document.getElementById('mf-ai-summary-text').value = '';
+});
+
+// Contract file dropzone — enable AI button on drop
+document.getElementById('f-dropzone').addEventListener('drop', e => {
+  document.getElementById('btn-ai-summary-c').disabled = cAttachments.length === 0;
+});
+
+// Division → Department cascade in form, then update contract types
+document.getElementById('f-division').addEventListener('change', () => { updateDepartments(); updateContractTypes(); });
+function calcNoticeDeadline() {
+  const endVal = document.getElementById('f-end').value;
+  const renewal = document.getElementById('f-renewal').value;
+  if (!endVal || !renewal || renewal === 'custom') return;
+  const noticeDays = parseInt(renewal);
+  if (isNaN(noticeDays)) return;
+  const expiry = new Date(endVal + 'T00:00:00');
+  expiry.setDate(expiry.getDate() - noticeDays);
+  const calculated = expiry.toISOString().slice(0,10);
+  // Only auto-fill if field is empty or was previously auto-calculated
+  const current = document.getElementById('f-notice-deadline').value;
+  if (!current || document.getElementById('f-notice-deadline').dataset.auto === 'true') {
+    document.getElementById('f-notice-deadline').value = calculated;
+    document.getElementById('f-notice-deadline').dataset.auto = 'true';
+  }
+}
+
+document.getElementById('btn-gen-pptx').addEventListener('click', generateBudgetPresentation);
+document.getElementById('btn-gen-nonrenewal').addEventListener('click', generateNonRenewalLetter);
+document.getElementById('f-department').addEventListener('change', () => updateContractTypes());
+document.getElementById('f-end').addEventListener('change', calcNoticeDeadline);
+document.getElementById('f-renewal').addEventListener('change', function() {
+  const hasRenewal = !!this.value;
+  document.getElementById('f-notice-deadline-wrap').style.display = hasRenewal ? '' : 'none';
+  document.getElementById('f-remind-wrap').style.display = hasRenewal ? '' : 'none';
+  document.getElementById('f-nonrenewal-wrap').style.display = hasRenewal ? '' : 'none';
+  if (!hasRenewal) {
+    document.getElementById('f-notice-deadline').value = '';
+    document.getElementById('f-notice-deadline').dataset.auto = '';
+    document.getElementById('f-remind').value = '';
+  } else {
+    calcNoticeDeadline();
+  }
+});
+document.getElementById('f-notice-deadline').addEventListener('change', function() {
+  // If user manually edits, stop auto-calculating
+  this.dataset.auto = 'false';
+});
+document.getElementById('f-type').addEventListener('change', function() {
+  toggleTerritoryField(this.value);
+});
 
 // Update log buttons
 document.getElementById('btn-add-update').addEventListener('click', addContractUpdate);
@@ -2219,14 +3199,8 @@ document.getElementById('btn-intake-cancel').addEventListener('click', closeInta
 document.getElementById('btn-intake-submit').addEventListener('click', submitIntakeRequest);
 document.getElementById('intake-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeIntakeModal(); });
 
-// File attachment
+// File attachment — intake (with AI enable)
 document.getElementById('if-dropzone').addEventListener('click', () => document.getElementById('if-file-input').click());
-document.getElementById('if-file-input').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(f => {
-    if (!iAttachments.find(a=>a.name===f.name)) iAttachments.push({name:f.name, size:f.size});
-  });
-  renderAttachList();
-});
 document.getElementById('if-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
 document.getElementById('if-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
 document.getElementById('if-dropzone').addEventListener('drop', e => {
@@ -2258,8 +3232,13 @@ document.querySelectorAll('#panel-intake .sidebar-item[data-ifilter]').forEach(e
 // Show/hide counterparty field based on request type
 document.getElementById('if-type').addEventListener('change', function() {
   const wrap = document.getElementById('if-counterparty-wrap');
+  const agrWrap = document.getElementById('if-agr-type-wrap');
   wrap.style.display = this.value === 'Contract Review' ? '' : 'none';
-  if (this.value !== 'Contract Review') document.getElementById('if-counterparty').value = '';
+  agrWrap.style.display = this.value === 'Contract Review' ? '' : 'none';
+  if (this.value !== 'Contract Review') {
+    document.getElementById('if-counterparty').value = '';
+    document.getElementById('if-agr-type').value = '';
+  }
   refreshIntakePartyList();
 });
 
@@ -2273,6 +3252,7 @@ refreshIntakePartyList();
 // Init matters
 refreshCounselList();
 refreshAssignedList();
+refreshTerritoryList();
 
 // Init Google Auth
 gCheckToken();
