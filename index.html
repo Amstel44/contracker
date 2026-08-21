@@ -7,9 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-<script src="https://accounts.google.com/gsi/client" async></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
 :root {
   --bg:#0f0f0f; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
@@ -928,12 +925,6 @@ const GSHEETS_CLIENT_ID   = '532999432935-989rf9dnesh1cbctfgthd01lb00dg7r5.apps.
 const GSHEETS_SPREADSHEET_ID = '1yfXfu_yRgHDPdZGWJf2VNgTdmK_GFIJCT7mqmIcHi8I'; // from your Google Sheet URL
 const GSHEETS_SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
-// ── AI SUMMARY PROXY ──────────────────────────────────────────────────────────
-// Cloudflare Worker that holds the Anthropic API key server-side. The key is
-// NEVER in this file (the repo is public). Paste your deployed Worker URL here,
-// e.g. 'https://legaltrack-ai.<your-subdomain>.workers.dev'
-const AI_PROXY_URL = 'PASTE_YOUR_WORKER_URL_HERE';
-
 let gToken = null;        // OAuth access token
 let gSyncing = false;     // prevent concurrent syncs
 
@@ -947,35 +938,7 @@ const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','d
 const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes'];
 
-// ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
-// Replaces the deprecated OAuth implicit redirect flow (response_type=token).
-// GIS opens a Google-managed popup on user gesture and returns the access token
-// via callback — the token never appears in the URL.
-let gTokenClient = null;
-
-function gInitTokenClient() {
-  if (gTokenClient) return gTokenClient;
-  if (!window.google || !google.accounts || !google.accounts.oauth2) return null;
-  gTokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GSHEETS_CLIENT_ID,
-    scope: GSHEETS_SCOPES,
-    callback: (resp) => {
-      if (resp.error) {
-        toast('Google sign-in failed: ' + (resp.error_description || resp.error));
-        return;
-      }
-      gToken = resp.access_token;
-      const expiresIn = parseInt(resp.expires_in || '3600');
-      sessionStorage.setItem('g_token', gToken);
-      sessionStorage.setItem('g_token_exp', Date.now() + expiresIn * 1000);
-      updateAuthUI(true);
-      toast('Signed in to Google — loading your data…');
-      gLoadAll();
-    },
-  });
-  return gTokenClient;
-}
-
+// ── GOOGLE AUTH ───────────────────────────────────────────────────────────────
 function gSignIn() {
   if (!GSHEETS_CLIENT_ID || !GSHEETS_SPREADSHEET_ID ||
       GSHEETS_CLIENT_ID === 'YOUR_CLIENT_ID_HERE' ||
@@ -983,13 +946,13 @@ function gSignIn() {
     toast('Please add your Client ID to the app first — see setup guide.');
     return;
   }
-  const client = gInitTokenClient();
-  if (!client) {
-    toast('Google sign-in library not loaded yet — check your connection and try again.');
-    return;
-  }
-  // Triggered by a button click (user gesture), so the popup is not blocked.
-  client.requestAccessToken();
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(GSHEETS_CLIENT_ID)}` +
+    `&redirect_uri=${encodeURIComponent(window.location.href.split('?')[0])}` +
+    `&response_type=token` +
+    `&scope=${encodeURIComponent(GSHEETS_SCOPES)}` +
+    `&prompt=select_account`;
+  window.location.href = authUrl;
 }
 
 function gSignOut() {
@@ -1001,9 +964,21 @@ function gSignOut() {
 }
 
 function gCheckToken() {
-  // GIS delivers tokens via the initTokenClient callback, not a URL fragment,
-  // so there is no longer a redirect hash to parse here. Just restore a token
-  // that is still valid within this browser session.
+  // Check URL hash for token (OAuth implicit flow callback)
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.slice(1));
+    gToken = params.get('access_token');
+    const expiresIn = parseInt(params.get('expires_in') || '3600');
+    sessionStorage.setItem('g_token', gToken);
+    sessionStorage.setItem('g_token_exp', Date.now() + expiresIn * 1000);
+    window.history.replaceState(null, '', window.location.pathname);
+    updateAuthUI(true);
+    toast('Signed in to Google — loading your data…');
+    gLoadAll();
+    return true;
+  }
+  // Restore from session
   const saved = sessionStorage.getItem('g_token');
   const exp   = parseInt(sessionStorage.getItem('g_token_exp') || '0');
   if (saved && Date.now() < exp) {
@@ -2499,56 +2474,39 @@ const AI_SUMMARY_PROMPT = `You are a legal analyst reviewing a document for an i
 
 Be concise and precise. Use plain legal language. If a section cannot be determined from the document, state "Not specified."`;
 
-const AI_MAX_CHARS = 40000;
-
-// Proper PDF text extraction via PDF.js (handles real, compressed PDFs).
-// Returns '' for scanned/image-only PDFs (no embedded text), which the caller
-// treats as "couldn't read — paste text manually".
-async function extractPdfText(file) {
-  if (!window.pdfjsLib) throw new Error('PDF reader did not load — check your connection and retry.');
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  let out = '';
-  const maxPages = Math.min(pdf.numPages, 50); // safety cap for very long docs
-  for (let p = 1; p <= maxPages; p++) {
-    const page = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    out += content.items.map(it => it.str).join(' ') + '\n';
-    if (out.length > AI_MAX_CHARS) break;
-  }
-  return out.slice(0, AI_MAX_CHARS).trim();
-}
-
-function readPlainText(file) {
+async function readFileAsText(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = e => resolve((e.target.result || '').slice(0, AI_MAX_CHARS));
-    reader.onerror = reject;
-    reader.readAsText(file);
+    // For PDFs and binary files, read as ArrayBuffer then extract text
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      reader.onload = e => {
+        // Extract readable text from PDF binary (basic extraction)
+        const arr = new Uint8Array(e.target.result);
+        let text = '';
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i] > 31 && arr[i] < 127) text += String.fromCharCode(arr[i]);
+          else if (arr[i] === 10 || arr[i] === 13) text += '\n';
+        }
+        // Clean up PDF noise — extract readable runs
+        const clean = text.replace(/[^\x20-\x7E\n]/g, ' ')
+          .replace(/\s{3,}/g, ' ').replace(/(\w)\s(\w)/g, '$1 $2').trim();
+        resolve(clean.slice(0, 40000));
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    } else {
+      // For .txt, .docx (text portion), read as text
+      reader.onload = e => resolve((e.target.result || '').slice(0, 40000));
+      reader.onerror = reject;
+      reader.readAsText(file);
+    }
   });
-}
-
-// Word (.docx) text extraction via mammoth.js. Handles the modern zip/XML Word
-// format only — not legacy binary .doc. Returns '' if the doc has no readable text.
-async function extractDocxText(file) {
-  if (!window.mammoth) throw new Error('Word reader did not load — check your connection and retry.');
-  const buf = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer: buf });
-  return (result?.value || '').slice(0, AI_MAX_CHARS).trim();
 }
 
 async function generateAISummary(fileInputId, wrapId, textareaId, btnId, pendingFiles) {
   const btn = document.getElementById(btnId);
   const wrap = document.getElementById(wrapId);
   const textarea = document.getElementById(textareaId);
-  const resetBtn = () => { btn.disabled = false; btn.textContent = '✦ Generate AI Summary'; };
-
-  if (!AI_PROXY_URL || AI_PROXY_URL === 'PASTE_YOUR_WORKER_URL_HERE') {
-    toast('AI Summary is not configured yet — set AI_PROXY_URL to your Worker URL.');
-    return;
-  }
 
   // Get the actual File objects from the file input
   const fileInput = document.getElementById(fileInputId);
@@ -2569,49 +2527,28 @@ async function generateAISummary(fileInputId, wrapId, textareaId, btnId, pending
   try {
     // Read the first attached file
     const file = files[0];
-    const name = file.name.toLowerCase();
-    let docText;
-
-    if (name.endsWith('.pdf') || file.type === 'application/pdf') {
-      docText = await extractPdfText(file);
-    } else if (name.endsWith('.docx')) {
-      docText = await extractDocxText(file);
-    } else if (/\.(doc|xlsx?|pptx?)$/.test(name)) {
-      textarea.value = 'AI Summary reads PDF, Word (.docx), and plain-text files. Legacy .doc and Excel/PowerPoint files aren\'t supported yet — please paste the text into the Notes field for now.';
-      textarea.placeholder = '';
-      resetBtn();
-      return;
-    } else {
-      docText = await readPlainText(file);
-    }
+    const docText = await readFileAsText(file);
 
     if (!docText || docText.length < 100) {
-      textarea.value = 'Could not extract readable text from this file. This may be a scanned or image-only PDF. Please paste the text content into the Notes field instead.';
+      textarea.value = 'Could not extract readable text from this file. This may be a scanned PDF or image-based document. Please paste the text content into the Notes field instead.';
       textarea.placeholder = '';
-      resetBtn();
+      btn.disabled = false;
+      btn.textContent = '✦ Generate AI Summary';
       return;
     }
 
-    // The proxy injects the API key and pins the model server-side; we send messages only.
-    const response = await fetch(AI_PROXY_URL, {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
         messages: [{
           role: 'user',
           content: `${AI_SUMMARY_PROMPT}\n\n---DOCUMENT START---\n${docText}\n---DOCUMENT END---`
         }]
       })
     });
-
-    if (!response.ok) {
-      let msg = 'Error ' + response.status;
-      try { const ed = await response.json(); msg = ed?.error?.message || ed?.error || msg; } catch {}
-      textarea.value = 'Could not generate summary (' + msg + '). Check that the AI proxy is deployed and its API key is set.';
-      textarea.placeholder = '';
-      resetBtn();
-      return;
-    }
 
     const data = await response.json();
     const summary = data.content?.find(b => b.type === 'text')?.text || 'No summary generated.';
@@ -2620,10 +2557,11 @@ async function generateAISummary(fileInputId, wrapId, textareaId, btnId, pending
     toast('AI summary generated — review and edit as needed.');
   } catch(e) {
     console.error('AI summary error:', e);
-    textarea.value = 'Error generating summary: ' + (e.message || e) + '. Please try again.';
+    textarea.value = 'Error generating summary. Please try again.';
   }
 
-  resetBtn();
+  btn.disabled = false;
+  btn.textContent = '✦ Generate AI Summary';
 }
 
 // ── NON-RENEWAL LETTER GENERATOR ─────────────────────────────────────────────
@@ -3149,13 +3087,8 @@ document.getElementById('btn-ai-summary-m-clear').addEventListener('click', () =
   document.getElementById('mf-ai-summary-text').value = '';
 });
 
-// Contract file dropzone — capture dropped files and enable AI button
+// Contract file dropzone — enable AI button on drop
 document.getElementById('f-dropzone').addEventListener('drop', e => {
-  e.preventDefault(); e.currentTarget.style.borderColor='';
-  Array.from(e.dataTransfer.files).forEach(f => {
-    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
-  });
-  renderCAttachList();
   document.getElementById('btn-ai-summary-c').disabled = cAttachments.length === 0;
 });
 
