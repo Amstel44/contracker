@@ -7,6 +7,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
   --bg:#0f0f0f; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
@@ -15,17 +19,17 @@
   --red:#e05252; --green:#52a852; --yellow:#c8a040; --blue:#5289c8;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:300;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:15px;font-weight:300;}
 
 /* HEADER */
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.logo{font-family:'Playfair Display',serif;font-size:17px;color:var(--accent);}
-.logo span{color:var(--text-dim);font-size:11px;margin-left:6px;font-family:'IBM Plex Sans',sans-serif;}
+.logo{font-family:'Playfair Display',serif;font-size:19px;color:var(--accent);}
+.logo span{color:var(--text-dim);font-size:13px;margin-left:6px;font-family:'IBM Plex Sans',sans-serif;}
 .header-right{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 
 /* TABS */
 .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);padding:0 14px;}
-.tab{padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;user-select:none;}
+.tab{padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.04em;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;user-select:none;}
 .tab:hover{color:var(--text-dim);}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
@@ -35,7 +39,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 
 /* STATUS FILTER BAR */
 .filter-bar{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;}
-.fchip{padding:4px 10px;border-radius:20px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border:1px solid var(--border);color:var(--text-muted);background:var(--surface);transition:all .12s;white-space:nowrap;}
+.fchip{padding:5px 11px;border-radius:20px;font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border:1px solid var(--border);color:var(--text-muted);background:var(--surface);transition:all .12s;white-space:nowrap;}
 .fchip:hover{border-color:var(--accent);color:var(--accent);}
 .fchip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 .fchip .n{margin-left:4px;opacity:.7;}
@@ -44,8 +48,25 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .stats{display:flex;gap:1px;margin-bottom:12px;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
 .stat{flex:1;padding:8px 10px;background:var(--surface);border-right:1px solid var(--border);}
 .stat:last-child{border-right:none;}
-.stat-value{font-family:'Playfair Display',serif;font-size:18px;color:var(--accent);line-height:1;margin-bottom:2px;}
-.stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;}
+.stat-value{font-family:'Playfair Display',serif;font-size:22px;color:var(--accent);line-height:1;margin-bottom:2px;}
+.stat-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;}
+.dash-h{font-family:'Playfair Display',serif;font-size:17px;color:var(--text);margin:0 0 8px;font-weight:600;}
+.dash-sub{font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--text-muted);font-style:italic;font-weight:400;margin-left:6px;text-transform:none;letter-spacing:0;}
+.dash-cols{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.dash-col{flex:1;min-width:340px;}
+.dash-row{cursor:pointer;}
+.dash-row:hover{background:var(--surface2);}
+.gs-item{display:flex;align-items:baseline;gap:8px;padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;}
+.gs-item:hover{background:var(--surface2);}
+.gs-cat{font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-family:'IBM Plex Mono',monospace;flex-shrink:0;width:56px;}
+.gs-title{color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gs-sub{color:var(--text-muted);font-size:11px;margin-left:auto;flex-shrink:0;white-space:nowrap;padding-left:8px;}
+.gs-empty{padding:10px;color:var(--text-muted);font-size:13px;text-align:center;}
+.party-hdr:hover{filter:brightness(1.15);}
+.party-agr:hover{background:var(--surface2);}
+.rpt-item{padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);}
+.rpt-item:last-child{border-bottom:none;}
+.rpt-item:hover{background:var(--surface2);}
 
 /* TOOLBAR */
 .toolbar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
@@ -53,7 +74,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .search-wrap svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
 
 /* INPUTS */
-input[type=text],input[type=date],input[type=number],select,textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:6px 10px;transition:border-color .15s;width:100%;}
+input[type=text],input[type=date],input[type=number],select,textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:7px 10px;transition:border-color .15s;width:100%;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
 .search-wrap input{padding-left:28px;}
 select{cursor:pointer;}
@@ -63,17 +84,17 @@ option{background:var(--surface2);}
 .table-wrap{border:1px solid var(--border);border-radius:2px;overflow-x:auto;}
 table{width:100%;border-collapse:collapse;min-width:500px;}
 thead{background:var(--surface2);}
-th{text-align:left;padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap;}
+th{text-align:left;padding:8px 9px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap;}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:var(--surface);}
-td{padding:8px 8px;color:var(--text-dim);vertical-align:middle;font-size:11px;}
+td{padding:9px 9px;color:var(--text-dim);vertical-align:middle;font-size:13px;}
 td.name{color:var(--text);font-weight:400;}
-td.mono{font-family:'IBM Plex Mono',monospace;font-size:10px;}
+td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;}
 .empty-row td{text-align:center;padding:32px;color:var(--text-muted);}
 
 /* PILLS */
-.pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:500;}
+.pill{display:inline-block;padding:3px 8px;border-radius:20px;font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:500;}
 .pill-active{background:rgba(82,168,82,.15);color:var(--green);}
 .pill-expired{background:rgba(224,82,82,.15);color:var(--red);}
 .pill-pending{background:rgba(200,160,64,.15);color:var(--yellow);}
@@ -87,14 +108,19 @@ td.mono{font-family:'IBM Plex Mono',monospace;font-size:10px;}
 .deadline-ok{color:var(--text-dim);}
 .deadline-warn{color:var(--yellow);}
 .deadline-over{color:var(--red);}
+.sortable-th{cursor:pointer;user-select:none;}
+.sortable-th:hover{color:var(--accent);}
+.sort-ind{font-size:9px;opacity:.5;margin-left:2px;}
+.sort-ind.asc::after{content:'▲';}
+.sort-ind.desc::after{content:'▼';}
 
 /* BUTTONS */
-.btn{padding:6px 12px;border-radius:2px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;transition:all .15s;letter-spacing:.03em;}
+.btn{padding:7px 14px;border-radius:2px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;transition:all .15s;letter-spacing:.03em;}
 .btn-primary{background:var(--accent);color:#0f0f0f;}
 .btn-primary:hover{background:#d4b87e;}
 .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
-.btn-sm{padding:4px 8px;font-size:10px;}
+.btn-sm{padding:5px 10px;font-size:12px;}
 .btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);}
 
 /* ACTIONS */
@@ -104,7 +130,7 @@ td.mono{font-family:'IBM Plex Mono',monospace;font-size:10px;}
 .icon-btn.del:hover{color:var(--red);}
 
 /* BADGE */
-.badge{font-family:'IBM Plex Mono',monospace;font-size:9px;background:var(--surface2);padding:1px 5px;border-radius:10px;color:var(--text-muted);}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:10px;color:var(--text-muted);}
 .badge.red{background:rgba(224,82,82,.15);color:var(--red);}
 
 /* MODAL */
@@ -113,13 +139,13 @@ td.mono{font-family:'IBM Plex Mono',monospace;font-size:10px;}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:2px;width:min(560px,98vw);max-height:92vh;overflow-y:auto;animation:fadeUp .2s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.modal-title{font-family:'Playfair Display',serif;font-size:17px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:19px;}
 .modal-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;line-height:1;}
 .modal-close:hover{color:var(--text);}
 .modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
 .modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
 .field-group{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-label{display:block;font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+label{display:block;font-size:12px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
 textarea{resize:vertical;min-height:64px;}
 .form-field{display:flex;flex-direction:column;}
 
@@ -129,11 +155,11 @@ textarea{resize:vertical;min-height:64px;}
 .update-log-header label{margin:0;}
 .update-entry{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:2px;padding:7px 10px;display:flex;gap:8px;align-items:flex-start;}
 .update-entry-body{flex:1;min-width:0;}
-.update-entry-ts{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:2px;}
-.update-entry-text{font-size:12px;color:var(--text-dim);line-height:1.5;word-break:break-word;}
+.update-entry-ts{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);margin-bottom:2px;}
+.update-entry-text{font-size:14px;color:var(--text-dim);line-height:1.5;word-break:break-word;}
 .update-add-row{display:flex;gap:6px;align-items:flex-start;}
-.update-add-row textarea{flex:1;min-height:48px;font-size:12px;}
-.update-empty{font-size:11px;color:var(--text-muted);font-style:italic;padding:6px 0;}
+.update-add-row textarea{flex:1;min-height:48px;font-size:14px;}
+.update-empty{font-size:13px;color:var(--text-muted);font-style:italic;padding:6px 0;}
 
 /* INTAKE */
 .intake-form-header{background:var(--accent-dim);border-bottom:1px solid rgba(200,169,110,.2);padding:16px 20px;}
@@ -186,19 +212,103 @@ textarea{resize:vertical;min-height:64px;}
 <header>
   <div class="logo">LegalTrack <span>/ Legal & Business Affairs</span></div>
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <button class="btn-ai" id="btn-gen-pptx" style="font-size:11px;padding:5px 12px">📊 Budget Presentation</button>
+    <div id="gs-wrap" style="position:relative">
+      <input type="text" id="globalSearch" placeholder="Search everything…" autocomplete="off" style="width:200px;font-size:12px;padding:5px 10px">
+      <div id="globalSearchResults" style="display:none;position:absolute;top:112%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;max-height:360px;overflow:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div>
+    </div>
+    <button class="btn-ai" id="btn-backup" style="font-size:11px;padding:5px 12px">⬇ Backup</button>
+    <button class="btn-ai" id="btn-parties" style="font-size:11px;padding:5px 12px">🤝 Parties</button>
+    <div id="reporting-wrap" style="position:relative">
+      <button class="btn-ai" id="btn-reporting" style="font-size:11px;padding:5px 12px">📊 Reporting ▾</button>
+      <div id="reporting-menu" style="display:none;position:absolute;top:112%;right:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;min-width:210px;overflow:hidden;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.45)">
+        <div class="rpt-item" data-report="activity">📊 Legal Activity Report (PPT)</div>
+        <div class="rpt-item" data-report="status">📋 Contracts by Status</div>
+        <div class="rpt-item" data-report="matterstype">⚖️ Matters by Type</div>
+        <div class="rpt-item" data-report="turnaround">⏱ Intake Turnaround</div>
+        <div class="rpt-item" data-report="upcoming">📅 Upcoming Renewals</div>
+        <div class="rpt-item" data-report="monthinreview">📆 Month-in-Review</div>
+      </div>
+    </div>
+    <!-- Notification Bell -->
+    <div id="notif-wrap" style="position:relative">
+      <button id="btn-notif" title="Alerts" style="background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:4px;position:relative;color:var(--text-muted);font-size:18px;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
+        🔔
+        <span id="notif-badge" style="display:none;position:absolute;top:0;right:0;background:#e05a5a;color:#fff;font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 3px;line-height:16px;text-align:center"></span>
+      </button>
+      <div id="notif-dropdown" style="display:none;position:absolute;top:112%;right:0;width:340px;background:var(--surface);border:1px solid var(--border);border-radius:8px;z-index:300;box-shadow:0 8px 28px rgba(0,0,0,.5);overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">Alerts</span>
+          <button id="notif-dismiss-all" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace">Dismiss all</button>
+        </div>
+        <div id="notif-list" style="max-height:400px;overflow-y:auto"></div>
+      </div>
+    </div>
     <div id="g-auth-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"></div>
   </div>
 </header>
 
 <div class="tabs">
-  <div class="tab active" id="tab-contracts">Contracts</div>
+  <div class="tab active" id="tab-dashboard">Dashboard</div>
+  <div class="tab" id="tab-contracts">Contracts</div>
   <div class="tab" id="tab-matters">Other Legal Matters</div>
-  <div class="tab" id="tab-intake">Legal Intake</div>
+  <div class="tab" id="tab-intake">Legal Intake Form</div>
 </div>
 
+<!-- ═══ DASHBOARD PANEL ═══ -->
+<div class="panel active" id="panel-dashboard">
+  <div id="dash-alert-banner" style="display:none;margin-bottom:14px"></div>
+  <div class="stats" id="dash-stats"></div>
+  <div class="dash-cols">
+    <div class="dash-col">
+      <h3 class="dash-h">Notice Deadlines Approaching <span class="dash-sub">auto-renewing — act before renewal locks in</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Contract</th><th>Counterparty</th><th>Notice Deadline</th><th>Due In</th></tr></thead>
+          <tbody id="dash-notice"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="dash-col">
+      <h3 class="dash-h">Upcoming Expirations <span class="dash-sub">next 90 days</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Contract</th><th>Counterparty</th><th>Expires</th><th>In</th></tr></thead>
+          <tbody id="dash-expiring"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div id="dash-pastexp-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h" style="color:#e05a5a">⚠ Past Expiration — Needs Review <span class="dash-sub">still marked active, past their end date — review and update status</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>Expired</th><th>Ago</th></tr></thead>
+        <tbody id="dash-pastexp"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- ── Dashboard Charts ── -->
+  <div class="dash-charts" id="dash-charts-section" style="margin-top:24px;display:none">
+    <h3 class="dash-h" style="margin-bottom:16px">Portfolio Overview</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+      <div class="surface2" style="border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Contracts by Status</div>
+        <div style="position:relative;height:220px"><canvas id="chart-status"></canvas></div>
+      </div>
+      <div class="surface2" style="border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Contracts by Division</div>
+        <div style="position:relative;height:220px"><canvas id="chart-division"></canvas></div>
+      </div>
+      <div class="surface2" style="border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Legal Matters by Type</div>
+        <div style="position:relative;height:220px"><canvas id="chart-matters"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div><!-- end #panel-dashboard -->
+
 <!-- ═══ CONTRACTS PANEL ═══ -->
-<div class="panel active" id="panel-contracts">
+<div class="panel" id="panel-contracts">
 
   <!-- Hidden sidebar items for JS filter compatibility -->
   <nav style="display:none">
@@ -248,30 +358,89 @@ textarea{resize:vertical;min-height:64px;}
     </div>
     <select id="divisionFilter" style="width:auto">
       <option value="">All Divisions</option>
-      <option>Corporate</option><option>INSP</option><option>CrossRidge</option><option>Ministry</option>
+      <option>Corporate</option><option>INSP</option><option>CrossRidge</option><option>Ministry</option><option>Wrangle Media</option>
     </select>
     <select id="departmentFilter" style="width:auto"><option value="">All Depts</option></select>
     <select id="typeFilter" style="width:auto">
       <option value="">All Types</option>
       <option>Service Agreement</option><option>NDA</option><option>License Agreement</option>
-      <option>Letter Agreement</option><option>CrossRidge Lease</option><option>Amendment</option>
+      <option>Letter Agreement</option><option value="CrossRidge Lease">Commercial Lease</option><option>Land Sale</option><option>Amendment</option>
       <option>Distribution Agr - Western Bound</option><option>Distribution Agr - INSP</option><option>Distribution Agr - OND</option>
       <option>Other</option>
     </select>
-    <select id="sortSel" style="width:auto">
-      <option value="name">Name</option><option value="end">Expiration</option><option value="status">Status</option>
-    </select>
+    <button class="btn btn-ghost btn-sm" id="btn-adv-filter">⚙ Filters</button>
+    <div style="position:relative">
+      <button class="btn btn-ghost btn-sm" id="btn-saved-filters">⭐ Saved ▾</button>
+      <div id="saved-filters-menu" style="display:none;position:absolute;top:110%;left:0;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:6px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.45);overflow:hidden">
+        <div id="saved-filters-list"></div>
+        <div style="padding:8px 10px;border-top:1px solid var(--border)">
+          <div style="display:flex;gap:6px">
+            <input type="text" id="saved-filter-name" placeholder="Filter name…" style="flex:1;font-size:12px;padding:5px 8px">
+            <button class="btn btn-primary btn-sm" id="btn-save-filter-now">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <button class="btn btn-ghost btn-sm" id="btn-csv">↓ CSV</button>
+    <button class="btn btn-ghost btn-sm" id="btn-word">↓ Word</button>
     <button class="btn btn-ghost btn-sm" id="btn-ics">📅 Outlook</button>
     <button class="btn btn-primary btn-sm" id="btn-new">+ New Contract</button>
+  </div>
+
+  <!-- Bulk Action Bar -->
+  <div id="bulk-bar" style="display:none;background:var(--accent-dim);border:1px solid rgba(200,169,110,.3);border-radius:4px;padding:8px 12px;margin-bottom:10px;display:none;align-items:center;gap:10px;flex-wrap:wrap">
+    <span id="bulk-count" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)"></span>
+    <select id="bulk-status-sel" style="width:auto;font-size:12px;padding:5px 8px">
+      <option value="">— Set Status —</option>
+      <option>Active</option><option>Expired</option><option>Terminated</option><option>Pending</option><option>On Hold</option>
+    </select>
+    <button class="btn btn-primary btn-sm" id="btn-bulk-apply">Apply</button>
+    <button class="btn btn-ghost btn-sm" id="btn-bulk-clear">✕ Clear selection</button>
+  </div>
+
+  <!-- Advanced Filter Panel -->
+  <div id="adv-filter-panel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
+        <label style="font-size:11px">Start Date From</label>
+        <input type="date" id="af-start-from" style="font-size:12px;padding:5px 8px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
+        <label style="font-size:11px">Start Date To</label>
+        <input type="date" id="af-start-to" style="font-size:12px;padding:5px 8px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
+        <label style="font-size:11px">Expiration From</label>
+        <input type="date" id="af-end-from" style="font-size:12px;padding:5px 8px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
+        <label style="font-size:11px">Expiration To</label>
+        <input type="date" id="af-end-to" style="font-size:12px;padding:5px 8px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:160px">
+        <label style="font-size:11px">Assigned Attorney</label>
+        <select id="af-assigned" style="font-size:12px;padding:5px 8px"><option value="">Any</option></select>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btn-adv-clear" style="align-self:flex-end">Clear</button>
+    </div>
+    <div id="adv-filter-active-badge" style="display:none;margin-top:8px;font-size:11px;color:var(--accent);font-family:'IBM Plex Mono',monospace"></div>
   </div>
 
   <div class="table-wrap">
     <table>
       <thead><tr>
-        <th>File No.</th><th>Counterparty</th><th>Contract Name</th><th>Division</th>
-        <th>Dept</th><th>Type</th><th>Status</th><th>Assigned</th>
-        <th>Effective</th><th>Expiration</th><th>Updates</th><th>Actions</th>
+        <th style="width:28px"><input type="checkbox" id="chk-all" title="Select all" style="cursor:pointer;width:14px;height:14px"></th>
+        <th class="sortable-th" data-col="filenum">File No. <span class="sort-ind"></span></th>
+        <th class="sortable-th" data-col="party">Counterparty <span class="sort-ind"></span></th>
+        <th class="sortable-th" data-col="name">Contract Name <span class="sort-ind"></span></th>
+        <th class="sortable-th" data-col="division">Division <span class="sort-ind"></span></th>
+        <th>Dept</th>
+        <th class="sortable-th" data-col="type">Type <span class="sort-ind"></span></th>
+        <th class="sortable-th" data-col="status">Status <span class="sort-ind"></span></th>
+        <th class="sortable-th" data-col="assigned">Assigned <span class="sort-ind"></span></th>
+        <th class="sortable-th" data-col="start">Effective <span class="sort-ind"></span></th>
+        <th class="sortable-th" data-col="end">Expiration <span class="sort-ind"></span></th>
+        <th>Updates</th><th>Actions</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -288,7 +457,7 @@ textarea{resize:vertical;min-height:64px;}
     <div class="sidebar-item" data-mfilter="closed"></div>
     <div class="sidebar-item" data-mfilter="type:Litigation"></div>
     <div class="sidebar-item" data-mfilter="type:Employment"></div>
-    <div class="sidebar-item" data-mfilter="type:IP"></div>
+    <div class="sidebar-item" data-mfilter="type:Trademarks"></div>
     <div class="sidebar-item" data-mfilter="type:Real Estate"></div>
     <div class="sidebar-item" data-mfilter="type:Corporate"></div>
     <div class="sidebar-item" data-mfilter="type:Regulatory"></div>
@@ -297,7 +466,7 @@ textarea{resize:vertical;min-height:64px;}
     <span id="mbadge-all"></span><span id="mbadge-open"></span>
     <span id="mbadge-on hold"></span><span id="mbadge-closed"></span>
     <span id="mbadge-type:Litigation"></span><span id="mbadge-type:Employment"></span>
-    <span id="mbadge-type:IP"></span><span id="mbadge-type:Real Estate"></span>
+    <span id="mbadge-type:Trademarks"></span><span id="mbadge-type:Real Estate"></span>
     <span id="mbadge-type:Corporate"></span><span id="mbadge-type:Regulatory"></span>
     <span id="mbadge-type:Payment Dispute"></span><span id="mbadge-type:Other"></span>
   </nav>
@@ -309,7 +478,7 @@ textarea{resize:vertical;min-height:64px;}
     <div class="fchip" data-mfilter="closed" onclick="mSetFilter('closed',this);syncChips('mFilterBar')">Closed</div>
     <div class="fchip" data-mfilter="type:Litigation" onclick="mSetFilter('type:Litigation',this);syncChips('mFilterBar')">Litigation</div>
     <div class="fchip" data-mfilter="type:Employment" onclick="mSetFilter('type:Employment',this);syncChips('mFilterBar')">Employment</div>
-    <div class="fchip" data-mfilter="type:IP" onclick="mSetFilter('type:IP',this);syncChips('mFilterBar')">IP</div>
+    <div class="fchip" data-mfilter="type:Trademarks" onclick="mSetFilter('type:Trademarks',this);syncChips('mFilterBar')">Trademarks</div>
     <div class="fchip" data-mfilter="type:Real Estate" onclick="mSetFilter('type:Real Estate',this);syncChips('mFilterBar')">Real Estate</div>
     <div class="fchip" data-mfilter="type:Corporate" onclick="mSetFilter('type:Corporate',this);syncChips('mFilterBar')">Corporate</div>
     <div class="fchip" data-mfilter="type:Regulatory" onclick="mSetFilter('type:Regulatory',this);syncChips('mFilterBar')">Regulatory</div>
@@ -330,12 +499,12 @@ textarea{resize:vertical;min-height:64px;}
     </div>
     <select id="mDivisionFilter" style="width:auto">
       <option value="">All Divisions</option>
-      <option>Corporate</option><option>INSP</option><option>CrossRidge</option><option>Ministry</option>
+      <option>Corporate</option><option>INSP</option><option>CrossRidge</option><option>Ministry</option><option>Wrangle Media</option>
     </select>
     <select id="mDepartmentFilter" style="width:auto"><option value="">All Depts</option></select>
     <select id="mTypeFilter" style="width:auto">
       <option value="">All Types</option>
-      <option>Litigation</option><option>Employment</option><option>IP</option>
+      <option>Litigation</option><option>Employment</option><option>Trademarks</option>
       <option>Real Estate</option><option>Corporate</option><option>Regulatory</option>
       <option>Payment Dispute</option><option>Other</option>
     </select>
@@ -367,11 +536,11 @@ textarea{resize:vertical;min-height:64px;}
     <div class="sidebar-item" data-ifilter="in review"></div>
     <div class="sidebar-item" data-ifilter="converted"></div>
     <div class="sidebar-item" data-ifilter="closed"></div>
-    <div class="sidebar-item" data-ifilter="type:Contract Review"></div>
+    <div class="sidebar-item" data-ifilter="type:Legal Doc Review"></div>
     <div class="sidebar-item" data-ifilter="type:Other Legal Matter"></div>
     <span id="ibadge-all"></span><span id="ibadge-new"></span>
     <span id="ibadge-in review"></span><span id="ibadge-converted"></span><span id="ibadge-closed"></span>
-    <span id="ibadge-type:Contract Review"></span><span id="ibadge-type:Other Legal Matter"></span>
+    <span id="ibadge-type:Legal Doc Review"></span><span id="ibadge-type:Other Legal Matter"></span>
   </nav>
 
   <div class="filter-bar" id="iFilterBar">
@@ -400,7 +569,7 @@ textarea{resize:vertical;min-height:64px;}
     </div>
     <select id="iTypeFilter" style="width:auto">
       <option value="">Type</option>
-      <option>Contract Review</option><option>Other Legal Matter</option>
+      <option>Legal Doc Review</option><option>Other Legal Matter</option>
     </select>
     <select id="iSortSel" style="width:auto">
       <option value="submitted">Newest</option><option value="needby">Need-by</option>
@@ -474,6 +643,9 @@ textarea{resize:vertical;min-height:64px;}
                 <option>Ministry / Security</option>
                 <option>Ministry / Other</option>
               </optgroup>
+              <optgroup label="Wrangle Media">
+                <option>Wrangle Media</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -482,7 +654,7 @@ textarea{resize:vertical;min-height:64px;}
             <label>Type of Request *</label>
             <select id="if-type">
               <option value="">— Select —</option>
-              <option>Contract Review</option>
+              <option>Legal Doc Review</option>
               <option>Other Legal Matter</option>
             </select>
           </div>
@@ -603,6 +775,7 @@ textarea{resize:vertical;min-height:64px;}
             <option>INSP</option>
             <option>CrossRidge</option>
             <option>Ministry</option>
+            <option>Wrangle Media</option>
           </select>
         </div>
         <div class="form-field">
@@ -618,7 +791,7 @@ textarea{resize:vertical;min-height:64px;}
           <select id="mf-type">
             <option>Litigation</option>
             <option>Employment</option>
-            <option>IP</option>
+            <option>Trademarks</option>
             <option>Real Estate</option>
             <option>Corporate</option>
             <option>Regulatory</option>
@@ -627,20 +800,14 @@ textarea{resize:vertical;min-height:64px;}
           </select>
         </div>
         <div class="form-field">
-          <label>Outside Counsel</label>
+          <label>Outside Counsel, if applicable</label>
           <input type="text" id="mf-counsel" placeholder="Firm / Attorney name" autocomplete="off" list="counsel-list">
           <datalist id="counsel-list"></datalist>
         </div>
       </div>
-      <div class="form-field">
+      <div class="form-field" id="mf-counsel-scope-wrap">
         <label>Outside Counsel — Scope / Area of Involvement</label>
         <textarea id="mf-counsel-scope" placeholder="Brief description of this firm's involvement (e.g. broadcast regulatory, litigation counsel for DeltaVision dispute)…" style="min-height:56px"></textarea>
-      </div>
-      <div class="field-group">
-        <div class="form-field">
-          <label>Outside Counsel Fees ($)</label>
-          <input type="number" id="mf-counsel-fees" placeholder="Leave blank — Marsha to fill from AvidXchange" min="0">
-        </div>
       </div>
       <div class="field-group">
         <div class="form-field">
@@ -705,6 +872,7 @@ textarea{resize:vertical;min-height:64px;}
       </div>
     </div>
     <div class="modal-footer">
+      <span id="mf-lastmod" style="flex:1;font-size:10px;color:var(--text-muted);font-style:italic"></span>
       <button class="btn btn-ghost" id="btn-matter-cancel">Cancel</button>
       <button class="btn btn-primary" id="btn-matter-save">Save Matter</button>
     </div>
@@ -721,13 +889,29 @@ textarea{resize:vertical;min-height:64px;}
     <div class="modal-body">
       <div class="field-group">
         <div class="form-field">
-          <label>File Number</label>
-          <input type="text" id="f-filenum" placeholder="e.g. 2026-001">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <label style="margin:0">File Number</label>
+            <label style="display:flex;align-items:center;gap:5px;font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-muted);cursor:pointer;margin:0">
+              <input type="checkbox" id="f-newfile" style="width:auto;margin:0"> New file # (auto-assign)
+            </label>
+          </div>
+          <input type="text" id="f-filenum" placeholder="e.g. 26-001">
         </div>
         <div class="form-field">
           <label>Related File Numbers / Links, if any</label>
-          <input type="text" id="f-related" placeholder="e.g. 2026-002, 2026-003 or OneDrive/SharePoint URL">
+          <input type="text" id="f-related" placeholder="e.g. 26-002, 26-003 or OneDrive/SharePoint URL">
         </div>
+      </div>
+      <!-- Related Contracts (linked records) -->
+      <div class="form-field">
+        <label>Related Contracts</label>
+        <div style="position:relative">
+          <input type="text" id="f-related-search" placeholder="Search by name, file no., or counterparty to link…" autocomplete="off">
+          <div id="f-related-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;z-index:300;box-shadow:0 6px 16px rgba(0,0,0,.4)"></div>
+        </div>
+        <div id="f-related-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+      </div>
+      <div style="display:none"><!-- reopen field-group -->
       </div>
       <div class="form-field">
         <label>Contract Name *</label>
@@ -747,6 +931,7 @@ textarea{resize:vertical;min-height:64px;}
             <option>INSP</option>
             <option>CrossRidge</option>
             <option>Ministry</option>
+            <option>Wrangle Media</option>
           </select>
         </div>
       </div>
@@ -780,7 +965,6 @@ textarea{resize:vertical;min-height:64px;}
             <option>NDA</option>
             <option>License Agreement</option>
             <option>Letter Agreement</option>
-            <option>CrossRidge Lease</option>
             <option>Amendment</option>
             <option>Distribution Agr - Western Bound</option>
             <option>Distribution Agr - INSP</option>
@@ -812,23 +996,54 @@ textarea{resize:vertical;min-height:64px;}
       <div class="field-group">
         <div class="form-field">
           <label>Auto-Renewal?</label>
-          <select id="f-renewal">
-            <option value="">None</option>
-            <option value="30">30-day notice required</option>
-            <option value="60">60-day notice required</option>
-            <option value="90">90-day notice required</option>
-            <option value="custom">See notes</option>
-          </select>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
+            <input type="checkbox" id="f-autorenew" style="width:auto;margin:0"> Yes — this agreement auto-renews
+          </label>
         </div>
-        <div class="form-field" id="f-notice-deadline-wrap" style="display:none">
-          <label>Notice Deadline <span id="f-notice-calc-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">(auto-calculated — edit to override)</span></label>
-          <input type="date" id="f-notice-deadline">
+      </div>
+      <div id="f-autorenew-detail" style="display:none">
+        <div class="field-group">
+          <div class="form-field">
+            <label>Auto-Renewal Term</label>
+            <select id="f-renewal-term">
+              <option value="">— Select —</option>
+              <option>Year-to-Year</option>
+              <option>Month-to-Month</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-field" id="f-renewal-term-other-wrap" style="display:none">
+            <label>Describe Term</label>
+            <input type="text" id="f-renewal-term-other" placeholder="e.g. renews for successive 2-year terms">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Cancellation Notice</label>
+            <select id="f-renewal">
+              <option value="30">30-day notice required</option>
+              <option value="60">60-day notice required</option>
+              <option value="90">90-day notice required</option>
+              <option value="custom">See notes</option>
+            </select>
+          </div>
+          <div class="form-field" id="f-notice-deadline-wrap" style="display:none">
+            <label>Notice Deadline <span id="f-notice-calc-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">(auto-calculated — edit to override)</span></label>
+            <input type="date" id="f-notice-deadline">
+          </div>
         </div>
       </div>
       <div class="field-group" id="f-remind-wrap" style="display:none">
         <div class="form-field">
           <label>Remind Me (x Days before Notice Deadline)</label>
           <input type="number" id="f-remind" placeholder="e.g. 30, 60, 90" min="1" max="365">
+        </div>
+      </div>
+      <div class="field-group" id="f-reminder-emails-wrap" style="display:none">
+        <div class="form-field">
+          <label>Reminder Recipients <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— in addition to the Requester &amp; Assignee</span></label>
+          <input type="text" id="f-reminder-emails" placeholder="name@insp.com, another@insp.com">
+          <span style="font-size:10px;color:var(--text-muted);font-style:italic">Separate multiple addresses with commas.</span>
         </div>
       </div>
       <div id="f-nonrenewal-wrap" style="display:none;margin-top:4px">
@@ -887,6 +1102,7 @@ textarea{resize:vertical;min-height:64px;}
       </div>
     </div>
     <div class="modal-footer">
+      <span id="f-lastmod" style="flex:1;font-size:10px;color:var(--text-muted);font-style:italic"></span>
       <button class="btn btn-ghost" id="btn-modal-cancel">Cancel</button>
       <button class="btn btn-primary" id="btn-modal-save">Save Contract</button>
     </div>
@@ -909,12 +1125,30 @@ textarea{resize:vertical;min-height:64px;}
   </div>
 </div>
 
+<div class="modal-backdrop" id="parties-modal">
+  <div class="modal" style="width:760px;max-width:94vw">
+    <div class="modal-header">
+      <div class="modal-title">Counterparties</div>
+      <button class="modal-close" id="btn-parties-close">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">Every agreement grouped by counterparty. Click a counterparty to expand its agreements; click an agreement to open it.</p>
+      <input type="text" id="parties-search" placeholder="Filter counterparties…" style="width:100%;margin-bottom:10px" autocomplete="off">
+      <div id="parties-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="btn-parties-done">Done</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 let contracts = [];
+let matters = [];
 let editId = null;
 let activeFilter = 'all';
 let cAttachments = [];
@@ -923,9 +1157,17 @@ let cAttachments = [];
 // PASTE YOUR VALUES HERE after completing the setup guide:
 const GSHEETS_CLIENT_ID   = '532999432935-989rf9dnesh1cbctfgthd01lb00dg7r5.apps.googleusercontent.com';      // from Google Cloud Console
 const GSHEETS_SPREADSHEET_ID = '1yfXfu_yRgHDPdZGWJf2VNgTdmK_GFIJCT7mqmIcHi8I'; // from your Google Sheet URL
-const GSHEETS_SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+const GSHEETS_SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+
+// ── AI SUMMARY PROXY ──────────────────────────────────────────────────────────
+// Cloudflare Worker that holds the Anthropic API key server-side. The key is
+// NEVER in this file (the repo is public). Paste your deployed Worker URL here,
+// e.g. 'https://legaltrack-ai.<your-subdomain>.workers.dev'
+const AI_PROXY_URL = 'PASTE_YOUR_WORKER_URL_HERE';
 
 let gToken = null;        // OAuth access token
+let gUserEmail = '';      // signed-in user's email (for "last changed by")
+let gUserName = '';       // signed-in user's display name
 let gSyncing = false;     // prevent concurrent syncs
 
 // Sheet tab names — must match exactly in your Google Sheet
@@ -934,11 +1176,56 @@ const SHEET_MATTERS   = 'Legal Matters';
 const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
-const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary'];
-const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates'];
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds'];
+const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes'];
 
-// ── GOOGLE AUTH ───────────────────────────────────────────────────────────────
+// ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
+// Replaces the deprecated OAuth implicit redirect flow (response_type=token).
+// GIS opens a Google-managed popup on user gesture and returns the access token
+// via callback — the token never appears in the URL.
+let gTokenClient = null;
+
+function gInitTokenClient() {
+  if (gTokenClient) return gTokenClient;
+  if (!window.google || !google.accounts || !google.accounts.oauth2) return null;
+  gTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GSHEETS_CLIENT_ID,
+    scope: GSHEETS_SCOPES,
+    callback: (resp) => {
+      if (resp.error) {
+        toast('Google sign-in failed: ' + (resp.error_description || resp.error));
+        return;
+      }
+      gToken = resp.access_token;
+      const expiresIn = parseInt(resp.expires_in || '3600');
+      sessionStorage.setItem('g_token', gToken);
+      sessionStorage.setItem('g_token_exp', Date.now() + expiresIn * 1000);
+      gFetchUserInfo();
+      updateAuthUI(true);
+      toast('Signed in to Google — loading your data…');
+      gLoadAll();
+    },
+  });
+  return gTokenClient;
+}
+
+// Retrieve the signed-in user's identity for "last changed by" stamping.
+async function gFetchUserInfo() {
+  try {
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + gToken }
+    });
+    if (!res.ok) return;
+    const info = await res.json();
+    gUserEmail = info.email || '';
+    gUserName = info.name || info.email || '';
+    sessionStorage.setItem('g_user_email', gUserEmail);
+    sessionStorage.setItem('g_user_name', gUserName);
+  } catch (e) { console.error('userinfo fetch failed:', e); }
+}
+function currentUser() { return gUserName || gUserEmail || ''; }
+
 function gSignIn() {
   if (!GSHEETS_CLIENT_ID || !GSHEETS_SPREADSHEET_ID ||
       GSHEETS_CLIENT_ID === 'YOUR_CLIENT_ID_HERE' ||
@@ -946,13 +1233,13 @@ function gSignIn() {
     toast('Please add your Client ID to the app first — see setup guide.');
     return;
   }
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `client_id=${encodeURIComponent(GSHEETS_CLIENT_ID)}` +
-    `&redirect_uri=${encodeURIComponent(window.location.href.split('?')[0])}` +
-    `&response_type=token` +
-    `&scope=${encodeURIComponent(GSHEETS_SCOPES)}` +
-    `&prompt=select_account`;
-  window.location.href = authUrl;
+  const client = gInitTokenClient();
+  if (!client) {
+    toast('Google sign-in library not loaded yet — check your connection and try again.');
+    return;
+  }
+  // Triggered by a button click (user gesture), so the popup is not blocked.
+  client.requestAccessToken();
 }
 
 function gSignOut() {
@@ -964,25 +1251,16 @@ function gSignOut() {
 }
 
 function gCheckToken() {
-  // Check URL hash for token (OAuth implicit flow callback)
-  const hash = window.location.hash;
-  if (hash.includes('access_token')) {
-    const params = new URLSearchParams(hash.slice(1));
-    gToken = params.get('access_token');
-    const expiresIn = parseInt(params.get('expires_in') || '3600');
-    sessionStorage.setItem('g_token', gToken);
-    sessionStorage.setItem('g_token_exp', Date.now() + expiresIn * 1000);
-    window.history.replaceState(null, '', window.location.pathname);
-    updateAuthUI(true);
-    toast('Signed in to Google — loading your data…');
-    gLoadAll();
-    return true;
-  }
-  // Restore from session
+  // GIS delivers tokens via the initTokenClient callback, not a URL fragment,
+  // so there is no longer a redirect hash to parse here. Just restore a token
+  // that is still valid within this browser session.
   const saved = sessionStorage.getItem('g_token');
   const exp   = parseInt(sessionStorage.getItem('g_token_exp') || '0');
   if (saved && Date.now() < exp) {
     gToken = saved;
+    gUserEmail = sessionStorage.getItem('g_user_email') || '';
+    gUserName = sessionStorage.getItem('g_user_name') || '';
+    if (!gUserEmail) gFetchUserInfo();
     updateAuthUI(true);
     gLoadAll();
     return true;
@@ -1054,11 +1332,20 @@ async function gEnsureSheet(sheetName, headers) {
   }
 }
 
-async function gWriteSheet(sheetName, headers, rows) {
+async function gWriteSheet(sheetName, headers, rows, clearToRows) {
   const values = [headers, ...rows];
-  await gRequest('PUT',
+  // Overwrite any stale trailing rows left from a previously larger sheet by
+  // padding blank rows out to the sheet's current row count (fixes ghost rows
+  // reappearing after a delete/merge, since values.update doesn't clear below).
+  const target = clearToRows || 0;
+  if (values.length < target) {
+    const blank = headers.map(() => '');
+    while (values.length < target) values.push(blank.slice());
+  }
+  const res = await gRequest('PUT',
     `https://sheets.googleapis.com/v4/spreadsheets/${GSHEETS_SPREADSHEET_ID}/values/${encodeURIComponent(sheetName+'!A1')}?valueInputOption=RAW`,
     { values });
+  return res !== null;   // gRequest returns null on any failure (incl. 401)
 }
 
 async function gReadSheet(sheetName) {
@@ -1071,20 +1358,46 @@ async function gReadSheet(sheetName) {
 function jsonCell(v) { try { return JSON.stringify(v); } catch(e) { return ''; } }
 function parseCell(v) { try { return v ? JSON.parse(v) : null; } catch(e) { return null; } }
 
+// Normalizes the auto-renewal flag across new (boolean) and legacy (notice-period-only)
+// contracts: an explicit true/false wins; otherwise infer from a set notice period.
+function isAutoRenew(c) {
+  const ar = c && c.autoRenew;
+  if (ar === true || ar === 'true') return true;
+  if (ar === false || ar === 'false') return false;
+  return !!(c && c.renewal);
+}
+
+// A contract that has passed its expiration date but is still marked active
+// (excludes auto-renewing contracts, which renew rather than expire).
+function isPastExpiration(c) {
+  if (!c || !c.end) return false;
+  if ((c.status || '').toLowerCase() === 'expired/terminated') return false;
+  if (isAutoRenew(c)) return false;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = new Date(c.end + 'T00:00:00');
+  return !isNaN(d) && d < today;
+}
+
 function contractToRow(c) {
   return [c.id,c.filenum,c.related,c.name,c.party,c.division,c.department,c.type,c.status,c.assigned,
-    c.start,c.end,c.remind,c.renewal,c.noticeDeadline||'',c.notes,
-    jsonCell(c.attachments),jsonCell(c.updates),c.value||'',c.territory||'',c.requester||'',c.requesterDesc||'',c.aiSummary||''];
+    c.start,c.end,c.remind,c.renewal,c.noticeDeadline||'',c.notes,c.link||'',
+    jsonCell(c.attachments),jsonCell(c.updates),c.value||'',c.territory||'',c.requester||'',c.requesterDesc||'',c.aiSummary||'',
+    c.autoRenew===true||c.autoRenew==='true'?'true':'false',c.renewalTerm||'',c.renewalTermOther||'',c.reminderEmails||'',
+    c.lastModifiedBy||'',c.lastModifiedAt||'',c.newFile===true||c.newFile==='true'?'true':'false',
+    Array.isArray(c.relatedIds) ? c.relatedIds.join('|') : (c.relatedIds||'')];
 }
 function rowToContract(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
   o.attachments = parseCell(o.attachments) || [];
   o.updates     = parseCell(o.updates)     || [];
+  o.relatedIds  = o.relatedIds ? o.relatedIds.split('|').filter(Boolean) : [];
   return o;
 }
 function matterToRow(m) {
   return [m.id,m.num,m.name,m.division,m.department,m.type,m.status,m.counsel,m.assigned,
-    m.opened,m.closed,m.notes,jsonCell(m.updates)];
+    m.opened,m.closed,m.notes,jsonCell(m.updates),
+    m.counselScope||'',
+    m.lastModifiedBy||'',m.lastModifiedAt||''];
 }
 function rowToMatter(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -1121,31 +1434,78 @@ async function gLoadAll() {
     contracts      = (cRows.slice(1)||[]).filter(r=>r[0]).map(r=>rowToContract(r, HEADERS_CONTRACTS));
     matters        = (mRows.slice(1)||[]).filter(r=>r[0]).map(r=>rowToMatter(r,   HEADERS_MATTERS));
     intakeRequests = (iRows.slice(1)||[]).filter(r=>r[0]).map(r=>rowToIntake(r,   HEADERS_INTAKE));
+    // Snapshot each sheet's loaded state so saves can detect/merge others' concurrent changes
+    gBase[SHEET_CONTRACTS] = new Map(contracts.map(r      => [String(r.id),   JSON.stringify(contractToRow(r))]));
+    gBase[SHEET_MATTERS]   = new Map(matters.map(r        => [String(r.id),   JSON.stringify(matterToRow(r))]));
+    gBase[SHEET_INTAKE]    = new Map(intakeRequests.map(r => [String(r.id),   JSON.stringify(intakeToRow(r))]));
     render(); renderMatters(); renderIntake();
     refreshPartyList(); refreshAssignedList(); refreshCounselList(); refreshIntakePartyList();
+    scheduleDashboardCharts();
+    renderAlerts();
     toast('Data loaded from Google Sheets.');
   } catch(e) { console.error(e); toast('Error loading data.'); }
   finally { gSetSyncing(false); }
 }
 
-async function gSaveContracts() {
-  if (!gToken) return;
+let gBase = {};   // per-sheet snapshot (key -> canonical row string) for 3-way merge
+
+// Optimistic-concurrency writer. Before writing, re-reads the sheet; if another
+// session changed it since we loaded, merges per-record (our adds/edits/deletes
+// layered onto their current data) instead of overwriting — so nobody's work is
+// silently lost. Only a simultaneous edit of the SAME record is last-write-wins.
+async function gSyncWrite(sheet, headers, localArray, keyField, toRow, rowToObj, rerender) {
+  if (!gToken) return 'skip';
   gSetSyncing(true);
-  await gWriteSheet(SHEET_CONTRACTS, HEADERS_CONTRACTS, contracts.map(contractToRow));
-  gSetSyncing(false);
+  const canon  = rec => JSON.stringify(toRow(rec));
+  const keyOf  = rec => String(rec[keyField]);
+  try {
+    let currentRows = null;
+    try { currentRows = await gReadSheet(sheet); } catch(e) { currentRows = null; }
+    const base = gBase[sheet];   // Map(key -> canonical) or undefined
+
+    if (currentRows && base) {
+      const fresh = (currentRows.slice(1)||[]).filter(r=>r[0]).map(r=>rowToObj(r, headers));
+      const freshCanon = new Map(fresh.map(r=>[keyOf(r), canon(r)]));
+      // External change = the sheet differs from what we last loaded/saved
+      let external = fresh.length !== base.size;
+      if (!external) for (const [k,c] of freshCanon) { if (base.get(k) !== c) { external = true; break; } }
+      if (!external) for (const k of base.keys())    { if (!freshCanon.has(k)) { external = true; break; } }
+
+      if (external) {
+        const merged   = new Map(fresh.map(r=>[keyOf(r), r]));       // start from their current data
+        const localMap = new Map(localArray.map(r=>[keyOf(r), r]));
+        for (const [k, rec] of localMap)                            // our adds + edits
+          if (!base.has(k) || base.get(k) !== canon(rec)) merged.set(k, rec);
+        for (const k of base.keys())                                // our deletes
+          if (!localMap.has(k)) merged.delete(k);
+        const mergedArr = Array.from(merged.values());
+        const ok = await gWriteSheet(sheet, headers, mergedArr.map(toRow), currentRows.length);
+        if (!ok) { gSetSyncing(false); toast('Save failed — your change is not saved yet. Check your connection and try again.'); return 'error'; }
+        localArray.length = 0; mergedArr.forEach(r => localArray.push(r));
+        gBase[sheet] = new Map(mergedArr.map(r => [keyOf(r), canon(r)]));
+        gSetSyncing(false);
+        toast('Merged with changes from another session.');
+        if (rerender) rerender();
+        return 'merged';
+      }
+    }
+    // No external change (or first write this session): write our data
+    const ok = await gWriteSheet(sheet, headers, localArray.map(toRow), currentRows ? currentRows.length : 0);
+    if (!ok) { gSetSyncing(false); toast('Save failed — your change is not saved yet. Check your connection and try again.'); return 'error'; }
+    gBase[sheet] = new Map(localArray.map(r => [keyOf(r), canon(r)]));
+    gSetSyncing(false);
+    return 'ok';
+  } catch(e) {
+    console.error('Sync write failed:', e);
+    gSetSyncing(false);
+    toast('Save error — please try again.');
+    return 'error';
+  }
 }
-async function gSaveMatters() {
-  if (!gToken) return;
-  gSetSyncing(true);
-  await gWriteSheet(SHEET_MATTERS, HEADERS_MATTERS, matters.map(matterToRow));
-  gSetSyncing(false);
-}
-async function gSaveIntake() {
-  if (!gToken) return;
-  gSetSyncing(true);
-  await gWriteSheet(SHEET_INTAKE, HEADERS_INTAKE, intakeRequests.map(intakeToRow));
-  gSetSyncing(false);
-}
+
+async function gSaveContracts() { return gSyncWrite(SHEET_CONTRACTS, HEADERS_CONTRACTS, contracts,      'id',   contractToRow, rowToContract, render); }
+async function gSaveMatters()   { return gSyncWrite(SHEET_MATTERS,   HEADERS_MATTERS,   matters,        'id',   matterToRow,   rowToMatter,   renderMatters); }
+async function gSaveIntake()    { return gSyncWrite(SHEET_INTAKE,    HEADERS_INTAKE,    intakeRequests, 'id',   intakeToRow,   rowToIntake,   renderIntake); }
 
 // Override the stub save functions
 function save()  { gSaveContracts(); }
@@ -1166,11 +1526,32 @@ function renderCAttachList() {
     btn.addEventListener('click', () => { cAttachments.splice(parseInt(btn.dataset.ci),1); renderCAttachList(); }));
 }
 
+let _toastTimer = null;
 function toast(msg) {
   const el = document.getElementById('toast');
+  if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2400);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+// Toast with an inline Undo action; auto-dismisses after ~7s.
+function toastUndo(msg, onUndo) {
+  const el = document.getElementById('toast');
+  if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+  el.innerHTML = '';
+  const span = document.createElement('span');
+  span.textContent = msg;
+  const btn = document.createElement('button');
+  btn.textContent = 'Undo';
+  btn.style.cssText = 'background:none;border:none;color:var(--accent);font-weight:600;cursor:pointer;font-size:inherit;text-decoration:underline;padding:0;margin-left:12px';
+  btn.addEventListener('click', () => {
+    el.classList.remove('show'); el.innerHTML = '';
+    if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+    onUndo();
+  });
+  el.appendChild(span); el.appendChild(btn);
+  el.classList.add('show');
+  _toastTimer = setTimeout(() => { el.classList.remove('show'); el.innerHTML = ''; }, 7000);
 }
 
 // ── FILTER ────────────────────────────────────────────────────────────────────
@@ -1192,6 +1573,12 @@ function filtered() {
   const type = document.getElementById('typeFilter').value;
   const division = document.getElementById('divisionFilter').value;
   const department = document.getElementById('departmentFilter').value;
+  // Advanced filters
+  const afStartFrom = document.getElementById('af-start-from')?.value || '';
+  const afStartTo   = document.getElementById('af-start-to')?.value   || '';
+  const afEndFrom   = document.getElementById('af-end-from')?.value   || '';
+  const afEndTo     = document.getElementById('af-end-to')?.value     || '';
+  const afAssigned  = document.getElementById('af-assigned')?.value   || '';
   const today = new Date(); today.setHours(0,0,0,0);
   const d30  = new Date(today); d30.setDate(d30.getDate()+30);
   const d60  = new Date(today); d60.setDate(d60.getDate()+60);
@@ -1212,6 +1599,12 @@ function filtered() {
     if (division && c.division !== division) return false;
     if (department && c.department !== department) return false;
     if (q && !`${c.name} ${c.party} ${c.filenum} ${c.related} ${c.assigned} ${c.division} ${c.department} ${c.notes} ${c.type}`.toLowerCase().includes(q)) return false;
+    // Advanced filter checks
+    if (afStartFrom && (!c.start || c.start < afStartFrom)) return false;
+    if (afStartTo   && (!c.start || c.start > afStartTo))   return false;
+    if (afEndFrom   && (!c.end   || c.end   < afEndFrom))   return false;
+    if (afEndTo     && (!c.end   || c.end   > afEndTo))     return false;
+    if (afAssigned  && (c.assigned||'').toLowerCase() !== afAssigned.toLowerCase()) return false;
     return true;
   });
 }
@@ -1232,43 +1625,396 @@ function fmtDate(d) {
   const [y,m,day] = d.split('-');
   return `${m}/${day}/${y}`;
 }
+// Escape user-entered text before inserting into innerHTML (prevents markup/script injection)
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
 function statusPill(s) {
   const map = { active:'pill-active', 'expired/terminated':'pill-expired', pending:'pill-pending' };
-  return `<span class="pill ${map[s.toLowerCase()]||''}">${s}</span>`;
+  return `<span class="pill ${map[s.toLowerCase()]||''}">${esc(s)}</span>`;
 }
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function dashDaysUntil(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return null;
+  return Math.round((d - today) / 86400000);
+}
+function dashDaysCell(days) {
+  if (days < 0) return `<span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d past expiration</span>`;
+  const color = days <= 30 ? '#e05a5a' : days <= 60 ? '#e0a94a' : 'var(--text-muted)';
+  return `<span style="color:${color}">${days === 0 ? 'today' : days + 'd'}</span>`;
+}
+function renderDashboard() {
+  const statsEl = document.getElementById('dash-stats');
+  if (!statsEl) return;
+  const isExpired = c => (c.status || '').toLowerCase() === 'expired/terminated';
+
+  const active = contracts.filter(c => (c.status || '').toLowerCase() === 'active');
+
+  // Auto-renewing contracts with a notice deadline within 90 days (or overdue)
+  const notice = contracts
+    .filter(c => isAutoRenew(c) && c.noticeDeadline && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.noticeDeadline) }))
+    .filter(x => x.days !== null && x.days <= 90)
+    .sort((a, b) => a.days - b.days);
+
+  // Contracts expiring within 90 days (or overdue but not yet marked expired)
+  const expiring = contracts
+    .filter(c => c.end && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.end) }))
+    .filter(x => x.days !== null && x.days <= 90)
+    .sort((a, b) => a.days - b.days);
+
+  const inRange = (arr, max) => arr.filter(x => x.days >= 0 && x.days <= max).length;
+
+  // Contracts past their expiration date but still marked active
+  const pastExp = contracts.filter(isPastExpiration)
+    .map(c => ({ c, days: dashDaysUntil(c.end) }))
+    .sort((a, b) => a.days - b.days);
+
+  statsEl.innerHTML = `
+    <div class="stat"><div class="stat-value">${active.length}</div><div class="stat-label">Active Contracts</div></div>
+    <div class="stat"><div class="stat-value">${inRange(expiring,30)}</div><div class="stat-label">Expiring ≤30d</div></div>
+    <div class="stat"><div class="stat-value">${inRange(expiring,60)}</div><div class="stat-label">Expiring ≤60d</div></div>
+    <div class="stat"><div class="stat-value">${inRange(expiring,90)}</div><div class="stat-label">Expiring ≤90d</div></div>
+    <div class="stat"><div class="stat-value">${notice.length}</div><div class="stat-label">Notice Deadlines ≤90d</div></div>
+    <div class="stat"><div class="stat-value" style="${pastExp.length ? 'color:#e05a5a' : ''}">${pastExp.length}</div><div class="stat-label">Past Expiration</div></div>`;
+
+  const rowsHtml = (items, dateField) => items.length
+    ? items.map(({ c, days }) => `
+        <tr data-id="${c.id}" class="dash-row">
+          <td class="name">${esc(c.name)}</td>
+          <td>${esc(c.party) || '—'}</td>
+          <td class="mono">${fmtDate(c[dateField])}</td>
+          <td class="mono">${dashDaysCell(days)}</td>
+        </tr>`).join('')
+    : `<tr class="empty-row"><td colspan="4">Nothing in the next 90 days.</td></tr>`;
+
+  const noticeBody = document.getElementById('dash-notice');
+  const expBody = document.getElementById('dash-expiring');
+  noticeBody.innerHTML = rowsHtml(notice, 'noticeDeadline');
+  expBody.innerHTML = rowsHtml(expiring, 'end');
+
+  // Past-expiration review section (only shown when there are any)
+  const pastSection = document.getElementById('dash-pastexp-section');
+  const pastBody = document.getElementById('dash-pastexp');
+  pastSection.style.display = pastExp.length ? '' : 'none';
+  pastBody.innerHTML = pastExp.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.end)}</td>
+      <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
+    </tr>`).join('');
+
+  [noticeBody, expBody, pastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
+    row.addEventListener('click', () => openModal(row.dataset.id))));
+
+  // Charts are rendered separately via scheduleDashboardCharts() to avoid
+  // flickering on every render() call (filter changes, searches, etc.)
+}
+
+// ── ALERTS / NOTIFICATIONS ────────────────────────────────────────────────────
+let _dismissedAlerts = new Set(); // session-only dismissals
+
+function computeAlerts() {
+  const now = new Date();
+  const alerts = [];
+
+  // 1. Notice deadlines ≤30 days
+  contracts.forEach(c => {
+    if (!c.noticeDeadline || (c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.noticeDeadline) - now) / 86400000);
+    if (days >= 0 && days <= 30) {
+      alerts.push({ id: `notice-${c.id}`, type: 'notice', severity: days <= 7 ? 'high' : 'med',
+        title: c.name || '(unnamed)', detail: `Notice deadline in ${days} day${days===1?'':'s'} — ${fmtDate(c.noticeDeadline)}`,
+        contractId: c.id });
+    }
+  });
+
+  // 2. Expirations ≤30 days
+  contracts.forEach(c => {
+    if (!c.end || (c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.end) - now) / 86400000);
+    if (days >= 0 && days <= 30) {
+      alerts.push({ id: `exp-${c.id}`, type: 'expiring', severity: days <= 7 ? 'high' : 'med',
+        title: c.name || '(unnamed)', detail: `Expires in ${days} day${days===1?'':'s'} — ${fmtDate(c.end)}`,
+        contractId: c.id });
+    }
+  });
+
+  // 3. Past expiration still active
+  contracts.filter(isPastExpiration).forEach(c => {
+    const days = Math.abs(Math.round((new Date(c.end) - now) / 86400000));
+    alerts.push({ id: `pastexp-${c.id}`, type: 'pastexp', severity: 'high',
+      title: c.name || '(unnamed)', detail: `Expired ${days} day${days===1?'':'s'} ago — still marked Active`,
+      contractId: c.id });
+  });
+
+  // 4. Intake requests pending >5 business days
+  (typeof intakeRequests !== 'undefined' ? intakeRequests : [])
+    .filter(r => !r.closedDate && !r.completedDate && (r.status||'').toLowerCase() !== 'closed')
+    .forEach(r => {
+      const bd = Math.round(businessHoursSince(new Date(r.submitted||r.date||r.created).getTime()) / 8);
+      if (bd > 5) {
+        alerts.push({ id: `intake-${r.id}`, type: 'intake', severity: bd > 10 ? 'high' : 'med',
+          title: r.subject || r.title || r.name || '(unnamed intake)',
+          detail: `Open for ${bd} business day${bd===1?'':'s'} — no action recorded` });
+      }
+    });
+
+  return alerts.filter(a => !_dismissedAlerts.has(a.id));
+}
+
+function renderAlerts() {
+  const alerts = computeAlerts();
+
+  // ── Bell badge ──────────────────────────────────────────────────────────────
+  const badge = document.getElementById('notif-badge');
+  if (badge) {
+    const n = alerts.length;
+    badge.textContent = n > 9 ? '9+' : String(n);
+    badge.style.display = n > 0 ? '' : 'none';
+  }
+
+  // ── Dropdown list ───────────────────────────────────────────────────────────
+  const list = document.getElementById('notif-list');
+  if (list) {
+    if (alerts.length === 0) {
+      list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">No alerts right now</div>`;
+    } else {
+      const groups = { notice: [], expiring: [], pastexp: [], intake: [] };
+      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', intake: '📥 Intake Pending' };
+      alerts.forEach(a => groups[a.type]?.push(a));
+      list.innerHTML = Object.keys(groups).filter(k => groups[k].length).map(k => `
+        <div style="padding:8px 14px 4px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-top:1px solid var(--border)">${groupLabels[k]} (${groups[k].length})</div>
+        ${groups[k].map(a => `
+          <div class="notif-item" data-id="${a.id}" data-cid="${a.contractId||''}" style="display:flex;align-items:flex-start;gap:8px;padding:8px 14px;cursor:${a.contractId?'pointer':'default'};border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+            <div style="width:6px;height:6px;border-radius:50%;background:${a.severity==='high'?'#e05a5a':'#c8a96e'};margin-top:5px;flex-shrink:0"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.title)}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${a.detail}</div>
+              ${a.type === 'notice' && a.contractId ? `<button class="btn-gen-notice-alert" data-cid="${a.contractId}" style="margin-top:5px;background:var(--accent-dim);border:1px solid rgba(200,169,110,.35);color:var(--accent);border-radius:3px;padding:3px 8px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer" onclick="event.stopPropagation()">📄 Generate Notice Letter</button>` : ''}
+            </div>
+            <button class="notif-dismiss-one" data-id="${a.id}" title="Dismiss" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:0 2px;flex-shrink:0" onclick="event.stopPropagation()">×</button>
+          </div>`).join('')}
+      `).join('');
+
+      // Click contract row → open modal
+      list.querySelectorAll('.notif-item[data-cid]').forEach(el => {
+        if (el.dataset.cid) el.addEventListener('click', () => {
+          document.getElementById('notif-dropdown').style.display = 'none';
+          openModal(el.dataset.cid);
+        });
+      });
+
+      // Generate notice letter buttons
+      list.querySelectorAll('.btn-gen-notice-alert').forEach(btn => {
+        btn.addEventListener('click', () => generateNonRenewalLetterById(btn.dataset.cid, btn));
+      });
+
+      // Dismiss individual
+      list.querySelectorAll('.notif-dismiss-one').forEach(btn => {
+        btn.addEventListener('click', () => {
+          _dismissedAlerts.add(btn.dataset.id);
+          renderAlerts();
+        });
+      });
+    }
+  }
+
+  // ── Dashboard banner ────────────────────────────────────────────────────────
+  const banner = document.getElementById('dash-alert-banner');
+  if (!banner) return;
+  const high = alerts.filter(a => a.severity === 'high');
+  const med  = alerts.filter(a => a.severity === 'med');
+  if (alerts.length === 0) { banner.style.display = 'none'; return; }
+
+  const lines = [];
+  const pastexp = alerts.filter(a => a.type === 'pastexp');
+  const notice  = alerts.filter(a => a.type === 'notice');
+  const expiring = alerts.filter(a => a.type === 'expiring');
+  const intake  = alerts.filter(a => a.type === 'intake');
+  if (pastexp.length)  lines.push(`<strong>${pastexp.length}</strong> contract${pastexp.length>1?'s':''} past expiration still marked Active`);
+  if (notice.length)   lines.push(`<strong>${notice.length}</strong> notice deadline${notice.length>1?'s':''} within 30 days`);
+  if (expiring.length) lines.push(`<strong>${expiring.length}</strong> contract${expiring.length>1?'s':''} expiring within 30 days`);
+  if (intake.length)   lines.push(`<strong>${intake.length}</strong> intake request${intake.length>1?'s':''} pending &gt;5 business days`);
+
+  // Build notice rows with Generate button if any
+  const noticeRows = notice.map(a => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(200,169,110,.15);flex-wrap:wrap">
+      <div style="width:6px;height:6px;border-radius:50%;background:${a.severity==='high'?'#e05a5a':'#c8a96e'};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <span style="font-weight:500;color:var(--text)">${esc(a.title)}</span>
+        <span style="color:var(--text-muted);font-size:12px;margin-left:6px">${a.detail}</span>
+      </div>
+      <button class="btn-gen-notice-banner" data-cid="${a.contractId}" style="background:var(--accent-dim);border:1px solid rgba(200,169,110,.35);color:var(--accent);border-radius:3px;padding:3px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;white-space:nowrap">📄 Generate Notice Letter</button>
+    </div>`).join('');
+
+  banner.style.display = '';
+  banner.innerHTML = `
+    <div style="background:rgba(224,90,90,.1);border:1px solid rgba(224,90,90,.35);border-radius:6px;padding:10px 14px">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:${noticeRows ? '8px' : '0'}">
+        <div style="font-size:16px;flex-shrink:0">⚠</div>
+        <div style="flex:1;font-size:13px;color:var(--text);line-height:1.6">${lines.join(' · ')}</div>
+        <button id="dash-banner-dismiss" title="Dismiss" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:0 4px;flex-shrink:0;line-height:1">×</button>
+      </div>
+      ${noticeRows ? `<div style="margin-top:4px">${noticeRows}</div>` : ''}
+    </div>`;
+
+  document.getElementById('dash-banner-dismiss').addEventListener('click', () => {
+    alerts.forEach(a => _dismissedAlerts.add(a.id));
+    renderAlerts();
+  });
+
+  banner.querySelectorAll('.btn-gen-notice-banner').forEach(btn => {
+    btn.addEventListener('click', () => generateNonRenewalLetterById(btn.dataset.cid, btn));
+  });
+}
+
+// ── Dashboard Charts ──────────────────────────────────────────────────────────
+const _dashCharts = {};
+let _dashChartSig = '';
+let _dashChartTimer = null;
+
+// Call this after data loads/saves — debounced so rapid saves don't flicker
+function scheduleDashboardCharts() {
+  clearTimeout(_dashChartTimer);
+  _dashChartTimer = setTimeout(renderDashboardCharts, 120);
+}
+
+function renderDashboardCharts() {
+  if (typeof Chart === 'undefined') return;
+  const section = document.getElementById('dash-charts-section');
+  if (!section) return;
+  if (contracts.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  // Skip redraw if data hasn't changed
+  const sig = `${contracts.length}:${matters.length}:${contracts.map(c=>c.id+c.status+c.division).join(',')}`;
+  if (sig === _dashChartSig) return;
+  _dashChartSig = sig;
+
+  const PALETTE = ['#6b8cff','#5acaff','#ffd166','#06d6a0','#ef476f','#b39ddb','#80cbc4','#ffb347','#a5d6a7','#f48fb1'];
+
+  function mkChart(id, type, labels, data, opts) {
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    if (_dashCharts[id]) { _dashCharts[id].destroy(); }
+    _dashCharts[id] = new Chart(ctx, {
+      type,
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: PALETTE.slice(0, labels.length),
+          borderColor: '#0f0f0f',
+          borderWidth: 2,
+          borderRadius: type === 'bar' ? 4 : 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#aaa', font: { size: 11 }, boxWidth: 12, padding: 10 } },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } }
+        },
+        scales: type === 'bar' ? {
+          x: { ticks: { color: '#888', font: { size: 10 } }, grid: { color: '#222' } },
+          y: { ticks: { color: '#888', font: { size: 10 }, stepSize: 1 }, grid: { color: '#222' }, beginAtZero: true }
+        } : undefined,
+        ...opts
+      }
+    });
+  }
+
+  // Contracts by status
+  const statusCounts = {};
+  contracts.forEach(c => {
+    const s = (c.status || 'Unknown');
+    statusCounts[s] = (statusCounts[s] || 0) + 1;
+  });
+  const sLabels = Object.keys(statusCounts);
+  mkChart('chart-status', 'doughnut', sLabels, sLabels.map(k => statusCounts[k]), { cutout: '60%' });
+
+  // Contracts by division
+  const divCounts = {};
+  contracts.forEach(c => {
+    const d = (c.division || 'Unassigned').trim() || 'Unassigned';
+    divCounts[d] = (divCounts[d] || 0) + 1;
+  });
+  const dLabels = Object.keys(divCounts).sort((a,b) => divCounts[b]-divCounts[a]);
+  mkChart('chart-division', 'bar', dLabels, dLabels.map(k => divCounts[k]));
+
+  // Legal matters by type
+  const typeCounts = {};
+  matters.forEach(m => {
+    const t = (m.matterType || m.type || 'Other').trim() || 'Other';
+    typeCounts[t] = (typeCounts[t] || 0) + 1;
+  });
+  const tLabels = Object.keys(typeCounts);
+  if (tLabels.length > 0) {
+    mkChart('chart-matters', 'doughnut', tLabels, tLabels.map(k => typeCounts[k]), { cutout: '60%' });
+  } else {
+    const mCtx = document.getElementById('chart-matters');
+    if (mCtx) mCtx.parentElement.style.display = 'none';
+  }
+}
+
+// ── SORT STATE ────────────────────────────────────────────────────────────────
+let _sortCol = 'name', _sortDir = 'asc';
 
 function render() {
   updateBadges();
   updateStats();
-  const sort = document.getElementById('sortSel').value;
+  renderDashboard();
   let rows = filtered();
+
+  // Column sort
   rows.sort((a,b) => {
-    if (sort==='end') return (a.end||'9999') < (b.end||'9999') ? -1 : 1;
-    if (sort==='status') return a.status.localeCompare(b.status);
-    return a.name.localeCompare(b.name);
+    let av = a[_sortCol] || '', bv = b[_sortCol] || '';
+    // date columns: treat empty as far future for asc
+    if (_sortCol === 'start' || _sortCol === 'end') {
+      av = av || '9999-99-99'; bv = bv || '9999-99-99';
+    }
+    const cmp = String(av).localeCompare(String(bv), undefined, {numeric:true});
+    return _sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  // Update sort indicators
+  document.querySelectorAll('.sort-ind').forEach(el => {
+    el.className = 'sort-ind';
+    const col = el.closest('[data-col]')?.dataset.col;
+    if (col === _sortCol) el.classList.add(_sortDir);
   });
 
   const tbody = document.getElementById('tbody');
   if (!rows.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="12">No contracts found</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">No contracts found</td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map(c => `
     <tr data-id="${c.id}" class="contract-row">
-      <td class="mono">${c.filenum || '—'}</td>
-      <td>${c.party}</td>
-      <td class="name">${c.name}</td>
-      <td>${c.division || '—'}</td>
-      <td>${c.department || '—'}</td>
-      <td class="mono">${c.type}</td>
-      <td>${statusPill(c.status)}</td>
-      <td>${c.assigned || '—'}</td>
+      <td class="actions-cell" style="padding:6px 8px"><input type="checkbox" class="row-chk" data-id="${c.id}" style="cursor:pointer;width:14px;height:14px" onclick="event.stopPropagation()"></td>
+      <td class="mono">${esc(c.filenum) || '—'}</td>
+      <td>${esc(c.party)}</td>
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.division) || '—'}</td>
+      <td>${esc(c.department) || '—'}</td>
+      <td class="mono">${esc(typeLabel(c.type))}</td>
+      <td>${statusPill(c.status)}${isPastExpiration(c) ? ' <span class="pill" style="background:#e05a5a22;color:#e05a5a;font-size:9px;margin-left:4px">⚠ past exp.</span>' : ''}</td>
+      <td>${esc(c.assigned) || '—'}</td>
       <td class="mono">${fmtDate(c.start)}</td>
       <td class="mono ${deadlineClass(c.end)}">${fmtDate(c.end)}</td>
       <td class="mono" style="color:var(--text-muted)">${(c.updates||[]).length || '—'}</td>
       <td class="actions-cell">
         <div class="actions">
           <button class="icon-btn btn-edit" data-id="${c.id}" title="Edit">✎</button>
+          <button class="icon-btn btn-dup" data-id="${c.id}" title="Duplicate">⧉</button>
           ${c.end ? `<button class="icon-btn btn-ics-single" data-id="${c.id}" title="Export to Outlook">📅</button>` : ''}
           <button class="icon-btn del btn-delete" data-id="${c.id}" title="Delete">✕</button>
         </div>
@@ -1284,10 +2030,20 @@ function render() {
   });
   tbody.querySelectorAll('.btn-edit').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openModal(btn.dataset.id); }));
+  tbody.querySelectorAll('.btn-dup').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); duplicateContract(btn.dataset.id); }));
   tbody.querySelectorAll('.btn-ics-single').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); exportSingleICS(btn.dataset.id); }));
   tbody.querySelectorAll('.btn-delete').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); deleteContract(btn.dataset.id); }));
+
+  // Checkbox listeners
+  tbody.querySelectorAll('.row-chk').forEach(chk =>
+    chk.addEventListener('change', updateBulkBar));
+
+  // Sync select-all state
+  const chkAll = document.getElementById('chk-all');
+  if (chkAll) chkAll.checked = false;
 }
 
 function updateBadges() {
@@ -1314,6 +2070,17 @@ function updateBadges() {
   Object.keys(counts).forEach(k => {
     const el = document.getElementById('badge-'+k);
     if (el) el.textContent = counts[k];
+  });
+  // Also update visible filter chip counts
+  const chipMap = {
+    all: 'fc-all', active: 'fc-active', pending: 'fc-pending',
+    'expired/terminated': 'fc-exp',
+    soon30: 'fc-s30', soon60: 'fc-s60', soon90: 'fc-s90',
+    soon120: 'fc-s120', soon180: 'fc-s180'
+  };
+  Object.keys(chipMap).forEach(k => {
+    const el = document.getElementById(chipMap[k]);
+    if (el) el.textContent = counts[k] !== undefined ? counts[k] : '';
   });
 }
 
@@ -1356,10 +2123,11 @@ function refreshAssignedList() {
 
 // ── DEPARTMENTS ───────────────────────────────────────────────────────────────
 const DEPT_MAP = {
-  'Corporate':  ['Aviation','Finance','HR','Media Ops & Tech','Other'],
-  'INSP':       ['WWD','WWS','Marketing','Creative','Digital-Social','Other'],
-  'CrossRidge': ['CrossRidge North','CrossRidge South','CRMA','Other'],
-  'Ministry':   ['Ministry','Facilities','Security','Other'],
+  'Corporate':    ['Aviation','Finance','HR','Media Ops & Tech','Other'],
+  'INSP':         ['WWD','WWS','Marketing','Creative','Digital-Social','Other'],
+  'CrossRidge':   ['CrossRidge North','CrossRidge South','CRMA','Other'],
+  'Ministry':     ['Ministry','Facilities','Security','Other'],
+  'Wrangle Media': [],   // no departments — Department field is disabled when selected
 };
 
 function updateDepartments(selectVal) {
@@ -1369,7 +2137,8 @@ function updateDepartments(selectVal) {
   if (lbl) lbl.textContent = div === 'CrossRidge' ? 'Subdivision' : 'Department';
   const depts = DEPT_MAP[div] || [];
   if (!depts.length) {
-    sel.innerHTML = '<option value="">— Select Division first —</option>';
+    sel.innerHTML = `<option value="">${div ? '— No department —' : '— Select Division first —'}</option>`;
+    sel.value = '';
     sel.disabled = true;
   } else {
     sel.innerHTML = '<option value="">— Select —</option>' +
@@ -1378,6 +2147,12 @@ function updateDepartments(selectVal) {
     if (selectVal && depts.includes(selectVal)) sel.value = selectVal;
   }
   updateContractTypes();
+}
+
+// Display label for contract types. "CrossRidge Lease" is the stored value
+// (kept for data continuity), but users see it everywhere as "Commercial Lease".
+function typeLabel(t) {
+  return t === 'CrossRidge Lease' ? 'Commercial Lease' : (t || '');
 }
 
 function updateContractTypes(preserveVal) {
@@ -1389,8 +2164,11 @@ function updateContractTypes(preserveVal) {
   const isWWD = dept === 'WWD';
   const isCrossRidge = div === 'CrossRidge';
 
-  let types;
-  if (isWWD) {
+  let types; // values stored on the contract; display labels come from typeLabel()
+  if (isCrossRidge) {
+    // CrossRidge real-estate deals only ('CrossRidge Lease' shows as 'Commercial Lease')
+    types = ['CrossRidge Lease', 'Land Sale', 'Other'];
+  } else if (isWWD) {
     // WWD: only Distribution Agreements and Other
     types = [
       'Distribution Agr - Western Bound',
@@ -1404,12 +2182,10 @@ function updateContractTypes(preserveVal) {
       'Service Agreement', 'NDA', 'License Agreement', 'Letter Agreement',
       'Amendment', 'Other'
     ];
-    // CrossRidge Lease only if CrossRidge division
-    if (isCrossRidge) types.splice(4, 0, 'CrossRidge Lease');
   }
 
   sel.innerHTML = types.map(t =>
-    `<option${t === current ? ' selected' : ''}>${t}</option>`
+    `<option value="${t}"${t === current ? ' selected' : ''}>${typeLabel(t)}</option>`
   ).join('');
 
   // If previously selected type is no longer available, reset to first
@@ -1429,6 +2205,7 @@ function toggleTerritoryField(type) {
 }
 
 function updateDeptFilter() {
+  const div = document.getElementById('divisionFilter').value;
   const sel = document.getElementById('departmentFilter');
   const depts = DEPT_MAP[div] || [];
   sel.innerHTML = '<option value="">All Departments</option>' +
@@ -1437,10 +2214,31 @@ function updateDeptFilter() {
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────
+// Next sequential file number in YY-NNN format (per-year sequence, resets each year)
+function nextFileNumber() {
+  const yy = String(new Date().getFullYear()).slice(-2);
+  let max = 0;
+  contracts.forEach(c => {
+    const m = /^(\d{2})-(\d{3})$/.exec((c.filenum || '').trim());
+    if (m && m[1] === yy) max = Math.max(max, parseInt(m[2], 10));
+  });
+  return `${yy}-${String(max + 1).padStart(3, '0')}`;
+}
+function updateNewFileUI() {
+  const on = document.getElementById('f-newfile').checked;
+  const fn = document.getElementById('f-filenum');
+  fn.readOnly = on;
+  fn.style.opacity = on ? '0.7' : '';
+  fn.placeholder = on ? 'auto-assigned on save' : 'e.g. 26-001';
+  if (on && !editId) fn.value = nextFileNumber();   // live preview only when creating
+}
+
 function openModal(id) {
   editId = id || null;
   const c = id ? contracts.find(x=>x.id===id) : null;
   document.getElementById('modal-title').textContent = c ? 'Edit Contract' : 'New Contract';
+  document.getElementById('f-lastmod').textContent = (c && c.lastModifiedBy)
+    ? `Last changed by ${c.lastModifiedBy}${c.lastModifiedAt ? ' · ' + new Date(c.lastModifiedAt).toLocaleString() : ''}` : '';
   document.getElementById('f-name').value = c?.name || '';
   document.getElementById('f-party').value = c?.party || '';
   document.getElementById('f-division').value = c?.division || '';
@@ -1454,18 +2252,21 @@ function openModal(id) {
   document.getElementById('f-territory').value = c?.territory || '';
   document.getElementById('f-status').value = c?.status || 'Active';
   document.getElementById('f-filenum').value = c?.filenum || '';
+  document.getElementById('f-newfile').checked = c ? (c.newFile === true || c.newFile === 'true') : true;
+  updateNewFileUI();
   document.getElementById('f-related').value = c?.related || '';
   document.getElementById('f-assigned').value = c?.assigned || '';
   document.getElementById('f-start').value = c?.start || '';
   document.getElementById('f-end').value = c?.end || '';
   document.getElementById('f-remind').value = c?.remind || '';
-  document.getElementById('f-renewal').value = c?.renewal || '';
+  document.getElementById('f-renewal').value = c?.renewal || '30';
+  document.getElementById('f-renewal-term').value = c?.renewalTerm || '';
+  document.getElementById('f-renewal-term-other').value = c?.renewalTermOther || '';
+  document.getElementById('f-reminder-emails').value = c?.reminderEmails || '';
   document.getElementById('f-notice-deadline').value = c?.noticeDeadline || '';
   document.getElementById('f-notice-deadline').dataset.auto = c?.noticeDeadlineAuto ? 'true' : 'false';
-  const hasRenewal = !!(c?.renewal);
-  document.getElementById('f-notice-deadline-wrap').style.display = hasRenewal ? '' : 'none';
-  document.getElementById('f-remind-wrap').style.display = hasRenewal ? '' : 'none';
-  document.getElementById('f-nonrenewal-wrap').style.display = hasRenewal ? '' : 'none';
+  document.getElementById('f-autorenew').checked = isAutoRenew(c);
+  updateAutoRenewUI();
   document.getElementById('f-notes').value = c?.notes || '';
   // Requester Description — read-only, only shown if populated from intake
   const rdesc = c?.requesterDesc || '';
@@ -1483,6 +2284,8 @@ function openModal(id) {
   renderUpdateAttachPending('f-update-attach-list', cUpdateAttachments);
   const fi = document.getElementById('f-file-input');
   if (fi) fi.value = '';
+  _relatedIds = [...(c?.relatedIds || [])];
+  renderRelatedChips();
   document.getElementById('modal').classList.add('open');
   updateContractTypes(c?.type);
   setTimeout(()=>document.getElementById('f-name').focus(), 100);
@@ -1496,8 +2299,21 @@ function saveContract() {
   const name = document.getElementById('f-name').value.trim();
   const party = document.getElementById('f-party').value.trim();
   if (!name || !party) { toast('Name and counterparty are required.'); return; }
+  // File number: auto-assign for a new file; otherwise the user's entered value
+  const isNewFile = document.getElementById('f-newfile').checked;
+  let filenumVal;
+  if (isNewFile) {
+    const existing = editId ? (contracts.find(c => c.id === editId) || {}).filenum : '';
+    filenumVal = existing || nextFileNumber();   // keep an already-assigned number; only mint one when it's truly new
+  } else {
+    filenumVal = document.getElementById('f-filenum').value.trim();
+    if (!filenumVal && !confirm('No File No. entered. Save anyway?')) return;
+  }
   const data = {
     id: editId || uid(),
+    newFile: isNewFile,
+    lastModifiedBy: currentUser(),
+    lastModifiedAt: new Date().toISOString(),
     name, party,
     division: document.getElementById('f-division').value,
     department: document.getElementById('f-department').value,
@@ -1505,13 +2321,19 @@ function saveContract() {
     type: document.getElementById('f-type').value,
     territory: document.getElementById('f-territory').value.trim(),
     status: document.getElementById('f-status').value,
-    filenum: document.getElementById('f-filenum').value.trim(),
+    filenum: filenumVal,
     related: document.getElementById('f-related').value.trim(),
     assigned: document.getElementById('f-assigned').value.trim(),
     start: document.getElementById('f-start').value,
     end: document.getElementById('f-end').value,
     remind: document.getElementById('f-remind').value,
-    renewal: document.getElementById('f-renewal').value,
+    reminderEmails: (document.getElementById('f-autorenew').checked && document.getElementById('f-remind').value.trim())
+      ? document.getElementById('f-reminder-emails').value.trim() : '',
+    autoRenew: document.getElementById('f-autorenew').checked,
+    renewal: document.getElementById('f-autorenew').checked ? document.getElementById('f-renewal').value : '',
+    renewalTerm: document.getElementById('f-autorenew').checked ? document.getElementById('f-renewal-term').value : '',
+    renewalTermOther: (document.getElementById('f-autorenew').checked && document.getElementById('f-renewal-term').value === 'Other')
+      ? document.getElementById('f-renewal-term-other').value.trim() : '',
     noticeDeadline: document.getElementById('f-notice-deadline').value,
     noticeDeadlineAuto: document.getElementById('f-notice-deadline').dataset.auto === 'true',
     notes: document.getElementById('f-notes').value.trim(),
@@ -1519,6 +2341,7 @@ function saveContract() {
     attachments: [...cAttachments],
     aiSummary: document.getElementById('f-ai-summary-text').value.trim(),
     updates: editId ? (contracts.find(x=>x.id===editId)?.updates || []) : [],
+    relatedIds: [..._relatedIds],
   };
   if (editId) {
     const i = contracts.findIndex(c=>c.id===editId);
@@ -1528,13 +2351,19 @@ function saveContract() {
     contracts.push(data);
     toast('Contract added.');
   }
-  save(); closeModal(); render(); refreshPartyList(); refreshAssignedList(); refreshTerritoryList();
+  save(); closeModal(); render(); scheduleDashboardCharts(); renderAlerts(); refreshPartyList(); refreshAssignedList(); refreshTerritoryList();
 }
 
 function deleteContract(id) {
-  if (!confirm('Delete this contract?')) return;
-  contracts = contracts.filter(c=>c.id!==id);
-  save(); toast('Deleted.'); render();
+  const idx = contracts.findIndex(c => c.id === id);
+  if (idx < 0) return;
+  const removed = contracts[idx];
+  contracts.splice(idx, 1);
+  save(); render();
+  toastUndo('Contract deleted.', () => {
+    contracts.splice(Math.min(idx, contracts.length), 0, removed);
+    save(); render(); toast('Delete undone.');
+  });
 }
 
 // ── ICS EXPORT ────────────────────────────────────────────────────────────────
@@ -1556,13 +2385,17 @@ function buildICSEvent(c, reminderDays) {
   const dtend = endDate.toISOString().slice(0,10).replace(/-/g,'');
 
   const remind = reminderDays || c.remind || 30;
-  const hasRenewal = !!(c.renewal);
+  const hasRenewal = isAutoRenew(c);
   const noticeDate = c.noticeDeadline || null;
 
+  const termTxt = c.renewalTerm === 'Other' ? (c.renewalTermOther || 'Other') : (c.renewalTerm || '');
+  const noticeTxt = (c.renewal && c.renewal !== 'custom')
+    ? `${c.renewal}-day cancellation notice required.`
+    : 'cancellation notice — see notes.';
   const renewalNote = hasRenewal
-    ? ` | Auto-renewal: ${c.renewal}-day cancellation notice required.${noticeDate ? ' Notice deadline: '+noticeDate+'.' : ''}`
+    ? ` | Auto-renewal${termTxt ? ' ('+termTxt+')' : ''}: ${noticeTxt}${noticeDate ? ' Notice deadline: '+noticeDate+'.' : ''}`
     : '';
-  const description = icsEscape(`Contract: ${c.name}\nCounterparty: ${c.party}\nType: ${c.type}\nStatus: ${c.status}${renewalNote}${c.notes ? '\n\nNotes: '+c.notes : ''}`);
+  const description = icsEscape(`Contract: ${c.name}\nCounterparty: ${c.party}\nType: ${typeLabel(c.type)}\nStatus: ${c.status}${renewalNote}${c.notes ? '\n\nNotes: '+c.notes : ''}`);
 
   const summary = hasRenewal
     ? `⚠️ AUTO-RENEWAL: ${c.name}${noticeDate ? ' — Notice deadline: '+noticeDate : ''}`
@@ -1630,7 +2463,7 @@ function openICSModal() {
       const diffLabel = diff < 0 ? `<span style="color:var(--red)">${Math.abs(diff)}d overdue</span>`
         : diff <= 30 ? `<span style="color:var(--yellow)">${diff}d away</span>`
         : `<span style="color:var(--text-muted)">${diff}d away</span>`;
-      const renewBadge = c.renewal ? `<span class="pill pill-pending" style="font-size:10px;margin-left:6px">↺ auto-renew</span>` : '';
+      const renewBadge = isAutoRenew(c) ? `<span class="pill pill-pending" style="font-size:10px;margin-left:6px">↺ auto-renew</span>` : '';
       return `<div class="ics-row">
         <div class="ics-row-info">
           <div class="ics-row-name">${c.name}${renewBadge}</div>
@@ -1668,7 +2501,7 @@ function downloadICS() {
 // ── EXPORT CSV ────────────────────────────────────────────────────────────────
 function exportCSV() {
   const cols = ['File No.','Name','Counterparty','Division','Department','Type','Status','Effective','Expires','Notes'];
-  const rows = contracts.map(c=>[c.filenum,c.name,c.party,c.division,c.department,c.type,c.status,c.start,c.end,c.notes]
+  const rows = contracts.map(c=>[c.filenum,c.name,c.party,c.division,c.department,typeLabel(c.type),c.status,c.start,c.end,c.notes]
     .map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(','));
   const csv = [cols.join(','), ...rows].join('\n');
   const a = document.createElement('a');
@@ -1692,14 +2525,12 @@ if (!contracts.length) {
 }
 
 render();
+scheduleDashboardCharts();
 refreshPartyList();
 
 // ── LEGAL MATTERS DATA & LOGIC ────────────────────────────────────────────────
-let matters = [];
 let mEditId = null;
 let mActiveFilter = 'all';
-
-function mSave() { /* in-memory only for beta */ }
 
 function mFilteredMatters() {
   const q = document.getElementById('mSearchInput').value.toLowerCase();
@@ -1746,14 +2577,14 @@ function renderMatters() {
   }
   tbody.innerHTML = rows.map(m => `
     <tr data-mid="${m.id}" class="matter-row">
-      <td class="name">${m.name}</td>
-      <td class="mono">${m.num || '—'}</td>
-      <td>${m.division || '—'}</td>
-      <td>${m.department || '—'}</td>
-      <td class="mono">${m.type}</td>
+      <td class="name">${esc(m.name)}</td>
+      <td class="mono">${esc(m.num) || '—'}</td>
+      <td>${esc(m.division) || '—'}</td>
+      <td>${esc(m.department) || '—'}</td>
+      <td class="mono">${esc(m.type)}</td>
       <td>${mStatusPill(m.status)}</td>
-      <td>${m.counsel || '—'}</td>
-      <td>${m.assigned || '—'}</td>
+      <td>${esc(m.counsel) || '—'}</td>
+      <td>${esc(m.assigned) || '—'}</td>
       <td class="mono">${fmtDate(m.opened)}</td>
       <td class="mono">${fmtDate(m.closed)}</td>
       <td class="mono" style="color:var(--text-muted)">${(m.updates||[]).length || '—'}</td>
@@ -1779,7 +2610,7 @@ function renderMatters() {
 
 function mUpdateBadges() {
   const counts = { all:0, open:0, 'on hold':0, closed:0,
-    'type:Litigation':0,'type:Employment':0,'type:IP':0,
+    'type:Litigation':0,'type:Employment':0,'type:Trademarks':0,
     'type:Real Estate':0,'type:Corporate':0,'type:Regulatory':0,'type:Payment Dispute':0,'type:Other':0 };
   matters.forEach(m => {
     counts.all++;
@@ -1816,6 +2647,8 @@ function openMatterModal(id) {
   mEditId = id || null;
   const m = id ? matters.find(x=>x.id===id) : null;
   document.getElementById('matter-modal-title').textContent = m ? 'Edit Legal Matter' : 'New Legal Matter';
+  document.getElementById('mf-lastmod').textContent = (m && m.lastModifiedBy)
+    ? `Last changed by ${m.lastModifiedBy}${m.lastModifiedAt ? ' · ' + new Date(m.lastModifiedAt).toLocaleString() : ''}` : '';
   document.getElementById('mf-num').value = m?.num || '';
   document.getElementById('mf-name').value = m?.name || '';
   document.getElementById('mf-division').value = m?.division || '';
@@ -1824,7 +2657,7 @@ function openMatterModal(id) {
   document.getElementById('mf-status').value = m?.status || 'Open';
   document.getElementById('mf-counsel').value = m?.counsel || '';
   document.getElementById('mf-counsel-scope').value = m?.counselScope || '';
-  document.getElementById('mf-counsel-fees').value = m?.counselFees || '';
+  updateCounselFieldsUI();
   document.getElementById('mf-opened').value = m?.opened || '';
   document.getElementById('mf-closed').value = m?.closed || '';
   document.getElementById('mf-assigned').value = m?.assigned || '';
@@ -1851,8 +2684,17 @@ function closeMatterModal() {
 function saveMatter() {
   const name = document.getElementById('mf-name').value.trim();
   if (!name) { toast('Matter name is required.'); return; }
+  const numVal = document.getElementById('mf-num').value.trim();
+  if (!numVal) {
+    if (!confirm('No Matter No. entered. Save anyway?')) return;
+  } else {
+    const dup = matters.find(m => m.id !== mEditId && (m.num||'').trim().toLowerCase() === numVal.toLowerCase());
+    if (dup && !confirm(`Matter No. "${numVal}" is already used by "${dup.name || 'another matter'}". Save anyway?`)) return;
+  }
   const data = {
     id: mEditId || uid(),
+    lastModifiedBy: currentUser(),
+    lastModifiedAt: new Date().toISOString(),
     num: document.getElementById('mf-num').value.trim(),
     name,
     division: document.getElementById('mf-division').value,
@@ -1861,7 +2703,6 @@ function saveMatter() {
     status: document.getElementById('mf-status').value,
     counsel: document.getElementById('mf-counsel').value.trim(),
     counselScope: document.getElementById('mf-counsel-scope').value.trim(),
-    counselFees: document.getElementById('mf-counsel-fees').value,
     opened: document.getElementById('mf-opened').value,
     closed: document.getElementById('mf-closed').value,
     assigned: document.getElementById('mf-assigned').value.trim(),
@@ -1882,9 +2723,15 @@ function saveMatter() {
 }
 
 function deleteMatter(id) {
-  if (!confirm('Delete this matter?')) return;
-  matters = matters.filter(m=>m.id!==id);
-  mSave(); toast('Deleted.'); renderMatters();
+  const idx = matters.findIndex(m => m.id === id);
+  if (idx < 0) return;
+  const removed = matters[idx];
+  matters.splice(idx, 1);
+  mSave(); renderMatters();
+  toastUndo('Matter deleted.', () => {
+    matters.splice(Math.min(idx, matters.length), 0, removed);
+    mSave(); renderMatters(); toast('Delete undone.');
+  });
 }
 
 function updateMatterDepartments(selectVal) {
@@ -1892,7 +2739,8 @@ function updateMatterDepartments(selectVal) {
   const sel = document.getElementById('mf-department');
   const depts = DEPT_MAP[div] || [];
   if (!depts.length) {
-    sel.innerHTML = '<option value="">— Select Division first —</option>';
+    sel.innerHTML = `<option value="">${div ? '— No department —' : '— Select Division first —'}</option>`;
+    sel.value = '';
     sel.disabled = true;
   } else {
     sel.innerHTML = '<option value="">— Select —</option>' +
@@ -1929,22 +2777,60 @@ function exportMattersCSV() {
 }
 
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  const isContracts = tab === 'contracts';
-  const isMatters   = tab === 'matters';
-  const isIntake    = tab === 'intake';
-  ['contracts','matters','intake'].forEach(t => {
-    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
-    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
-  });
-  if (isMatters) renderMatters();
-  if (isIntake)  renderIntake();
-}
+// (defined fully below — see switchTab override near event wiring)
 
 // ── UPDATE LOG ────────────────────────────────────────────────────────────────
 let cUpdateAttachments = [];  // pending attachments for next contract update
 let mUpdateAttachments = [];  // pending attachments for next matter update
 let mAttachments = [];        // main matter attachments
+
+// ── COUNTERPARTY ROLLUP ───────────────────────────────────────────────────────
+function partyKey(p) { return (p || '').trim().toLowerCase(); }
+let _partyExpanded = null;
+function renderCounterparties() {
+  const listEl = document.getElementById('parties-list');
+  if (!listEl) return;
+  const filter = (document.getElementById('parties-search').value || '').trim().toLowerCase();
+  const map = {};
+  contracts.forEach(c => {
+    const nm = (c.party || '').trim();
+    if (!nm) return;
+    const k = partyKey(nm);
+    if (!map[k]) map[k] = { name: nm, list: [] };
+    map[k].list.push(c);
+  });
+  let keys = Object.keys(map).sort((a, b) => map[a].name.localeCompare(map[b].name));
+  if (filter) keys = keys.filter(k => map[k].name.toLowerCase().includes(filter));
+  if (!keys.length) { listEl.innerHTML = '<div class="gs-empty">No counterparties.</div>'; return; }
+  listEl.innerHTML = keys.map(k => {
+    const p = map[k];
+    const active = p.list.filter(c => (c.status || '').toLowerCase() === 'active').length;
+    const expanded = _partyExpanded === k;
+    const rows = expanded ? `<div style="padding:2px 0 6px 12px">${p.list.map(c => `
+      <div class="party-agr" data-id="${c.id}" style="display:flex;align-items:center;gap:10px;padding:5px 8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.name) || '(untitled)'}</span>
+        <span class="mono" style="color:var(--text-muted)">${esc(typeLabel(c.type)) || ''}</span>
+        <span>${statusPill(c.status)}</span>
+        <span class="mono" style="color:var(--text-muted);width:92px;text-align:right">${c.end ? fmtDate(c.end) : '—'}</span>
+      </div>`).join('')}</div>` : '';
+    return `<div style="border:1px solid var(--border);border-radius:6px;margin-bottom:6px;overflow:hidden">
+      <div class="party-hdr" data-k="${k}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;background:var(--surface2)">
+        <span style="flex:1;font-weight:500">${esc(p.name)}</span>
+        <span style="font-size:11px;color:var(--text-muted)">${p.list.length} agreement${p.list.length === 1 ? '' : 's'} · ${active} active</span>
+        <span style="color:var(--text-muted)">${expanded ? '▾' : '▸'}</span>
+      </div>${rows}
+    </div>`;
+  }).join('');
+  listEl.querySelectorAll('.party-hdr').forEach(h => h.addEventListener('click', () => {
+    _partyExpanded = _partyExpanded === h.dataset.k ? null : h.dataset.k;
+    renderCounterparties();
+  }));
+  listEl.querySelectorAll('.party-agr').forEach(a => a.addEventListener('click', () => {
+    closeParties(); switchTab('contracts'); openModal(a.dataset.id);
+  }));
+}
+function openParties(expandKey) { _partyExpanded = expandKey || null; document.getElementById('parties-search').value = ''; renderCounterparties(); document.getElementById('parties-modal').classList.add('open'); }
+function closeParties() { document.getElementById('parties-modal').classList.remove('open'); }
 
 function fmtTimestamp(ts) {
   const d = new Date(ts);
@@ -2131,16 +3017,26 @@ function isHoliday(date) {
 }
 
 function businessHoursSince(submittedTs) {
+  // Efficient business-hour count: iterate day-by-day instead of hour-by-hour
   const start = new Date(submittedTs);
   const now = new Date();
+  if (start >= now) return 0;
+
   let hours = 0;
   const cursor = new Date(start);
-  while (cursor < now) {
+  cursor.setHours(0, 0, 0, 0); // start of the submission day
+
+  while (cursor <= now) {
     const day = cursor.getDay();
     if (day !== 0 && day !== 6 && !isHoliday(cursor)) {
-      hours++;
+      // It's a business day — count hours within [start, now] on this day
+      const dayStart = new Date(cursor); dayStart.setHours(0, 0, 0, 0);
+      const dayEnd   = new Date(cursor); dayEnd.setHours(23, 59, 59, 999);
+      const from = Math.max(start.getTime(), dayStart.getTime());
+      const to   = Math.min(now.getTime(),   dayEnd.getTime());
+      if (to > from) hours += Math.floor((to - from) / 3600000);
     }
-    cursor.setHours(cursor.getHours()+1);
+    cursor.setDate(cursor.getDate() + 1);
   }
   return hours;
 }
@@ -2166,8 +3062,6 @@ let intakeRequests = [];
 let iActiveFilter = 'all';
 let iEditId = null;
 let iAttachments = []; // {name, size} — file metadata only (no binary in localStorage)
-
-function iSave() { /* in-memory only for beta */ }
 
 function iStatusPill(s) {
   const map = { 'new':'pill-new', 'in review':'pill-review', 'converted':'pill-iconverted', 'closed':'pill-iclosed' };
@@ -2215,9 +3109,9 @@ function renderIntake() {
         <div class="mono" style="font-size:10px">${fmtDate(new Date(r.submitted).toISOString().slice(0,10))}</div>
         <div class="${ageClass(r.submitted, r.status)}" style="font-size:10px;margin-top:2px">${fmtAge(r.submitted)}</div>
       </td>
-      <td>${r.requestor}</td>
-      <td style="font-size:12px">${r.dept}</td>
-      <td class="mono" style="font-size:12px">${r.type}</td>
+      <td>${esc(r.requestor)}</td>
+      <td style="font-size:12px">${esc(r.dept)}</td>
+      <td class="mono" style="font-size:12px">${esc(r.type)}</td>
       <td style="font-size:12px;color:var(--text-muted)">${descSnippet}</td>
       <td class="mono ${r.needby && new Date(r.needby)<new Date()?'deadline-over':r.needby&&Math.ceil((new Date(r.needby)-new Date())/86400000)<=7?'deadline-warn':''}">${fmtDate(r.needby)}</td>
       <td>${iStatusPill(r.status)}</td>
@@ -2243,7 +3137,7 @@ function renderIntake() {
 
 function iUpdateBadges() {
   const counts = { all:0, new:0, 'in review':0, converted:0, closed:0,
-    'type:Contract Review':0,'type:Other Legal Matter':0 };
+    'type:Legal Doc Review':0,'type:Other Legal Matter':0 };
   intakeRequests.forEach(r => {
     counts.all++;
     const s = r.status.toLowerCase();
@@ -2352,10 +3246,10 @@ function openReviewModal(id) {
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px">
       <div style="display:flex;gap:24px;flex-wrap:wrap">
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Submitted</div><div style="font-size:12px">${fmtTimestamp(r.submitted)}</div></div>
-        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Requestor</div><div style="font-size:13px;font-weight:500">${r.requestor}</div></div>
-        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Department</div><div style="font-size:12px">${r.dept}</div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Requestor</div><div style="font-size:13px;font-weight:500">${esc(r.requestor)}</div></div>
+        <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Department</div><div style="font-size:12px">${esc(r.dept)}</div></div>
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Type</div><div style="font-size:12px">${r.type}</div></div>
-        ${r.counterparty ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Counterparty</div><div style="font-size:12px">${r.counterparty}</div></div>` : ''}
+        ${r.counterparty ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Counterparty</div><div style="font-size:12px">${esc(r.counterparty)}</div></div>` : ''}
         ${r.agrType ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Agreement Type</div><div style="font-size:12px">${r.agrType}</div></div>` : ''}
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Need-by</div><div style="font-size:12px">${fmtDate(r.needby)}</div></div>
       </div>
@@ -2386,9 +3280,15 @@ function saveReview() {
 }
 
 function deleteIntakeRequest(id) {
-  if (!confirm('Delete this request?')) return;
-  intakeRequests = intakeRequests.filter(r=>r.id!==id);
-  iSave(); renderIntake(); toast('Deleted.');
+  const idx = intakeRequests.findIndex(r => r.id === id);
+  if (idx < 0) return;
+  const removed = intakeRequests[idx];
+  intakeRequests.splice(idx, 1);
+  iSave(); renderIntake();
+  toastUndo('Request deleted.', () => {
+    intakeRequests.splice(Math.min(idx, intakeRequests.length), 0, removed);
+    iSave(); renderIntake(); toast('Delete undone.');
+  });
 }
 
 function convertToContract() {
@@ -2405,16 +3305,20 @@ function convertToContract() {
     document.getElementById('f-requester-desc').value = r.description;
     document.getElementById('f-requester-desc-wrap').style.display = '';
   }
-  // Pre-populate division/department from requester's dept (format: "Division / Dept")
+  // Pre-populate division/department from requester's dept (format: "Division / Dept",
+  // or just "Division" for divisions with no departments, e.g. Wrangle Media)
   if (r.dept) {
     const parts = r.dept.split(' / ');
-    if (parts.length === 2) {
-      document.getElementById('f-division').value = parts[0].trim();
-      updateDepartments(parts[1].trim());
-    }
+    document.getElementById('f-division').value = parts[0].trim();
+    updateDepartments(parts.length === 2 ? parts[1].trim() : undefined);
   }
   document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}`.trim();
   document.getElementById('f-assigned').value = r.assigned || '';
+  // Default file-number mode from the intake's agreement type: "Change to an Existing
+  // Agreement" → update an existing file (manual #); otherwise → new file (auto-assign).
+  const isChange = (r.agrType || '').toLowerCase().includes('existing');
+  document.getElementById('f-newfile').checked = !isChange;
+  updateNewFileUI();
   refreshPartyList();
   toast('Converted to Contract — complete the form and save.');
 }
@@ -2474,39 +3378,56 @@ const AI_SUMMARY_PROMPT = `You are a legal analyst reviewing a document for an i
 
 Be concise and precise. Use plain legal language. If a section cannot be determined from the document, state "Not specified."`;
 
-async function readFileAsText(file) {
+const AI_MAX_CHARS = 40000;
+
+// Proper PDF text extraction via PDF.js (handles real, compressed PDFs).
+// Returns '' for scanned/image-only PDFs (no embedded text), which the caller
+// treats as "couldn't read — paste text manually".
+async function extractPdfText(file) {
+  if (!window.pdfjsLib) throw new Error('PDF reader did not load — check your connection and retry.');
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let out = '';
+  const maxPages = Math.min(pdf.numPages, 50); // safety cap for very long docs
+  for (let p = 1; p <= maxPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    out += content.items.map(it => it.str).join(' ') + '\n';
+    if (out.length > AI_MAX_CHARS) break;
+  }
+  return out.slice(0, AI_MAX_CHARS).trim();
+}
+
+function readPlainText(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    // For PDFs and binary files, read as ArrayBuffer then extract text
-    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      reader.onload = e => {
-        // Extract readable text from PDF binary (basic extraction)
-        const arr = new Uint8Array(e.target.result);
-        let text = '';
-        for (let i = 0; i < arr.length; i++) {
-          if (arr[i] > 31 && arr[i] < 127) text += String.fromCharCode(arr[i]);
-          else if (arr[i] === 10 || arr[i] === 13) text += '\n';
-        }
-        // Clean up PDF noise — extract readable runs
-        const clean = text.replace(/[^\x20-\x7E\n]/g, ' ')
-          .replace(/\s{3,}/g, ' ').replace(/(\w)\s(\w)/g, '$1 $2').trim();
-        resolve(clean.slice(0, 40000));
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    } else {
-      // For .txt, .docx (text portion), read as text
-      reader.onload = e => resolve((e.target.result || '').slice(0, 40000));
-      reader.onerror = reject;
-      reader.readAsText(file);
-    }
+    reader.onload = e => resolve((e.target.result || '').slice(0, AI_MAX_CHARS));
+    reader.onerror = reject;
+    reader.readAsText(file);
   });
+}
+
+// Word (.docx) text extraction via mammoth.js. Handles the modern zip/XML Word
+// format only — not legacy binary .doc. Returns '' if the doc has no readable text.
+async function extractDocxText(file) {
+  if (!window.mammoth) throw new Error('Word reader did not load — check your connection and retry.');
+  const buf = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buf });
+  return (result?.value || '').slice(0, AI_MAX_CHARS).trim();
 }
 
 async function generateAISummary(fileInputId, wrapId, textareaId, btnId, pendingFiles) {
   const btn = document.getElementById(btnId);
   const wrap = document.getElementById(wrapId);
   const textarea = document.getElementById(textareaId);
+  const resetBtn = () => { btn.disabled = false; btn.textContent = '✦ Generate AI Summary'; };
+
+  if (!AI_PROXY_URL || AI_PROXY_URL === 'PASTE_YOUR_WORKER_URL_HERE') {
+    toast('AI Summary is not configured yet — set AI_PROXY_URL to your Worker URL.');
+    return;
+  }
 
   // Get the actual File objects from the file input
   const fileInput = document.getElementById(fileInputId);
@@ -2527,28 +3448,49 @@ async function generateAISummary(fileInputId, wrapId, textareaId, btnId, pending
   try {
     // Read the first attached file
     const file = files[0];
-    const docText = await readFileAsText(file);
+    const name = file.name.toLowerCase();
+    let docText;
+
+    if (name.endsWith('.pdf') || file.type === 'application/pdf') {
+      docText = await extractPdfText(file);
+    } else if (name.endsWith('.docx')) {
+      docText = await extractDocxText(file);
+    } else if (/\.(doc|xlsx?|pptx?)$/.test(name)) {
+      textarea.value = 'AI Summary reads PDF, Word (.docx), and plain-text files. Legacy .doc and Excel/PowerPoint files aren\'t supported yet — please paste the text into the Notes field for now.';
+      textarea.placeholder = '';
+      resetBtn();
+      return;
+    } else {
+      docText = await readPlainText(file);
+    }
 
     if (!docText || docText.length < 100) {
-      textarea.value = 'Could not extract readable text from this file. This may be a scanned PDF or image-based document. Please paste the text content into the Notes field instead.';
+      textarea.value = 'Could not extract readable text from this file. This may be a scanned or image-only PDF. Please paste the text content into the Notes field instead.';
       textarea.placeholder = '';
-      btn.disabled = false;
-      btn.textContent = '✦ Generate AI Summary';
+      resetBtn();
       return;
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // The proxy injects the API key and pins the model server-side; we send messages only.
+    const response = await fetch(AI_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
         messages: [{
           role: 'user',
           content: `${AI_SUMMARY_PROMPT}\n\n---DOCUMENT START---\n${docText}\n---DOCUMENT END---`
         }]
       })
     });
+
+    if (!response.ok) {
+      let msg = 'Error ' + response.status;
+      try { const ed = await response.json(); msg = ed?.error?.message || ed?.error || msg; } catch {}
+      textarea.value = 'Could not generate summary (' + msg + '). Check that the AI proxy is deployed and its API key is set.';
+      textarea.placeholder = '';
+      resetBtn();
+      return;
+    }
 
     const data = await response.json();
     const summary = data.content?.find(b => b.type === 'text')?.text || 'No summary generated.';
@@ -2557,11 +3499,10 @@ async function generateAISummary(fileInputId, wrapId, textareaId, btnId, pending
     toast('AI summary generated — review and edit as needed.');
   } catch(e) {
     console.error('AI summary error:', e);
-    textarea.value = 'Error generating summary. Please try again.';
+    textarea.value = 'Error generating summary: ' + (e.message || e) + '. Please try again.';
   }
 
-  btn.disabled = false;
-  btn.textContent = '✦ Generate AI Summary';
+  resetBtn();
 }
 
 // ── NON-RENEWAL LETTER GENERATOR ─────────────────────────────────────────────
@@ -2569,6 +3510,22 @@ function fmtDateLong(dateStr) {
   if (!dateStr) return '[DATE]';
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+}
+
+// Called from alert buttons — generates letter directly from contract data (no modal required)
+async function generateNonRenewalLetterById(id, triggerBtn) {
+  const c = contracts.find(x => x.id === id);
+  if (!c) { toast('Contract not found.'); return; }
+  if (triggerBtn) { triggerBtn.disabled = true; triggerBtn.textContent = '⏳ Generating…'; }
+  await _buildNonRenewalDoc({
+    name:    c.name    || '[CONTRACT NAME]',
+    party:   c.party   || '[COUNTERPARTY]',
+    end:     c.end     || '',
+    notice:  c.noticeDeadline || '',
+    renewal: c.renewal || '',
+    filenum: c.filenum || '',
+  });
+  if (triggerBtn) { triggerBtn.disabled = false; triggerBtn.textContent = '📄 Generate Notice Letter'; }
 }
 
 async function generateNonRenewalLetter() {
@@ -2582,14 +3539,21 @@ async function generateNonRenewalLetter() {
   const division  = document.getElementById('f-division').value;
   const dept      = document.getElementById('f-department').value;
 
-  const today         = fmtDateLong(new Date().toISOString().slice(0,10));
-  const expiryLong    = fmtDateLong(end);
-  const noticeLong    = fmtDateLong(notice);
-  const noticePeriod  = renewal && renewal !== 'custom' ? renewal + ' days' : '[NOTICE PERIOD]';
+  const btn = document.getElementById('btn-gen-nonrenewal');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
+  await _buildNonRenewalDoc({ name, party, end, notice, renewal, filenum });
+  if (btn) { btn.disabled = false; btn.textContent = '📄 Generate Notice of Non-Renewal Letter'; }
+}
 
+async function _buildNonRenewalDoc({ name, party, end, notice, renewal, filenum }) {
   if (!window.docx) { toast('Document library not loaded yet — please try again in a moment.'); return; }
 
   const { Document, Packer, Paragraph, TextRun, AlignmentType, UnderlineType } = window.docx;
+
+  const today        = fmtDateLong(new Date().toISOString().slice(0,10));
+  const expiryLong   = fmtDateLong(end);
+  const noticeLong   = fmtDateLong(notice);
+  const noticePeriod = renewal && renewal !== 'custom' ? renewal + ' days' : '[NOTICE PERIOD]';
 
   const p = (text, opts = {}) => new Paragraph({
     alignment: opts.align || AlignmentType.LEFT,
@@ -2614,17 +3578,12 @@ async function generateNonRenewalLetter() {
         }
       },
       children: [
-        // Date
         p(today),
         blank(),
-
-        // Recipient block
-        p(`${party}`, { bold: false }),
+        p(party),
         p('[Address Line 1]'),
         p('[City, State, Zip]'),
         blank(),
-
-        // Re: line
         new Paragraph({
           spacing: { after: 200 },
           children: [
@@ -2633,12 +3592,8 @@ async function generateNonRenewalLetter() {
           ]
         }),
         blank(),
-
-        // Salutation
         p('Dear [Counterparty Contact Name]:'),
         blank(),
-
-        // Body paragraph 1
         new Paragraph({
           spacing: { after: 200 },
           children: [
@@ -2649,27 +3604,19 @@ async function generateNonRenewalLetter() {
             new TextRun({ text: '.', font: 'Arial', size: 24 }),
           ]
         }),
-
-        // Body paragraph 2
         new Paragraph({
           spacing: { after: 200 },
           children: [
             new TextRun({ text: `Pursuant to the terms of the Agreement, written notice of non-renewal is required at least ${noticePeriod} prior to the expiration date. This notice is being provided on or before the notice deadline of `, font: 'Arial', size: 24 }),
             new TextRun({ text: noticeLong, bold: true, font: 'Arial', size: 24 }),
-            new TextRun({ text: `, and is therefore timely under the Agreement.`, font: 'Arial', size: 24 }),
+            new TextRun({ text: ', and is therefore timely under the Agreement.', font: 'Arial', size: 24 }),
           ]
         }),
-
-        // Body paragraph 3
         p('The Agreement will therefore terminate by its terms on ' + expiryLong + '. INSP values its relationship with ' + party + ' and thanks you for your partnership. Please do not hesitate to contact the undersigned if you have any questions regarding this notice or the wind-down of the Agreement.'),
         blank(),
-
-        // Closing
         p('Sincerely,'),
         blank(),
         blank(),
-
-        // Signature block
         p('Greg Richardson'),
         p('SVP & Managing Attorney, Legal & Business Affairs'),
         p('INSP, LLC'),
@@ -2680,29 +3627,23 @@ async function generateNonRenewalLetter() {
   });
 
   try {
-    const btn = document.getElementById('btn-gen-nonrenewal');
-    btn.disabled = true;
-    btn.textContent = '⏳ Generating…';
     const blob = await Packer.toBlob(doc);
     const safeName = name.replace(/[^a-z0-9]/gi, '_').slice(0,40);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `Non-Renewal_Notice_${safeName}.docx`;
+    a.download = `Non-Renewal Notice - ${safeName}.docx`;
     a.click();
+    URL.revokeObjectURL(a.href);
     toast('Non-renewal letter downloaded.');
-    btn.disabled = false;
-    btn.textContent = '📄 Generate Notice of Non-Renewal Letter';
   } catch(e) {
     console.error(e);
     toast('Error generating letter — see console.');
-    document.getElementById('btn-gen-nonrenewal').disabled = false;
-    document.getElementById('btn-gen-nonrenewal').textContent = '📄 Generate Notice of Non-Renewal Letter';
   }
 }
 
 // ── BUDGET PRESENTATION GENERATOR ────────────────────────────────────────────
-async function generateBudgetPresentation() {
-  const btn = document.getElementById('btn-gen-pptx');
+async function generateActivityReport() {
+  const btn = document.getElementById('btn-reporting');
   btn.disabled = true;
   btn.textContent = '⏳ Generating…';
 
@@ -2740,7 +3681,8 @@ async function generateBudgetPresentation() {
     // Volume by type — contracts
     const contractTypeCounts = {};
     contracts.forEach(c => {
-      contractTypeCounts[c.type] = (contractTypeCounts[c.type]||0) + 1;
+      const k = typeLabel(c.type);
+      contractTypeCounts[k] = (contractTypeCounts[k]||0) + 1;
     });
 
     // Matter type counts
@@ -2749,28 +3691,10 @@ async function generateBudgetPresentation() {
       matterTypeCounts[m.type] = (matterTypeCounts[m.type]||0) + 1;
     });
 
-    // Outside counsel — consolidate by firm
-    const counselMap = {};
-    matters.forEach(m => {
-      if (!m.counsel) return;
-      const firm = m.counsel.trim();
-      if (!counselMap[firm]) counselMap[firm] = { fees: 0, scopes: new Set(), count: 0 };
-      counselMap[firm].count++;
-      if (m.counselFees) counselMap[firm].fees += parseFloat(m.counselFees)||0;
-      if (m.counselScope) counselMap[firm].scopes.add(m.counselScope.trim());
-    });
-    const counselRows = Object.entries(counselMap)
-      .sort((a,b) => b[1].fees - a[1].fees || b[1].count - a[1].count)
-      .map(([firm, data]) => ({
-        firm,
-        fees: data.fees ? '$'+data.fees.toLocaleString() : '[See AvidXchange]',
-        scope: [...data.scopes].join('; ') || '[No scope entered]'
-      }));
-
     // ── Build PPTX ───────────────────────────────────────────────────────────
     const pres = new PptxGenJS();
     pres.layout = 'LAYOUT_16x9';
-    pres.title = `INSP Legal — Budget Presentation ${year}`;
+    pres.title = `INSP Legal — Activity Report ${year}`;
 
     // Color palette — navy/gold to match LegalTrack feel
     const NAVY  = '1a2340';
@@ -2797,7 +3721,7 @@ async function generateBudgetPresentation() {
     s1.addShape(pres.shapes.LINE, { x: 0.45, y: 2.2, w: 5.5, h: 0, line: { color: GOLD, width: 1.5 } });
 
     // Title
-    s1.addText('Budget Presentation', { x: 0.45, y: 2.4, w: 8, h: 0.7, fontSize: 36, bold: true, color: WHITE, fontFace: 'Georgia', margin: 0 });
+    s1.addText('Legal Activity Report', { x: 0.45, y: 2.4, w: 8, h: 0.7, fontSize: 36, bold: true, color: WHITE, fontFace: 'Georgia', margin: 0 });
     s1.addText(String(year), { x: 0.45, y: 3.05, w: 3, h: 0.55, fontSize: 28, color: GOLD, fontFace: 'Georgia', margin: 0 });
 
     // Subtitle info
@@ -2913,63 +3837,498 @@ async function generateBudgetPresentation() {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // SLIDE 4 — OUTSIDE COUNSEL
+    // SLIDE 4 — CONTRACT STATUS SUMMARY
     // ────────────────────────────────────────────────────────────────────────
     const s4 = pres.addSlide();
     s4.background = { color: WHITE };
-
     s4.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
-    s4.addText('Outside Counsel', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
-    s4.addText(ytdLabel, { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
+    s4.addText('Contract Portfolio Status', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
+    s4.addText(`As of ${now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`, { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
 
-    if (counselRows.length === 0) {
-      s4.addText('No outside counsel data entered yet.', { x: 0.35, y: 1.5, w: 9, h: 0.5, fontSize: 14, color: GRAY, fontFace: 'Calibri', italic: true, margin: 0 });
-    } else {
-      const tableData = [
-        [
-          { text: 'Firm', options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 11, fontFace: 'Calibri' } },
-          { text: 'Fees (YTD)', options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 11, fontFace: 'Calibri', align: 'center' } },
-          { text: 'Area of Involvement', options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 11, fontFace: 'Calibri' } },
-        ],
-        ...counselRows.map((r, i) => [
-          { text: r.firm, options: { fontSize: 10, fontFace: 'Calibri', fill: { color: i%2===0 ? 'F8F6F2' : WHITE }, color: DKGRAY } },
-          { text: r.fees, options: { fontSize: 10, fontFace: 'Calibri', fill: { color: i%2===0 ? 'F8F6F2' : WHITE }, color: DKGRAY, align: 'center' } },
-          { text: r.scope, options: { fontSize: 10, fontFace: 'Calibri', fill: { color: i%2===0 ? 'F8F6F2' : WHITE }, color: DKGRAY } },
-        ])
-      ];
+    // Status counts
+    const statusCounts4 = {};
+    contracts.forEach(c => { const s = c.status||'Unknown'; statusCounts4[s] = (statusCounts4[s]||0)+1; });
+    const statusKeys = Object.keys(statusCounts4);
+    const statusVals = statusKeys.map(k => statusCounts4[k]);
 
-      s4.addTable(tableData, {
-        x: 0.35, y: 1.15, w: 9.35, h: 0,
-        colW: [2.4, 1.5, 5.45],
-        border: { pt: 0.5, color: 'D8D4CC' },
-        rowH: 0.35,
+    if (statusKeys.length > 0) {
+      s4.addChart(pres.charts.PIE, [{ name: 'Status', labels: statusKeys, values: statusVals }], {
+        x: 0.3, y: 1.0, w: 4.8, h: 4.3,
+        chartColors: [GOLD, NAVY, 'ef4444', '888888', '4a90d9', 'a0c060'],
+        chartArea: { fill: { color: 'F8F6F2' } },
+        showPercent: true, showLegend: true, legendPos: 'b', legendFontSize: 10,
+        dataLabelColor: WHITE,
       });
     }
 
+    // Status table right side
+    const tableRows4 = [[
+      { text: 'Status', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+      { text: 'Count', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+      { text: '%', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+    ]];
+    statusKeys.forEach(k => {
+      tableRows4.push([
+        { text: k, options: { color: DKGRAY } },
+        { text: String(statusCounts4[k]), options: { color: DKGRAY, align: 'center' } },
+        { text: contracts.length ? `${Math.round(statusCounts4[k]/contracts.length*100)}%` : '0%', options: { color: DKGRAY, align: 'center' } },
+      ]);
+    });
+    tableRows4.push([
+      { text: 'Total', options: { bold: true, color: NAVY } },
+      { text: String(contracts.length), options: { bold: true, color: NAVY, align: 'center' } },
+      { text: '100%', options: { bold: true, color: NAVY, align: 'center' } },
+    ]);
+    s4.addTable(tableRows4, { x: 5.3, y: 1.0, w: 4.4, colW: [2.4, 1.0, 1.0], rowH: 0.32, fontFace: 'Calibri', fontSize: 11, border: { pt: 0.5, color: 'DDDDDD' }, fill: { color: 'FAFAFA' } });
+
+    // ────────────────────────────────────────────────────────────────────────
+    // SLIDE 5 — UPCOMING RENEWALS / EXPIRATIONS
+    // ────────────────────────────────────────────────────────────────────────
+    const s5 = pres.addSlide();
+    s5.background = { color: WHITE };
+    s5.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
+    s5.addText('Upcoming Renewals & Expirations', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
+    s5.addText('Next 90 days', { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
+
+    const upcoming90 = contracts
+      .filter(c => c.end && (c.status||'').toLowerCase() !== 'expired/terminated')
+      .map(c => ({ c, days: Math.round((new Date(c.end)-now)/86400000) }))
+      .filter(x => x.days >= 0 && x.days <= 90)
+      .sort((a,b) => a.days-b.days)
+      .slice(0, 14);
+
+    if (upcoming90.length === 0) {
+      s5.addText('No contracts expiring within 90 days.', { x: 0.35, y: 2.0, w: 9.3, h: 0.5, fontSize: 14, color: GRAY, fontFace: 'Calibri', align: 'center' });
+    } else {
+      const tblRows5 = [[
+        { text: 'Contract', options: { bold: true, color: WHITE, fill: { color: NAVY } } },
+        { text: 'Counterparty', options: { bold: true, color: WHITE, fill: { color: NAVY } } },
+        { text: 'End Date', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+        { text: 'Days Left', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+        { text: 'Auto-Renew', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+      ]];
+      upcoming90.forEach(({ c, days }) => {
+        const isAR = isAutoRenew(c);
+        tblRows5.push([
+          { text: (c.name||'').slice(0,30), options: { color: DKGRAY } },
+          { text: (c.party||'—').slice(0,20), options: { color: DKGRAY } },
+          { text: fmtDate(c.end), options: { color: DKGRAY, align: 'center' } },
+          { text: String(days), options: { color: days <= 30 ? 'c0392b' : DKGRAY, bold: days <= 30, align: 'center' } },
+          { text: isAR ? '✓' : '—', options: { color: isAR ? '16a34a' : GRAY, align: 'center' } },
+        ]);
+      });
+      s5.addTable(tblRows5, { x: 0.35, y: 1.05, w: 9.3, colW: [3.0, 2.1, 1.4, 1.2, 1.6], rowH: 0.3, fontFace: 'Calibri', fontSize: 10, border: { pt: 0.5, color: 'DDDDDD' }, fill: { color: 'FAFAFA' } });
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // SLIDE 6 — MONTH-IN-REVIEW (most recently completed month)
+    // ────────────────────────────────────────────────────────────────────────
+    const mirMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+    const mirYear  = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const MONTHS_PPT = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const mirStart = new Date(mirYear, mirMonth, 1);
+    const mirEnd   = new Date(mirYear, mirMonth+1, 0, 23, 59, 59, 999);
+    const mirIn = d => d && new Date(d) >= mirStart && new Date(d) <= mirEnd;
+
+    const mirNewC   = contracts.filter(c => mirIn(c.start) && (c.type||'') !== 'Amendment').length;
+    const mirAmend  = contracts.filter(c => mirIn(c.start) && (c.type||'') === 'Amendment').length;
+    const mirUpdC   = contracts.filter(c => !mirIn(c.start) && c.updates?.some(u => mirIn(u.ts))).length;
+    const mirExpC   = contracts.filter(c => (c.status||'').toLowerCase()==='expired/terminated' && mirIn(c.end)).length;
+    const mirOpenM  = matters.filter(m => mirIn(m.opened||m.date||m.start)).length;
+    const mirCloseM = matters.filter(m => mirIn(m.closed||m.closedDate)).length;
+
+    const s6 = pres.addSlide();
+    s6.background = { color: WHITE };
+    s6.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
+    s6.addText(`${MONTHS_PPT[mirMonth]} ${mirYear}`, { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
+    s6.addText('Month-in-Review', { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
+
+    // KPI boxes — 3 per row, 2 rows
+    const mirKPIs = [
+      { label: 'New Contracts', value: mirNewC,   color: GOLD },
+      { label: 'Amendments',    value: mirAmend,  color: GOLD },
+      { label: 'Updated',       value: mirUpdC,   color: GOLD },
+      { label: 'Expired/Term.', value: mirExpC,   color: 'c0392b' },
+      { label: 'Matters Opened',value: mirOpenM,  color: '16a34a' },
+      { label: 'Matters Closed',value: mirCloseM, color: GRAY },
+    ];
+    const mirBoxW = 2.9, mirBoxH = 1.1, mirBoxGap = 0.15;
+    mirKPIs.forEach((k, i) => {
+      const row = Math.floor(i/3), col = i%3;
+      const bx = 0.35 + col*(mirBoxW+mirBoxGap);
+      const by = 1.15 + row*(mirBoxH+0.2);
+      s6.addShape(pres.shapes.RECTANGLE, { x: bx, y: by, w: mirBoxW, h: mirBoxH, fill: { color: NAVY }, line: { color: NAVY } });
+      s6.addText(String(k.value), { x: bx, y: by+0.06, w: mirBoxW, h: 0.6, fontSize: 36, bold: true, color: k.color, fontFace: 'Georgia', align: 'center', margin: 0 });
+      s6.addText(k.label, { x: bx, y: by+0.68, w: mirBoxW, h: 0.35, fontSize: 10, color: WHITE, fontFace: 'Calibri', align: 'center', margin: 0 });
+    });
+
     // Footer on all slides
-    [s1, s2, s3, s4].forEach(slide => {
+    [s1, s2, s3, s4, s5, s6].forEach(slide => {
       slide.addText(`INSP, LLC  |  Legal & Business Affairs  |  Confidential`, {
         x: 0.35, y: 5.35, w: 9.3, h: 0.2, fontSize: 8, color: GRAY, fontFace: 'Calibri', align: 'center', margin: 0
       });
     });
 
     // Save
-    await pres.writeFile({ fileName: `LegalTrack_Budget_Presentation_${year}.pptx` });
-    toast('Budget presentation downloaded.');
+    await pres.writeFile({ fileName: `LegalTrack Legal Activity Report ${year}.pptx` });
+    toast('Legal activity report downloaded.');
   } catch(e) {
     console.error('PPTX error:', e);
     toast('Error generating presentation — see console.');
   }
 
   btn.disabled = false;
-  btn.textContent = '📊 Budget Presentation';
+  btn.textContent = '📊 Reporting ▾';
+}
+
+// ── CONTRACTS BY STATUS REPORT ───────────────────────────────────────────────
+function generateStatusReport() {
+  const now = new Date();
+  const groups = {};
+  contracts.forEach(c => {
+    const s = (c.status || 'Unknown');
+    if (!groups[s]) groups[s] = [];
+    groups[s].push(c);
+  });
+
+  let html = `<h2 style="font-family:serif;margin-bottom:4px">Contracts by Status</h2>`;
+  html += `<p style="color:#888;font-size:13px;margin-bottom:20px">Generated ${now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>`;
+  html += `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px">`;
+  html += `<thead style="background:#f0f0f0"><tr><th>Status</th><th>Count</th><th>% of Total</th></tr></thead><tbody>`;
+  const total = contracts.length;
+  Object.keys(groups).sort().forEach(s => {
+    const n = groups[s].length;
+    html += `<tr><td>${s}</td><td>${n}</td><td>${total ? Math.round(n/total*100) : 0}%</td></tr>`;
+  });
+  html += `<tr style="font-weight:bold"><td>Total</td><td>${total}</td><td>100%</td></tr>`;
+  html += `</tbody></table>`;
+
+  html += `<br><table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px">`;
+  html += `<thead style="background:#f0f0f0"><tr><th>Name</th><th>Counterparty</th><th>Status</th><th>Division</th><th>Start</th><th>End</th></tr></thead><tbody>`;
+  contracts.slice().sort((a,b)=>(a.status||'').localeCompare(b.status||'')).forEach(c => {
+    html += `<tr><td>${c.name||''}</td><td>${c.party||''}</td><td>${c.status||''}</td><td>${c.division||''}</td><td>${fmtDate(c.start)}</td><td>${fmtDate(c.end)}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+
+  _downloadHtmlReport(html, `Contracts by Status - ${now.toLocaleDateString('en-US',{year:'numeric',month:'short'})}.html`);
+}
+
+// ── MATTERS BY TYPE REPORT ────────────────────────────────────────────────────
+function generateMattersTypeReport() {
+  const now = new Date();
+  const groups = {};
+  matters.forEach(m => {
+    const t = (m.matterType || m.type || 'Other').trim() || 'Other';
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(m);
+  });
+
+  let html = `<h2 style="font-family:serif;margin-bottom:4px">Legal Matters by Type</h2>`;
+  html += `<p style="color:#888;font-size:13px;margin-bottom:20px">Generated ${now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>`;
+
+  if (Object.keys(groups).length === 0) {
+    html += `<p>No matters recorded.</p>`;
+  } else {
+    html += `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px">`;
+    html += `<thead style="background:#f0f0f0"><tr><th>Type</th><th>Count</th></tr></thead><tbody>`;
+    const total = matters.length;
+    Object.keys(groups).sort().forEach(t => {
+      html += `<tr><td>${t}</td><td>${groups[t].length}</td></tr>`;
+    });
+    html += `<tr style="font-weight:bold"><td>Total</td><td>${total}</td></tr></tbody></table>`;
+
+    html += `<br><table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px">`;
+    html += `<thead style="background:#f0f0f0"><tr><th>Matter</th><th>Type</th><th>Status</th><th>Division</th><th>Date</th></tr></thead><tbody>`;
+    matters.slice().sort((a,b)=>((a.matterType||a.type||'')).localeCompare((b.matterType||b.type||''))).forEach(m => {
+      html += `<tr><td>${m.name||m.title||''}</td><td>${m.matterType||m.type||''}</td><td>${m.status||''}</td><td>${m.division||''}</td><td>${fmtDate(m.date||m.start)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  _downloadHtmlReport(html, `Matters by Type - ${now.toLocaleDateString('en-US',{year:'numeric',month:'short'})}.html`);
+}
+
+// ── INTAKE TURNAROUND REPORT ──────────────────────────────────────────────────
+function generateTurnaroundReport() {
+  const now = new Date();
+  const intakeItems = (typeof intakes !== 'undefined' ? intakes : []);
+
+  let html = `<h2 style="font-family:serif;margin-bottom:4px">Legal Intake Turnaround Report</h2>`;
+  html += `<p style="color:#888;font-size:13px;margin-bottom:20px">Generated ${now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>`;
+
+  if (intakeItems.length === 0) {
+    html += `<p>No intake records found.</p>`;
+  } else {
+    const closed = intakeItems.filter(i => i.closedDate || i.completedDate);
+    const open   = intakeItems.filter(i => !(i.closedDate || i.completedDate));
+
+    const calcBd = item => {
+      const start = item.submittedDate || item.date || item.created;
+      const end   = item.closedDate || item.completedDate;
+      if (!start) return null;
+      const endTs = end ? new Date(end) : now;
+      return Math.round(businessHoursSince(new Date(start).getTime()) / 8);
+    };
+
+    const avg = arr => {
+      const vals = arr.map(calcBd).filter(v => v !== null);
+      return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : 'N/A';
+    };
+
+    html += `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px;margin-bottom:16px">`;
+    html += `<thead style="background:#f0f0f0"><tr><th>Metric</th><th>Value</th></tr></thead><tbody>`;
+    html += `<tr><td>Total Intake Requests</td><td>${intakeItems.length}</td></tr>`;
+    html += `<tr><td>Open</td><td>${open.length}</td></tr>`;
+    html += `<tr><td>Closed</td><td>${closed.length}</td></tr>`;
+    html += `<tr><td>Avg. Turnaround — Closed (business days)</td><td>${avg(closed)}</td></tr>`;
+    html += `<tr><td>Avg. Age — Open (business days)</td><td>${avg(open)}</td></tr>`;
+    html += `</tbody></table>`;
+
+    html += `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px">`;
+    html += `<thead style="background:#f0f0f0"><tr><th>Request</th><th>Submitted</th><th>Status</th><th>Business Days</th></tr></thead><tbody>`;
+    intakeItems.slice().sort((a,b)=>((a.submittedDate||a.date||''))<(b.submittedDate||b.date||'')?1:-1).forEach(i => {
+      const bd = calcBd(i);
+      const status = (i.closedDate || i.completedDate) ? 'Closed' : 'Open';
+      html += `<tr><td>${i.subject||i.title||i.name||''}</td><td>${fmtDate(i.submittedDate||i.date)}</td><td>${status}</td><td>${bd !== null ? bd : '—'}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  _downloadHtmlReport(html, `Intake Turnaround - ${now.toLocaleDateString('en-US',{year:'numeric',month:'short'})}.html`);
+}
+
+// ── UPCOMING RENEWALS REPORT ──────────────────────────────────────────────────
+function generateUpcomingRenewalsReport() {
+  const now = new Date();
+  const windows = [30, 60, 90, 120, 180];
+
+  let html = `<h2 style="font-family:serif;margin-bottom:4px">Upcoming Contract Renewals & Expirations</h2>`;
+  html += `<p style="color:#888;font-size:13px;margin-bottom:20px">Generated ${now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>`;
+
+  windows.forEach(days => {
+    const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() + days);
+    const group = contracts.filter(c => {
+      if ((c.status||'').toLowerCase() === 'expired/terminated') return false;
+      if (!c.end) return false;
+      const end = new Date(c.end);
+      return end >= now && end <= cutoff;
+    }).sort((a,b) => new Date(a.end)-new Date(b.end));
+
+    html += `<h3 style="font-size:14px;margin:16px 0 6px">Expiring within ${days} days (${group.length})</h3>`;
+    if (group.length === 0) {
+      html += `<p style="color:#888;font-size:12px">None.</p>`;
+    } else {
+      html += `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px">`;
+      html += `<thead style="background:#f0f0f0"><tr><th>Name</th><th>Counterparty</th><th>Division</th><th>End Date</th><th>Days Left</th><th>Auto-Renew?</th><th>Notice Deadline</th></tr></thead><tbody>`;
+      group.forEach(c => {
+        const dLeft = Math.round((new Date(c.end)-now)/86400000);
+        const ar = isAutoRenew(c) ? 'Yes' : 'No';
+        html += `<tr><td>${c.name||''}</td><td>${c.party||''}</td><td>${c.division||''}</td><td>${fmtDate(c.end)}</td><td>${dLeft}</td><td>${ar}</td><td>${c.noticeDeadline ? fmtDate(c.noticeDeadline) : '—'}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+  });
+
+  _downloadHtmlReport(html, `Upcoming Renewals - ${now.toLocaleDateString('en-US',{year:'numeric',month:'short'})}.html`);
+}
+
+// ── MONTH-IN-REVIEW ──────────────────────────────────────────────────────────
+function promptMonthInReview() {
+  // Build a small modal to pick year/month
+  const existing = document.getElementById('mir-picker-modal');
+  if (existing) { existing.style.display = 'flex'; return; }
+
+  const now = new Date();
+  // Default to previous month
+  const defYear  = now.getMonth() === 0 ? now.getFullYear()-1 : now.getFullYear();
+  const defMonth = now.getMonth() === 0 ? 11 : now.getMonth()-1; // 0-indexed
+
+  const overlay = document.createElement('div');
+  overlay.id = 'mir-picker-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:9999';
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let monthOpts = MONTHS.map((m,i)=>`<option value="${i}"${i===defMonth?' selected':''}>${m}</option>`).join('');
+  let yearOpts  = '';
+  for (let y = now.getFullYear(); y >= now.getFullYear()-5; y--) {
+    yearOpts += `<option value="${y}"${y===defYear?' selected':''}>${y}</option>`;
+  }
+
+  overlay.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px 32px;min-width:320px;max-width:400px">
+      <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px">Month-in-Review Report</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Select the month to report on</div>
+      <div style="display:flex;gap:12px;margin-bottom:24px">
+        <div style="flex:1">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px">MONTH</label>
+          <select id="mir-month" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:13px">${monthOpts}</select>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px">YEAR</label>
+          <select id="mir-year" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:13px">${yearOpts}</select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button id="mir-cancel" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:8px 18px;cursor:pointer;font-size:13px">Cancel</button>
+        <button id="mir-go" style="background:var(--accent);border:none;border-radius:6px;color:#fff;padding:8px 20px;cursor:pointer;font-size:13px;font-weight:600">Generate</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.getElementById('mir-cancel').onclick = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('mir-go').onclick = () => {
+    const m = parseInt(document.getElementById('mir-month').value);
+    const y = parseInt(document.getElementById('mir-year').value);
+    overlay.remove();
+    generateMonthInReviewReport(y, m);
+  };
+}
+
+function generateMonthInReviewReport(year, month) {
+  // month is 0-indexed
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const monthName = MONTHS[month];
+  const periodStart = new Date(year, month, 1);
+  const periodEnd   = new Date(year, month+1, 0, 23, 59, 59, 999); // last moment of last day
+
+  const inPeriod = dateStr => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return d >= periodStart && d <= periodEnd;
+  };
+
+  // Contracts added (started) this month
+  const newContracts = contracts.filter(c => inPeriod(c.start) && (c.type||'') !== 'Amendment');
+  // Amendments executed this month
+  const newAmendments = contracts.filter(c => inPeriod(c.start) && (c.type||'') === 'Amendment');
+  // Contracts with updates (notes/log entries) this month
+  const updatedContracts = contracts.filter(c =>
+    !inPeriod(c.start) && // exclude brand new ones (already counted)
+    c.updates?.some(u => inPeriod(u.ts))
+  );
+  // Contracts that expired/terminated this month
+  const expiredContracts = contracts.filter(c =>
+    (c.status||'').toLowerCase() === 'expired/terminated' && inPeriod(c.end)
+  );
+
+  // Matters opened this month
+  const openedMatters = matters.filter(m => inPeriod(m.opened || m.date || m.start));
+  // Matters closed this month
+  const closedMatters = matters.filter(m => inPeriod(m.closed || m.closedDate));
+
+  const now = new Date();
+  const generatedOn = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // ── Build HTML ──────────────────────────────────────────────────────────────
+  const section = (title, color, rows) => {
+    if (rows.length === 0) return `<p style="color:#888;font-size:12px;margin:0 0 4px">None.</p>`;
+    return rows.map(r => `
+      <div style="border-left:3px solid ${color};padding:8px 12px;margin-bottom:8px;background:#fafafa;border-radius:0 6px 6px 0">
+        <div style="font-weight:600;font-size:13px;color:#1a1a2e">${r.title}</div>
+        ${r.sub ? `<div style="font-size:11px;color:#666;margin-top:2px">${r.sub}</div>` : ''}
+      </div>`).join('');
+  };
+
+  const contractCard = c => ({
+    title: c.name || '(unnamed)',
+    sub: [c.party && `Counterparty: ${c.party}`, c.division && `Division: ${c.division}`, c.end && `Ends: ${fmtDate(c.end)}`].filter(Boolean).join(' · ')
+  });
+  const matterCard = m => ({
+    title: m.name || m.title || '(unnamed)',
+    sub: [m.type && `Type: ${m.type}`, m.division && `Division: ${m.division}`, m.status && `Status: ${m.status}`].filter(Boolean).join(' · ')
+  });
+
+  let html = `
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+      <h2 style="font-family:Georgia,serif;color:#1a2340;margin:0">${monthName} ${year} — Month-in-Review</h2>
+      <span style="font-size:11px;color:#888">INSP Legal &amp; Business Affairs</span>
+    </div>
+    <p style="color:#888;font-size:12px;margin-top:4px;margin-bottom:24px">Generated ${generatedOn}</p>
+
+    <!-- Summary bar -->
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px">
+      ${[
+        ['New Contracts', newContracts.length, '#1a2340'],
+        ['Amendments', newAmendments.length, '#c8a96e'],
+        ['Updated Records', updatedContracts.length, '#4a6090'],
+        ['Expired / Term.', expiredContracts.length, '#c0392b'],
+        ['Matters Opened', openedMatters.length, '#2e7d52'],
+        ['Matters Closed', closedMatters.length, '#555'],
+      ].map(([label, val, color]) => `
+        <div style="flex:1;min-width:100px;background:#1a2340;border-radius:8px;padding:14px 16px;text-align:center">
+          <div style="font-size:28px;font-weight:700;color:${color === '#1a2340' ? '#c8a96e' : color};font-family:Georgia,serif">${val}</div>
+          <div style="font-size:10px;color:#aaa;margin-top:4px;letter-spacing:.06em;text-transform:uppercase">${label}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Contracts -->
+    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #c8a96e;padding-bottom:6px;margin-bottom:12px">New Contracts (${newContracts.length})</h3>
+    ${section('New Contracts','#1a2340', newContracts.map(contractCard))}
+
+    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #c8a96e;padding-bottom:6px;margin:20px 0 12px">Amendments (${newAmendments.length})</h3>
+    ${section('Amendments','#c8a96e', newAmendments.map(contractCard))}
+
+    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #c8a96e;padding-bottom:6px;margin:20px 0 12px">Updated Contract Records (${updatedContracts.length})</h3>
+    ${section('Updates','#4a6090', updatedContracts.map(contractCard))}
+
+    <h3 style="font-size:14px;color:#c0392b;border-bottom:2px solid #c0392b;padding-bottom:6px;margin:20px 0 12px">Expired / Terminated (${expiredContracts.length})</h3>
+    ${section('Expired','#c0392b', expiredContracts.map(contractCard))}
+
+    <!-- Matters -->
+    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #2e7d52;padding-bottom:6px;margin:28px 0 12px">Legal Matters Opened (${openedMatters.length})</h3>
+    ${section('Opened','#2e7d52', openedMatters.map(matterCard))}
+
+    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #555;padding-bottom:6px;margin:20px 0 12px">Legal Matters Closed (${closedMatters.length})</h3>
+    ${section('Closed','#555', closedMatters.map(matterCard))}
+  `;
+
+  _downloadHtmlReport(html, `${monthName} ${year} - Month-in-Review.html`);
+}
+
+// ── SHARED HTML REPORT DOWNLOADER ────────────────────────────────────────────
+function _downloadHtmlReport(bodyHtml, filename) {
+  const full = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename.replace('.html','')}</title>
+<style>body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;padding:24px;color:#222;max-width:960px;margin:0 auto}
+table{width:100%;border-collapse:collapse}th,td{padding:6px 10px;border:1px solid #ddd;text-align:left}
+thead tr{background:#f5f5f5}tr:nth-child(even){background:#fafafa}h2{color:#1a1a2e}h3{color:#444}</style>
+</head><body>${bodyHtml}</body></html>`;
+  const blob = new Blob([full], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // ── EVENT WIRING ──────────────────────────────────────────────────────────────
 // Header buttons
 document.getElementById('btn-csv').addEventListener('click', exportCSV);
+document.getElementById('btn-word').addEventListener('click', exportWord);
 document.getElementById('btn-ics').addEventListener('click', openICSModal);
 document.getElementById('btn-new').addEventListener('click', () => openModal());
+
+// Bulk bar
+document.getElementById('btn-bulk-apply').addEventListener('click', applyBulkStatus);
+document.getElementById('btn-bulk-clear').addEventListener('click', () => {
+  document.querySelectorAll('.row-chk').forEach(c => c.checked = false);
+  const ca = document.getElementById('chk-all'); if (ca) ca.checked = false;
+  updateBulkBar();
+});
+document.getElementById('chk-all').addEventListener('change', function() {
+  document.querySelectorAll('.row-chk').forEach(c => c.checked = this.checked);
+  updateBulkBar();
+});
+
+// Column sort
+document.querySelectorAll('.sortable-th').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (_sortCol === col) _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+    else { _sortCol = col; _sortDir = 'asc'; }
+    render();
+  });
+});
 
 // Contract modal
 document.getElementById('btn-modal-close').addEventListener('click', closeModal);
@@ -2993,7 +4352,7 @@ document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('divisionFilter').addEventListener('change', () => { updateDeptFilter(); render(); });
 document.getElementById('departmentFilter').addEventListener('change', render);
 document.getElementById('typeFilter').addEventListener('change', render);
-document.getElementById('sortSel').addEventListener('change', render);
+// sortSel removed — sorting now via clickable column headers
 
 // Update log file attachments
 document.getElementById('f-update-file').addEventListener('click', function(e) { e.stopPropagation(); });
@@ -3087,8 +4446,13 @@ document.getElementById('btn-ai-summary-m-clear').addEventListener('click', () =
   document.getElementById('mf-ai-summary-text').value = '';
 });
 
-// Contract file dropzone — enable AI button on drop
+// Contract file dropzone — capture dropped files and enable AI button
 document.getElementById('f-dropzone').addEventListener('drop', e => {
+  e.preventDefault(); e.currentTarget.style.borderColor='';
+  Array.from(e.dataTransfer.files).forEach(f => {
+    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
+  });
+  renderCAttachList();
   document.getElementById('btn-ai-summary-c').disabled = cAttachments.length === 0;
 });
 
@@ -3111,20 +4475,104 @@ function calcNoticeDeadline() {
   }
 }
 
-document.getElementById('btn-gen-pptx').addEventListener('click', generateBudgetPresentation);
+function updateAutoRenewUI() {
+  const on = document.getElementById('f-autorenew').checked;
+  document.getElementById('f-autorenew-detail').style.display = on ? '' : 'none';
+  document.getElementById('f-remind-wrap').style.display = on ? '' : 'none';
+  document.getElementById('f-nonrenewal-wrap').style.display = on ? '' : 'none';
+  if (on) {
+    const custom = document.getElementById('f-renewal').value === 'custom';
+    document.getElementById('f-notice-deadline-wrap').style.display = custom ? 'none' : '';
+    if (!custom) calcNoticeDeadline();
+  } else {
+    document.getElementById('f-notice-deadline-wrap').style.display = 'none';
+  }
+  updateRenewalTermUI();
+  updateReminderRecipientsUI();
+}
+function updateRenewalTermUI() {
+  const isOther = document.getElementById('f-renewal-term').value === 'Other';
+  document.getElementById('f-renewal-term-other-wrap').style.display = isOther ? '' : 'none';
+}
+function updateReminderRecipientsUI() {
+  // Additional-recipients field appears once a reminder lead time is entered.
+  const on = document.getElementById('f-autorenew').checked &&
+             !!document.getElementById('f-remind').value.trim();
+  document.getElementById('f-reminder-emails-wrap').style.display = on ? '' : 'none';
+}
+
+function backupAll() {
+  const data = {
+    app: 'LegalTrack',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    counts: { contracts: contracts.length, matters: matters.length, intake: intakeRequests.length },
+    contracts, matters, intakeRequests
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `LegalTrack Backup ${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Backup downloaded — ${data.counts.contracts} contracts, ${data.counts.matters} matters.`);
+}
+document.getElementById('btn-backup').addEventListener('click', backupAll);
+document.getElementById('btn-parties').addEventListener('click', openParties);
+document.getElementById('btn-parties-close').addEventListener('click', closeParties);
+document.getElementById('btn-parties-done').addEventListener('click', closeParties);
+document.getElementById('parties-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeParties(); });
+document.getElementById('parties-search').addEventListener('input', renderCounterparties);
+// Notification bell
+document.getElementById('btn-notif').addEventListener('click', e => {
+  e.stopPropagation();
+  const dd = document.getElementById('notif-dropdown');
+  const isOpen = dd.style.display !== 'none';
+  dd.style.display = isOpen ? 'none' : '';
+  if (!isOpen) renderAlerts(); // refresh list when opening
+});
+document.getElementById('notif-dismiss-all').addEventListener('click', e => {
+  e.stopPropagation();
+  computeAlerts().forEach(a => _dismissedAlerts.add(a.id));
+  renderAlerts();
+  document.getElementById('notif-dropdown').style.display = 'none';
+});
+document.addEventListener('click', e => {
+  if (!document.getElementById('notif-wrap').contains(e.target))
+    document.getElementById('notif-dropdown').style.display = 'none';
+});
+
+document.getElementById('btn-reporting').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('reporting-menu');
+  menu.style.display = menu.style.display === 'none' ? '' : 'none';
+});
+document.querySelectorAll('#reporting-menu .rpt-item').forEach(el => el.addEventListener('click', () => {
+  document.getElementById('reporting-menu').style.display = 'none';
+  const r = el.dataset.report;
+  if (r === 'activity') generateActivityReport();
+  else if (r === 'status') generateStatusReport();
+  else if (r === 'matterstype') generateMattersTypeReport();
+  else if (r === 'turnaround') generateTurnaroundReport();
+  else if (r === 'upcoming') generateUpcomingRenewalsReport();
+  else if (r === 'monthinreview') promptMonthInReview();
+}));
+document.addEventListener('click', e => {
+  if (!document.getElementById('reporting-wrap').contains(e.target))
+    document.getElementById('reporting-menu').style.display = 'none';
+});
 document.getElementById('btn-gen-nonrenewal').addEventListener('click', generateNonRenewalLetter);
 document.getElementById('f-department').addEventListener('change', () => updateContractTypes());
 document.getElementById('f-end').addEventListener('change', calcNoticeDeadline);
+document.getElementById('f-autorenew').addEventListener('change', updateAutoRenewUI);
+document.getElementById('f-newfile').addEventListener('change', updateNewFileUI);
+document.getElementById('f-renewal-term').addEventListener('change', updateRenewalTermUI);
+document.getElementById('f-remind').addEventListener('input', updateReminderRecipientsUI);
 document.getElementById('f-renewal').addEventListener('change', function() {
-  const hasRenewal = !!this.value;
-  document.getElementById('f-notice-deadline-wrap').style.display = hasRenewal ? '' : 'none';
-  document.getElementById('f-remind-wrap').style.display = hasRenewal ? '' : 'none';
-  document.getElementById('f-nonrenewal-wrap').style.display = hasRenewal ? '' : 'none';
-  if (!hasRenewal) {
-    document.getElementById('f-notice-deadline').value = '';
-    document.getElementById('f-notice-deadline').dataset.auto = '';
-    document.getElementById('f-remind').value = '';
+  if (this.value === 'custom') {
+    document.getElementById('f-notice-deadline-wrap').style.display = 'none';
   } else {
+    document.getElementById('f-notice-deadline-wrap').style.display = '';
     calcNoticeDeadline();
   }
 });
@@ -3142,9 +4590,7 @@ document.getElementById('f-update-input').addEventListener('keydown', e => { if 
 document.getElementById('btn-add-matter-update').addEventListener('click', addMatterUpdate);
 document.getElementById('mf-update-input').addEventListener('keydown', e => { if (e.key==='Enter' && e.ctrlKey) addMatterUpdate(); });
 
-// Tabs
-document.getElementById('tab-contracts').addEventListener('click', () => switchTab('contracts'));
-document.getElementById('tab-matters').addEventListener('click', () => switchTab('matters'));
+// (tabs wired below in the full wire block)
 
 // Legal Matter modal
 document.getElementById('btn-new-matter').addEventListener('click', () => openMatterModal());
@@ -3163,6 +4609,8 @@ document.getElementById('mSortSel').addEventListener('change', renderMatters);
 // Legal Matters CSV export
 document.getElementById('btn-matters-csv').addEventListener('click', exportMattersCSV);
 
+// (tab-contracts and tab-matters listeners are wired below — not duplicated here)
+
 // Legal Matters sidebar filters
 document.querySelectorAll('#panel-matters .sidebar-item[data-mfilter]').forEach(el => {
   el.addEventListener('click', () => mSetFilter(el.dataset.mfilter, el));
@@ -3170,6 +4618,11 @@ document.querySelectorAll('#panel-matters .sidebar-item[data-mfilter]').forEach(
 
 // Matter division cascade
 document.getElementById('mf-division').addEventListener('change', () => updateMatterDepartments());
+function updateCounselFieldsUI() {
+  const on = !!document.getElementById('mf-counsel').value.trim();
+  document.getElementById('mf-counsel-scope-wrap').style.display = on ? '' : 'none';
+}
+document.getElementById('mf-counsel').addEventListener('input', updateCounselFieldsUI);
 
 // Intake tab
 document.getElementById('tab-intake').addEventListener('click', () => switchTab('intake'));
@@ -3216,9 +4669,9 @@ document.querySelectorAll('#panel-intake .sidebar-item[data-ifilter]').forEach(e
 document.getElementById('if-type').addEventListener('change', function() {
   const wrap = document.getElementById('if-counterparty-wrap');
   const agrWrap = document.getElementById('if-agr-type-wrap');
-  wrap.style.display = this.value === 'Contract Review' ? '' : 'none';
-  agrWrap.style.display = this.value === 'Contract Review' ? '' : 'none';
-  if (this.value !== 'Contract Review') {
+  wrap.style.display = this.value === 'Legal Doc Review' ? '' : 'none';
+  agrWrap.style.display = this.value === 'Legal Doc Review' ? '' : 'none';
+  if (this.value !== 'Legal Doc Review') {
     document.getElementById('if-counterparty').value = '';
     document.getElementById('if-agr-type').value = '';
   }
@@ -3231,6 +4684,10 @@ document.getElementById('btn-intake-csv').addEventListener('click', exportIntake
 // Init intake
 renderIntake();
 refreshIntakePartyList();
+
+// Init contracts + dashboard (shows proper empty states before sign-in;
+// gLoadAll re-renders with live data once signed in)
+render();
 
 // Init matters
 refreshCounselList();
@@ -3251,18 +4708,394 @@ function syncChips(barId) {
 
 // ── OVERRIDE switchTab for panel-based layout ─────────────────────────────────
 function switchTab(tab) {
-  ['contracts','matters','intake'].forEach(t => {
+  ['dashboard','contracts','matters','intake'].forEach(t => {
     document.getElementById('panel-'+t).classList.toggle('active', t===tab);
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
   });
+  if (tab==='dashboard') renderDashboard();
   if (tab==='matters') renderMatters();
   if (tab==='intake')  renderIntake();
 }
 
 // Wire tabs
+document.getElementById('tab-dashboard').addEventListener('click', () => switchTab('dashboard'));
 document.getElementById('tab-contracts').addEventListener('click', () => switchTab('contracts'));
 document.getElementById('tab-matters').addEventListener('click',   () => switchTab('matters'));
 document.getElementById('tab-intake').addEventListener('click',    () => switchTab('intake'));
+
+// ── GLOBAL SEARCH ─────────────────────────────────────────────────────────────
+function globalSearch(q) {
+  const box = document.getElementById('globalSearchResults');
+  q = (q || '').trim().toLowerCase();
+  if (q.length < 2) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const hit = s => (s || '').toString().toLowerCase().includes(q);
+  const results = [];
+  contracts.forEach(c => {
+    if ([c.name,c.party,c.filenum,c.type,c.counsel,c.assigned,c.notes,c.division,c.department].some(hit))
+      results.push({ kind:'Contract', id:c.id, title:c.name||'(untitled)', sub:[c.filenum,c.party].filter(Boolean).join(' · ') });
+  });
+  matters.forEach(m => {
+    if ([m.name,m.num,m.counsel,m.type,m.assigned,m.notes,m.counselScope].some(hit))
+      results.push({ kind:'Matter', id:m.id, title:m.name||'(untitled)', sub:[m.num,m.counsel].filter(Boolean).join(' · ') });
+  });
+  intakeRequests.forEach(r => {
+    if ([r.requestor,r.description,r.counterparty,r.dept,r.type].some(hit))
+      results.push({ kind:'Intake', id:r.id, title:(r.description||r.requestor||'(request)').slice(0,60), sub:[r.requestor,r.dept].filter(Boolean).join(' · ') });
+  });
+  const pmap = {};
+  contracts.forEach(c => { const nm = (c.party||'').trim(); if (nm) { const k = partyKey(nm); if (!pmap[k]) pmap[k] = {name:nm, n:0}; pmap[k].n++; } });
+  Object.keys(pmap).forEach(k => {
+    if (pmap[k].name.toLowerCase().includes(q)) results.push({ kind:'Party', id:k, title:pmap[k].name, sub:`${pmap[k].n} agreement${pmap[k].n === 1 ? '' : 's'}` });
+  });
+  if (!results.length) { box.innerHTML = '<div class="gs-empty">No matches</div>'; box.style.display = ''; return; }
+  const color = { Contract:'#c8a96e', Matter:'#7fa8d9', Intake:'#8fbf8f', Party:'#6fb0c0' };
+  const counts = {};
+  results.forEach(r => counts[r.kind] = (counts[r.kind]||0)+1);
+  const countStr = Object.keys(counts).map(k => `<span style="color:${color[k]}">${counts[k]} ${k}${counts[k]>1?'s':''}</span>`).join(' · ');
+  const header = `<div style="padding:6px 12px;font-size:11px;color:var(--text-muted);border-bottom:1px solid var(--border);background:var(--surface2)">${countStr}</div>`;
+  box.innerHTML = header + results.slice(0, 30).map(r => `
+    <div class="gs-item" data-kind="${r.kind}" data-id="${r.id}">
+      <span class="gs-cat" style="color:${color[r.kind]}">${r.kind}</span>
+      <span class="gs-title">${esc(r.title)}</span>
+      ${r.sub ? `<span class="gs-sub">${esc(r.sub)}</span>` : ''}
+    </div>`).join('');
+  box.querySelectorAll('.gs-item').forEach(el => el.addEventListener('click', () => {
+    const kind = el.dataset.kind, id = el.dataset.id;
+    box.style.display = 'none';
+    document.getElementById('globalSearch').value = '';
+    if (kind === 'Contract') { switchTab('contracts'); openModal(id); }
+    else if (kind === 'Matter') { switchTab('matters'); openMatterModal(id); }
+    else if (kind === 'Party') { openParties(id); }
+    else { switchTab('intake'); openReviewModal(id); }
+  }));
+  box.style.display = '';
+}
+document.getElementById('globalSearch').addEventListener('input', e => globalSearch(e.target.value));
+document.getElementById('globalSearch').addEventListener('focus', e => { if (e.target.value.trim().length >= 2) globalSearch(e.target.value); });
+document.addEventListener('click', e => {
+  if (!document.getElementById('gs-wrap').contains(e.target))
+    document.getElementById('globalSearchResults').style.display = 'none';
+});
+
+// ── ADVANCED FILTERS ──────────────────────────────────────────────────────────
+function populateAfAssigned() {
+  const sel = document.getElementById('af-assigned');
+  if (!sel) return;
+  const names = [...new Set(contracts.map(c => (c.assigned||'').trim()).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Any</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+}
+
+function updateAdvBadge() {
+  const fields = ['af-start-from','af-start-to','af-end-from','af-end-to','af-assigned'];
+  const active = fields.filter(id => (document.getElementById(id)?.value||'') !== '');
+  const badge = document.getElementById('adv-filter-active-badge');
+  const btn = document.getElementById('btn-adv-filter');
+  if (active.length) {
+    badge.style.display = '';
+    badge.textContent = `${active.length} advanced filter${active.length>1?'s':''} active`;
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.color = 'var(--accent)';
+  } else {
+    badge.style.display = 'none';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
+}
+
+document.getElementById('btn-adv-filter').addEventListener('click', () => {
+  const panel = document.getElementById('adv-filter-panel');
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : '';
+  if (!open) populateAfAssigned();
+});
+
+['af-start-from','af-start-to','af-end-from','af-end-to','af-assigned'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', () => { updateAdvBadge(); render(); });
+});
+
+document.getElementById('btn-adv-clear').addEventListener('click', () => {
+  ['af-start-from','af-start-to','af-end-from','af-end-to'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const sel = document.getElementById('af-assigned'); if (sel) sel.value = '';
+  updateAdvBadge(); render();
+});
+
+// ── SAVED FILTERS ─────────────────────────────────────────────────────────────
+function getSavedFilters() {
+  try { return JSON.parse(localStorage.getItem('lt_saved_filters') || '[]'); } catch { return []; }
+}
+function setSavedFilters(arr) {
+  try { localStorage.setItem('lt_saved_filters', JSON.stringify(arr)); } catch {}
+}
+
+function renderSavedFiltersList() {
+  const saved = getSavedFilters();
+  const list = document.getElementById('saved-filters-list');
+  if (!list) return;
+  if (saved.length === 0) {
+    list.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:var(--text-muted)">No saved filters yet</div>';
+    return;
+  }
+  list.innerHTML = saved.map((f, i) => `
+    <div style="display:flex;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);gap:6px">
+      <span style="flex:1;font-size:13px;color:var(--text);cursor:pointer" class="sf-apply" data-i="${i}">${esc(f.name)}</span>
+      <span style="font-size:10px;color:var(--text-muted)">${f.state.filter !== 'all' ? f.state.filter : ''}</span>
+      <button class="sf-del" data-i="${i}" title="Delete" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:0 2px">×</button>
+    </div>`).join('');
+  list.querySelectorAll('.sf-apply').forEach(el => el.addEventListener('click', () => {
+    applyFilter(getSavedFilters()[+el.dataset.i].state);
+    document.getElementById('saved-filters-menu').style.display = 'none';
+  }));
+  list.querySelectorAll('.sf-del').forEach(el => el.addEventListener('click', e => {
+    e.stopPropagation();
+    const arr = getSavedFilters(); arr.splice(+el.dataset.i, 1);
+    setSavedFilters(arr); renderSavedFiltersList();
+  }));
+}
+
+function captureFilterState() {
+  return {
+    filter: activeFilter,
+    division: document.getElementById('divisionFilter').value,
+    department: document.getElementById('departmentFilter').value,
+    type: document.getElementById('typeFilter').value,
+    search: document.getElementById('searchInput').value,
+    afStartFrom: document.getElementById('af-start-from')?.value || '',
+    afStartTo:   document.getElementById('af-start-to')?.value   || '',
+    afEndFrom:   document.getElementById('af-end-from')?.value   || '',
+    afEndTo:     document.getElementById('af-end-to')?.value     || '',
+    afAssigned:  document.getElementById('af-assigned')?.value   || '',
+  };
+}
+
+function applyFilter(state) {
+  if (state.filter) {
+    activeFilter = state.filter;
+    document.querySelectorAll('#cFilterBar .fchip').forEach(el => {
+      el.classList.toggle('active', el.dataset.filter === state.filter);
+    });
+  }
+  if (state.division !== undefined) document.getElementById('divisionFilter').value = state.division;
+  if (state.department !== undefined) document.getElementById('departmentFilter').value = state.department;
+  if (state.type !== undefined) document.getElementById('typeFilter').value = state.type;
+  if (state.search !== undefined) document.getElementById('searchInput').value = state.search;
+  ['afStartFrom','afStartTo','afEndFrom','afEndTo','afAssigned'].forEach(k => {
+    const id = 'af-' + k.replace(/([A-Z])/g, m => '-' + m.toLowerCase());
+    const el = document.getElementById(id);
+    if (el && state[k] !== undefined) el.value = state[k];
+  });
+  if (state.afStartFrom||state.afStartTo||state.afEndFrom||state.afEndTo||state.afAssigned) {
+    document.getElementById('adv-filter-panel').style.display = '';
+  }
+  updateAdvBadge(); render();
+}
+
+document.getElementById('btn-saved-filters').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('saved-filters-menu');
+  const open = menu.style.display !== 'none';
+  menu.style.display = open ? 'none' : '';
+  if (!open) renderSavedFiltersList();
+});
+
+document.getElementById('btn-save-filter-now').addEventListener('click', () => {
+  const nameEl = document.getElementById('saved-filter-name');
+  const name = (nameEl.value || '').trim();
+  if (!name) { nameEl.focus(); return; }
+  const arr = getSavedFilters();
+  arr.push({ name, state: captureFilterState() });
+  setSavedFilters(arr);
+  nameEl.value = '';
+  renderSavedFiltersList();
+  toast(`Filter "${name}" saved.`);
+});
+
+document.addEventListener('click', e => {
+  if (!document.querySelector('[id="saved-filters-menu"]')?.parentElement.contains(e.target))
+    document.getElementById('saved-filters-menu').style.display = 'none';
+});
+
+// ── BULK STATUS UPDATE ────────────────────────────────────────────────────────
+function selectedIds() {
+  return [...document.querySelectorAll('.row-chk:checked')].map(c => c.dataset.id);
+}
+
+function updateBulkBar() {
+  const ids = selectedIds();
+  const bar = document.getElementById('bulk-bar');
+  const cnt = document.getElementById('bulk-count');
+  if (ids.length > 0) {
+    bar.style.display = 'flex';
+    cnt.textContent = `${ids.length} contract${ids.length > 1 ? 's' : ''} selected`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function applyBulkStatus() {
+  const ids = selectedIds();
+  const status = document.getElementById('bulk-status-sel').value;
+  if (!status) { toast('Choose a status first.'); return; }
+  if (!ids.length) return;
+  ids.forEach(id => {
+    const i = contracts.findIndex(c => c.id === id);
+    if (i >= 0) contracts[i].status = status;
+  });
+  save(); render(); scheduleDashboardCharts(); renderAlerts();
+  document.getElementById('bulk-bar').style.display = 'none';
+  document.getElementById('bulk-status-sel').value = '';
+  toast(`Updated ${ids.length} contract${ids.length > 1 ? 's' : ''} to "${status}".`);
+}
+
+// ── DUPLICATE CONTRACT ────────────────────────────────────────────────────────
+function duplicateContract(id) {
+  const src = contracts.find(c => c.id === id);
+  if (!src) return;
+  // Open a new modal pre-filled with cloned data
+  openModal(); // open blank first to wire up all the UI
+  setTimeout(() => {
+    // Populate fields from source
+    document.getElementById('f-name').value = src.name + ' (Copy)';
+    document.getElementById('f-party').value = src.party || '';
+    document.getElementById('f-division').value = src.division || '';
+    updateDepartments(src.department);
+    document.getElementById('f-requester').value = src.requester || '';
+    updateContractTypes(src.type);
+    document.getElementById('f-type').value = src.type || 'Service Agreement';
+    document.getElementById('f-status').value = src.status || 'Active';
+    document.getElementById('f-assigned').value = src.assigned || '';
+    document.getElementById('f-start').value = src.start || '';
+    document.getElementById('f-end').value = src.end || '';
+    document.getElementById('f-remind').value = src.remind || '';
+    document.getElementById('f-renewal').value = src.renewal || '30';
+    document.getElementById('f-renewal-term').value = src.renewalTerm || '';
+    document.getElementById('f-autorenew').checked = !!src.autoRenew;
+    updateAutoRenewUI();
+    document.getElementById('f-notes').value = src.notes || '';
+    // Leave filenum blank — will be auto-assigned
+    document.getElementById('f-newfile').checked = true;
+    updateNewFileUI();
+    _relatedIds = [];
+    renderRelatedChips();
+    toast('Duplicated — review and save.');
+  }, 60);
+}
+
+// ── WORD EXPORT ───────────────────────────────────────────────────────────────
+async function exportWord() {
+  const rows = filtered();
+  if (!rows.length) { toast('No contracts to export.'); return; }
+  if (!window.docx) { toast('Document library not loaded yet — try again in a moment.'); return; }
+
+  const { Document, Paragraph, Table, TableRow, TableCell, TextRun,
+          HeadingLevel, AlignmentType, WidthType, BorderStyle, Packer } = window.docx;
+
+  const headerCellStyle = (text) => new TableCell({
+    shading: { fill: '1e1e1e' },
+    borders: { top:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE} },
+    children: [new Paragraph({ children: [new TextRun({ text, bold:true, size:18, color:'c8a96e', font:'IBM Plex Mono' })] })]
+  });
+  const dataCellStyle = (text, mono=false) => new TableCell({
+    borders: { top:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE} },
+    children: [new Paragraph({ children: [new TextRun({ text: String(text||'—'), size:18, font: mono ? 'IBM Plex Mono' : 'IBM Plex Sans' })] })]
+  });
+
+  const tableRows = [
+    new TableRow({ children: [
+      headerCellStyle('File No.'), headerCellStyle('Counterparty'), headerCellStyle('Contract Name'),
+      headerCellStyle('Division'), headerCellStyle('Status'), headerCellStyle('Assigned'),
+      headerCellStyle('Effective'), headerCellStyle('Expiration')
+    ], tableHeader: true })
+  ];
+
+  rows.forEach(c => {
+    tableRows.push(new TableRow({ children: [
+      dataCellStyle(c.filenum, true),
+      dataCellStyle(c.party),
+      dataCellStyle(c.name),
+      dataCellStyle(c.division),
+      dataCellStyle(c.status),
+      dataCellStyle(c.assigned),
+      dataCellStyle(fmtDate(c.start), true),
+      dataCellStyle(fmtDate(c.end), true)
+    ]}));
+  });
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+
+  const doc = new Document({ sections:[{ children:[
+    new Paragraph({ text:'LegalTrack — Contract Summary', heading: HeadingLevel.HEADING_1,
+      spacing:{ after: 100 } }),
+    new Paragraph({ children:[new TextRun({ text:`Generated ${dateStr} · ${rows.length} contract${rows.length!==1?'s':''}`, size:18, color:'888888', italics:true })], spacing:{ after: 300 } }),
+    new Table({ width:{ size:100, type:WidthType.PERCENTAGE }, rows: tableRows })
+  ]}]});
+
+  const blob = await Packer.toBlob(doc);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `LegalTrack Contracts ${now.toISOString().slice(0,10)}.docx`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`Exported ${rows.length} contracts to Word.`);
+}
+
+// ── RELATED CONTRACTS ─────────────────────────────────────────────────────────
+let _relatedIds = []; // working set for the currently open modal
+
+function renderRelatedChips() {
+  const wrap = document.getElementById('f-related-chips');
+  if (!wrap) return;
+  wrap.innerHTML = _relatedIds.map(id => {
+    const c = contracts.find(x => x.id === id);
+    const label = c ? `${c.filenum ? c.filenum + ' · ' : ''}${c.name || '(unnamed)'}` : id;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:14px;padding:3px 10px;font-size:12px;color:var(--accent)">
+      <span class="rel-chip-link" data-id="${id}" style="cursor:pointer" title="Open contract">${esc(label)}</span>
+      <button class="rel-chip-del" data-id="${id}" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;line-height:1;padding:0">×</button>
+    </span>`;
+  }).join('');
+
+  wrap.querySelectorAll('.rel-chip-link').forEach(el => el.addEventListener('click', () => {
+    const targetId = el.dataset.id;
+    closeModal();
+    setTimeout(() => openModal(targetId), 80);
+  }));
+  wrap.querySelectorAll('.rel-chip-del').forEach(btn => btn.addEventListener('click', () => {
+    _relatedIds = _relatedIds.filter(id => id !== btn.dataset.id);
+    renderRelatedChips();
+  }));
+}
+
+function relatedContractSearch(q) {
+  const box = document.getElementById('f-related-results');
+  q = (q || '').trim().toLowerCase();
+  if (q.length < 2) { box.style.display = 'none'; return; }
+  const currentId = document.getElementById('f-id')?.value || '';
+  const hits = contracts.filter(c =>
+    c.id !== currentId &&
+    !_relatedIds.includes(c.id) &&
+    [c.name, c.filenum, c.party, c.type].some(s => (s||'').toLowerCase().includes(q))
+  ).slice(0, 10);
+  if (!hits.length) { box.innerHTML = '<div style="padding:8px 12px;font-size:12px;color:var(--text-muted)">No matches</div>'; box.style.display = ''; return; }
+  box.innerHTML = hits.map(c => `
+    <div class="rel-result" data-id="${c.id}" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <span style="color:var(--text);font-weight:500">${esc(c.name||'(unnamed)')}</span>
+      <span style="color:var(--text-muted);font-size:11px;margin-left:8px">${[c.filenum, c.party, c.status].filter(Boolean).join(' · ')}</span>
+    </div>`).join('');
+  box.querySelectorAll('.rel-result').forEach(el => el.addEventListener('click', () => {
+    if (!_relatedIds.includes(el.dataset.id)) _relatedIds.push(el.dataset.id);
+    renderRelatedChips();
+    document.getElementById('f-related-search').value = '';
+    box.style.display = 'none';
+  }));
+  box.style.display = '';
+}
+
+document.getElementById('f-related-search').addEventListener('input', e => relatedContractSearch(e.target.value));
+document.addEventListener('click', e => {
+  if (!document.getElementById('f-related-search')?.contains(e.target) &&
+      !document.getElementById('f-related-results')?.contains(e.target))
+    document.getElementById('f-related-results').style.display = 'none';
+});
 </script>
 </body>
 </html>
