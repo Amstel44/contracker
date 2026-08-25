@@ -5069,7 +5069,7 @@ function relatedContractSearch(q) {
   const box = document.getElementById('f-related-results');
   q = (q || '').trim().toLowerCase();
   if (q.length < 2) { box.style.display = 'none'; return; }
-  const currentId = document.getElementById('f-id')?.value || '';
+  const currentId = editId || '';
   const hits = contracts.filter(c =>
     c.id !== currentId &&
     !_relatedIds.includes(c.id) &&
