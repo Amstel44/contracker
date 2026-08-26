@@ -221,12 +221,12 @@ textarea{resize:vertical;min-height:64px;}
     <div id="reporting-wrap" style="position:relative">
       <button class="btn-ai" id="btn-reporting" style="font-size:11px;padding:5px 12px">📊 Reporting ▾</button>
       <div id="reporting-menu" style="display:none;position:absolute;top:112%;right:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;min-width:210px;overflow:hidden;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.45)">
-        <div class="rpt-item" data-report="activity">📊 Legal Activity Report (PPT)</div>
+        <div class="rpt-item" data-report="activity">📊 Annual Legal Review (PPT)</div>
         <div class="rpt-item" data-report="status">📋 Contracts by Status</div>
         <div class="rpt-item" data-report="matterstype">⚖️ Matters by Type</div>
         <div class="rpt-item" data-report="turnaround">⏱ Intake Turnaround</div>
         <div class="rpt-item" data-report="upcoming">📅 Upcoming Renewals</div>
-        <div class="rpt-item" data-report="monthinreview">📆 Month-in-Review</div>
+        <div class="rpt-item" data-report="monthinreview">📆 Monthly Legal Report</div>
       </div>
     </div>
     <!-- Notification Bell -->
@@ -284,6 +284,15 @@ textarea{resize:vertical;min-height:64px;}
       <table>
         <thead><tr><th>Contract</th><th>Counterparty</th><th>Expired</th><th>Ago</th></tr></thead>
         <tbody id="dash-pastexp"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-noticepast-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h" style="color:#e05a5a">⚠ Notice Deadline Overdue <span class="dash-sub">the notice window closed — this term is auto-renewing unless already acted on</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>Notice Deadline</th><th>Ago</th></tr></thead>
+        <tbody id="dash-noticepast"></tbody>
       </table>
     </div>
   </div>
@@ -805,6 +814,12 @@ textarea{resize:vertical;min-height:64px;}
           <datalist id="counsel-list"></datalist>
         </div>
       </div>
+      <div class="field-group" id="mf-renewal-wrap" style="display:none">
+        <div class="form-field">
+          <label>Renewal / Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— when this trademark needs renewing</span></label>
+          <input type="date" id="mf-renewal-date">
+        </div>
+      </div>
       <div class="form-field" id="mf-counsel-scope-wrap">
         <label>Outside Counsel — Scope / Area of Involvement</label>
         <textarea id="mf-counsel-scope" placeholder="Brief description of this firm's involvement (e.g. broadcast regulatory, litigation counsel for DeltaVision dispute)…" style="min-height:56px"></textarea>
@@ -1177,7 +1192,7 @@ const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
 const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds'];
-const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt'];
+const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes'];
 
 // ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
@@ -1397,7 +1412,7 @@ function matterToRow(m) {
   return [m.id,m.num,m.name,m.division,m.department,m.type,m.status,m.counsel,m.assigned,
     m.opened,m.closed,m.notes,jsonCell(m.updates),
     m.counselScope||'',
-    m.lastModifiedBy||'',m.lastModifiedAt||''];
+    m.lastModifiedBy||'',m.lastModifiedAt||'',m.renewalDate||''];
 }
 function rowToMatter(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -1654,11 +1669,20 @@ function renderDashboard() {
 
   const active = contracts.filter(c => (c.status || '').toLowerCase() === 'active');
 
-  // Auto-renewing contracts with a notice deadline within 90 days (or overdue)
+  // Auto-renewing contracts with a notice deadline within the next 90 days
+  // (overdue ones live exclusively in Notice Deadline Overdue below).
   const notice = contracts
     .filter(c => isAutoRenew(c) && c.noticeDeadline && !isExpired(c))
     .map(c => ({ c, days: dashDaysUntil(c.noticeDeadline) }))
-    .filter(x => x.days !== null && x.days <= 90)
+    .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
+    .sort((a, b) => a.days - b.days);
+
+  // Auto-renewing contracts whose notice deadline has already passed —
+  // the window to prevent renewal has closed for this term.
+  const noticePast = contracts
+    .filter(c => isAutoRenew(c) && c.noticeDeadline && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.noticeDeadline) }))
+    .filter(x => x.days !== null && x.days < 0)
     .sort((a, b) => a.days - b.days);
 
   // Contracts expiring within the next 90 days (overdue ones live exclusively
@@ -1711,7 +1735,19 @@ function renderDashboard() {
       <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
     </tr>`).join('');
 
-  [noticeBody, expBody, pastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
+  // Notice-deadline-overdue section (only shown when there are any)
+  const noticePastSection = document.getElementById('dash-noticepast-section');
+  const noticePastBody = document.getElementById('dash-noticepast');
+  noticePastSection.style.display = noticePast.length ? '' : 'none';
+  noticePastBody.innerHTML = noticePast.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.noticeDeadline)}</td>
+      <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
+    </tr>`).join('');
+
+  [noticeBody, expBody, pastBody, noticePastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
     row.addEventListener('click', () => openModal(row.dataset.id))));
 
   // Charts are rendered separately via scheduleDashboardCharts() to avoid
@@ -2659,6 +2695,8 @@ function openMatterModal(id) {
   document.getElementById('mf-counsel').value = m?.counsel || '';
   document.getElementById('mf-counsel-scope').value = m?.counselScope || '';
   updateCounselFieldsUI();
+  document.getElementById('mf-renewal-date').value = m?.renewalDate || '';
+  updateMatterTypeUI();
   document.getElementById('mf-opened').value = m?.opened || '';
   document.getElementById('mf-closed').value = m?.closed || '';
   document.getElementById('mf-assigned').value = m?.assigned || '';
@@ -2704,6 +2742,7 @@ function saveMatter() {
     status: document.getElementById('mf-status').value,
     counsel: document.getElementById('mf-counsel').value.trim(),
     counselScope: document.getElementById('mf-counsel-scope').value.trim(),
+    renewalDate: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-renewal-date').value : '',
     opened: document.getElementById('mf-opened').value,
     closed: document.getElementById('mf-closed').value,
     assigned: document.getElementById('mf-assigned').value.trim(),
@@ -3643,7 +3682,7 @@ async function _buildNonRenewalDoc({ name, party, end, notice, renewal, filenum 
 }
 
 // ── BUDGET PRESENTATION GENERATOR ────────────────────────────────────────────
-async function generateActivityReport() {
+async function generateAnnualBudgetReport() {
   const btn = document.getElementById('btn-reporting');
   btn.disabled = true;
   btn.textContent = '⏳ Generating…';
@@ -3695,7 +3734,7 @@ async function generateActivityReport() {
     // ── Build PPTX ───────────────────────────────────────────────────────────
     const pres = new PptxGenJS();
     pres.layout = 'LAYOUT_16x9';
-    pres.title = `INSP Legal — Activity Report ${year}`;
+    pres.title = `INSP Legal — Annual Review ${year}`;
 
     // Color palette — navy/gold to match LegalTrack feel
     const NAVY  = '1a2340';
@@ -3722,7 +3761,7 @@ async function generateActivityReport() {
     s1.addShape(pres.shapes.LINE, { x: 0.45, y: 2.2, w: 5.5, h: 0, line: { color: GOLD, width: 1.5 } });
 
     // Title
-    s1.addText('Legal Activity Report', { x: 0.45, y: 2.4, w: 8, h: 0.7, fontSize: 36, bold: true, color: WHITE, fontFace: 'Georgia', margin: 0 });
+    s1.addText('Annual Legal Review', { x: 0.45, y: 2.4, w: 8, h: 0.7, fontSize: 36, bold: true, color: WHITE, fontFace: 'Georgia', margin: 0 });
     s1.addText(String(year), { x: 0.45, y: 3.05, w: 3, h: 0.55, fontSize: 28, color: GOLD, fontFace: 'Georgia', margin: 0 });
 
     // Subtitle info
@@ -3838,141 +3877,58 @@ async function generateActivityReport() {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // SLIDE 4 — CONTRACT STATUS SUMMARY
+    // SLIDE 4 — UPCOMING TRADEMARK RENEWALS & EXPIRATIONS
     // ────────────────────────────────────────────────────────────────────────
     const s4 = pres.addSlide();
     s4.background = { color: WHITE };
     s4.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
-    s4.addText('Contract Portfolio Status', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
-    s4.addText(`As of ${now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`, { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
+    s4.addText('Upcoming Trademark Renewals & Expirations', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 26, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
+    s4.addText('Tracked in-house — dates as currently entered', { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
 
-    // Status counts
-    const statusCounts4 = {};
-    contracts.forEach(c => { const s = c.status||'Unknown'; statusCounts4[s] = (statusCounts4[s]||0)+1; });
-    const statusKeys = Object.keys(statusCounts4);
-    const statusVals = statusKeys.map(k => statusCounts4[k]);
+    const tmMatters = matters
+      .filter(m => m.type === 'Trademarks' && m.renewalDate)
+      .map(m => ({ m, days: Math.round((new Date(m.renewalDate + 'T00:00:00') - now) / 86400000) }))
+      .sort((a, b) => a.days - b.days);
 
-    if (statusKeys.length > 0) {
-      s4.addChart(pres.charts.PIE, [{ name: 'Status', labels: statusKeys, values: statusVals }], {
-        x: 0.3, y: 1.0, w: 4.8, h: 4.3,
-        chartColors: [GOLD, NAVY, 'ef4444', '888888', '4a90d9', 'a0c060'],
-        chartArea: { fill: { color: 'F8F6F2' } },
-        showPercent: true, showLegend: true, legendPos: 'b', legendFontSize: 10,
-        dataLabelColor: WHITE,
-      });
-    }
+    const tmNoDate = matters.filter(m => m.type === 'Trademarks' && !m.renewalDate).length;
 
-    // Status table right side
-    const tableRows4 = [[
-      { text: 'Status', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
-      { text: 'Count', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
-      { text: '%', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
-    ]];
-    statusKeys.forEach(k => {
-      tableRows4.push([
-        { text: k, options: { color: DKGRAY } },
-        { text: String(statusCounts4[k]), options: { color: DKGRAY, align: 'center' } },
-        { text: contracts.length ? `${Math.round(statusCounts4[k]/contracts.length*100)}%` : '0%', options: { color: DKGRAY, align: 'center' } },
-      ]);
-    });
-    tableRows4.push([
-      { text: 'Total', options: { bold: true, color: NAVY } },
-      { text: String(contracts.length), options: { bold: true, color: NAVY, align: 'center' } },
-      { text: '100%', options: { bold: true, color: NAVY, align: 'center' } },
-    ]);
-    s4.addTable(tableRows4, { x: 5.3, y: 1.0, w: 4.4, colW: [2.4, 1.0, 1.0], rowH: 0.32, fontFace: 'Calibri', fontSize: 11, border: { pt: 0.5, color: 'DDDDDD' }, fill: { color: 'FAFAFA' } });
-
-    // ────────────────────────────────────────────────────────────────────────
-    // SLIDE 5 — UPCOMING RENEWALS / EXPIRATIONS
-    // ────────────────────────────────────────────────────────────────────────
-    const s5 = pres.addSlide();
-    s5.background = { color: WHITE };
-    s5.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
-    s5.addText('Upcoming Renewals & Expirations', { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
-    s5.addText('Next 90 days', { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
-
-    const upcoming90 = contracts
-      .filter(c => c.end && (c.status||'').toLowerCase() !== 'expired/terminated')
-      .map(c => ({ c, days: Math.round((new Date(c.end)-now)/86400000) }))
-      .filter(x => x.days >= 0 && x.days <= 90)
-      .sort((a,b) => a.days-b.days)
-      .slice(0, 14);
-
-    if (upcoming90.length === 0) {
-      s5.addText('No contracts expiring within 90 days.', { x: 0.35, y: 2.0, w: 9.3, h: 0.5, fontSize: 14, color: GRAY, fontFace: 'Calibri', align: 'center' });
+    if (tmMatters.length === 0) {
+      s4.addText('No trademark renewal dates on file yet.', { x: 0.35, y: 2.0, w: 9.3, h: 0.5, fontSize: 14, color: GRAY, fontFace: 'Calibri', align: 'center' });
     } else {
-      const tblRows5 = [[
-        { text: 'Contract', options: { bold: true, color: WHITE, fill: { color: NAVY } } },
-        { text: 'Counterparty', options: { bold: true, color: WHITE, fill: { color: NAVY } } },
-        { text: 'End Date', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
-        { text: 'Days Left', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
-        { text: 'Auto-Renew', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+      const tblRows4 = [[
+        { text: 'Matter', options: { bold: true, color: WHITE, fill: { color: NAVY } } },
+        { text: 'Notes', options: { bold: true, color: WHITE, fill: { color: NAVY } } },
+        { text: 'Renewal / Expiration', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
+        { text: 'Status', options: { bold: true, color: WHITE, fill: { color: NAVY }, align: 'center' } },
       ]];
-      upcoming90.forEach(({ c, days }) => {
-        const isAR = isAutoRenew(c);
-        tblRows5.push([
-          { text: (c.name||'').slice(0,30), options: { color: DKGRAY } },
-          { text: (c.party||'—').slice(0,20), options: { color: DKGRAY } },
-          { text: fmtDate(c.end), options: { color: DKGRAY, align: 'center' } },
-          { text: String(days), options: { color: days <= 30 ? 'c0392b' : DKGRAY, bold: days <= 30, align: 'center' } },
-          { text: isAR ? '✓' : '—', options: { color: isAR ? '16a34a' : GRAY, align: 'center' } },
+      tmMatters.slice(0, 14).forEach(({ m, days }) => {
+        const overdue = days < 0;
+        tblRows4.push([
+          { text: (m.name||'').slice(0,36), options: { color: DKGRAY } },
+          { text: (m.notes||'').slice(0,60), options: { color: DKGRAY, fontSize: 9 } },
+          { text: fmtDate(m.renewalDate), options: { color: DKGRAY, align: 'center' } },
+          { text: overdue ? `${Math.abs(days)}d overdue` : `${days}d`, options: { color: overdue ? 'c0392b' : (days<=90?'c0392b':DKGRAY), bold: overdue || days<=90, align: 'center' } },
         ]);
       });
-      s5.addTable(tblRows5, { x: 0.35, y: 1.05, w: 9.3, colW: [3.0, 2.1, 1.4, 1.2, 1.6], rowH: 0.3, fontFace: 'Calibri', fontSize: 10, border: { pt: 0.5, color: 'DDDDDD' }, fill: { color: 'FAFAFA' } });
+      s4.addTable(tblRows4, { x: 0.35, y: 1.1, w: 9.3, colW: [2.6, 3.9, 1.6, 1.2], rowH: 0.3, fontFace: 'Calibri', fontSize: 10, border: { pt: 0.5, color: 'DDDDDD' }, fill: { color: 'FAFAFA' } });
+      if (tmMatters.length > 14) {
+        s4.addText(`+ ${tmMatters.length - 14} more`, { x: 0.35, y: 5.05, w: 9.3, h: 0.2, fontSize: 9, italic: true, color: GRAY, fontFace: 'Calibri' });
+      }
+    }
+    if (tmNoDate > 0) {
+      s4.addText(`${tmNoDate} trademark matter${tmNoDate!==1?'s':''} on file with no renewal date entered yet.`, { x: 0.35, y: 5.05, w: 9.3, h: 0.2, fontSize: 9, italic: true, color: GRAY, fontFace: 'Calibri' });
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // SLIDE 6 — MONTH-IN-REVIEW (most recently completed month)
-    // ────────────────────────────────────────────────────────────────────────
-    const mirMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
-    const mirYear  = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
-    const MONTHS_PPT = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const mirStart = new Date(mirYear, mirMonth, 1);
-    const mirEnd   = new Date(mirYear, mirMonth+1, 0, 23, 59, 59, 999);
-    const mirIn = d => d && new Date(d) >= mirStart && new Date(d) <= mirEnd;
-
-    const mirNewC   = contracts.filter(c => mirIn(c.start) && (c.type||'') !== 'Amendment').length;
-    const mirAmend  = contracts.filter(c => mirIn(c.start) && (c.type||'') === 'Amendment').length;
-    const mirUpdC   = contracts.filter(c => !mirIn(c.start) && c.updates?.some(u => mirIn(u.ts))).length;
-    const mirExpC   = contracts.filter(c => (c.status||'').toLowerCase()==='expired/terminated' && mirIn(c.end)).length;
-    const mirOpenM  = matters.filter(m => mirIn(m.opened||m.date||m.start)).length;
-    const mirCloseM = matters.filter(m => mirIn(m.closed||m.closedDate)).length;
-
-    const s6 = pres.addSlide();
-    s6.background = { color: WHITE };
-    s6.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: NAVY }, line: { color: NAVY } });
-    s6.addText(`${MONTHS_PPT[mirMonth]} ${mirYear}`, { x: 0.35, y: 0.2, w: 9.3, h: 0.55, fontSize: 28, bold: true, color: NAVY, fontFace: 'Georgia', margin: 0 });
-    s6.addText('Month-in-Review', { x: 0.35, y: 0.72, w: 9.3, h: 0.3, fontSize: 11, color: GRAY, fontFace: 'Calibri', charSpacing: 1, margin: 0 });
-
-    // KPI boxes — 3 per row, 2 rows
-    const mirKPIs = [
-      { label: 'New Contracts', value: mirNewC,   color: GOLD },
-      { label: 'Amendments',    value: mirAmend,  color: GOLD },
-      { label: 'Updated',       value: mirUpdC,   color: GOLD },
-      { label: 'Expired/Term.', value: mirExpC,   color: 'c0392b' },
-      { label: 'Matters Opened',value: mirOpenM,  color: '16a34a' },
-      { label: 'Matters Closed',value: mirCloseM, color: GRAY },
-    ];
-    const mirBoxW = 2.9, mirBoxH = 1.1, mirBoxGap = 0.15;
-    mirKPIs.forEach((k, i) => {
-      const row = Math.floor(i/3), col = i%3;
-      const bx = 0.35 + col*(mirBoxW+mirBoxGap);
-      const by = 1.15 + row*(mirBoxH+0.2);
-      s6.addShape(pres.shapes.RECTANGLE, { x: bx, y: by, w: mirBoxW, h: mirBoxH, fill: { color: NAVY }, line: { color: NAVY } });
-      s6.addText(String(k.value), { x: bx, y: by+0.06, w: mirBoxW, h: 0.6, fontSize: 36, bold: true, color: k.color, fontFace: 'Georgia', align: 'center', margin: 0 });
-      s6.addText(k.label, { x: bx, y: by+0.68, w: mirBoxW, h: 0.35, fontSize: 10, color: WHITE, fontFace: 'Calibri', align: 'center', margin: 0 });
-    });
-
     // Footer on all slides
-    [s1, s2, s3, s4, s5, s6].forEach(slide => {
+    [s1, s2, s3, s4].forEach(slide => {
       slide.addText(`INSP, LLC  |  Legal & Business Affairs  |  Confidential`, {
         x: 0.35, y: 5.35, w: 9.3, h: 0.2, fontSize: 8, color: GRAY, fontFace: 'Calibri', align: 'center', margin: 0
       });
     });
 
     // Save
-    await pres.writeFile({ fileName: `LegalTrack Legal Activity Report ${year}.pptx` });
-    toast('Legal activity report downloaded.');
+    await pres.writeFile({ fileName: `LegalTrack Annual Legal Review ${year}.pptx` });
+    toast('Annual review deck downloaded.');
   } catch(e) {
     console.error('PPTX error:', e);
     toast('Error generating presentation — see console.');
@@ -4157,7 +4113,7 @@ function promptMonthInReview() {
 
   overlay.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px 32px;min-width:320px;max-width:400px">
-      <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px">Month-in-Review Report</div>
+      <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px">Monthly Legal Report</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Select the month to report on</div>
       <div style="display:flex;gap:12px;margin-bottom:24px">
         <div style="flex:1">
@@ -4186,12 +4142,17 @@ function promptMonthInReview() {
   };
 }
 
-function generateMonthInReviewReport(year, month) {
+async function generateMonthInReviewReport(year, month) {
+  if (!window.docx) { toast('Document library not loaded yet — try again in a moment.'); return; }
+  const { Document, Paragraph, Table, TableRow, TableCell, TextRun,
+          HeadingLevel, AlignmentType, WidthType, BorderStyle, Packer } = window.docx;
+
   // month is 0-indexed
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const monthName = MONTHS[month];
   const periodStart = new Date(year, month, 1);
   const periodEnd   = new Date(year, month+1, 0, 23, 59, 59, 999); // last moment of last day
+  const asOfDate = periodEnd.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
 
   const inPeriod = dateStr => {
     if (!dateStr) return false;
@@ -4199,92 +4160,92 @@ function generateMonthInReviewReport(year, month) {
     return d >= periodStart && d <= periodEnd;
   };
 
-  // Contracts added (started) this month
-  const newContracts = contracts.filter(c => inPeriod(c.start) && (c.type||'') !== 'Amendment');
-  // Amendments executed this month
-  const newAmendments = contracts.filter(c => inPeriod(c.start) && (c.type||'') === 'Amendment');
-  // Contracts with updates (notes/log entries) this month
-  const updatedContracts = contracts.filter(c =>
-    !inPeriod(c.start) && // exclude brand new ones (already counted)
-    c.updates?.some(u => inPeriod(u.ts))
-  );
-  // Contracts that expired/terminated this month
-  const expiredContracts = contracts.filter(c =>
-    (c.status||'').toLowerCase() === 'expired/terminated' && inPeriod(c.end)
-  );
+  // "Major/Priority Items" = every currently-open matter (this app has no separate
+  // priority flag, so this mirrors the sample report's own scope: everything active).
+  // "Completed" = matters closed within the selected month.
+  const isClosed = m => (m.status||'').toLowerCase() === 'closed';
+  const openMatters   = matters.filter(m => !isClosed(m)).sort((a,b) => (b.opened||'').localeCompare(a.opened||''));
+  const closedMatters = matters.filter(m => isClosed(m) && inPeriod(m.closed)).sort((a,b) => (b.closed||'').localeCompare(a.closed||''));
 
-  // Matters opened this month
-  const openedMatters = matters.filter(m => inPeriod(m.opened || m.date || m.start));
-  // Matters closed this month
-  const closedMatters = matters.filter(m => inPeriod(m.closed || m.closedDate));
-
-  const now = new Date();
-  const generatedOn = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-
-  // ── Build HTML ──────────────────────────────────────────────────────────────
-  const section = (title, color, rows) => {
-    if (rows.length === 0) return `<p style="color:#888;font-size:12px;margin:0 0 4px">None.</p>`;
-    return rows.map(r => `
-      <div style="border-left:3px solid ${color};padding:8px 12px;margin-bottom:8px;background:#fafafa;border-radius:0 6px 6px 0">
-        <div style="font-weight:600;font-size:13px;color:#1a1a2e">${r.title}</div>
-        ${r.sub ? `<div style="font-size:11px;color:#666;margin-top:2px">${r.sub}</div>` : ''}
-      </div>`).join('');
+  // "Feedback (from last meeting) / Future Activity" — the matter's most recent
+  // logged update, standing in for what's new since the last report.
+  const latestUpdate = m => {
+    const ups = (m.updates||[]).slice().sort((a,b) => (b.ts||0)-(a.ts||0));
+    return ups.length ? ups[0].text : '';
   };
 
-  const contractCard = c => ({
-    title: c.name || '(unnamed)',
-    sub: [c.party && `Counterparty: ${c.party}`, c.division && `Division: ${c.division}`, c.end && `Ends: ${fmtDate(c.end)}`].filter(Boolean).join(' · ')
+  const NAVY = '1a2340', GOLD = 'c8a96e', GRAY = '666666', DKGRAY = '333333';
+  const COL_WIDTHS = [650, 1500, 850, 700, 2200, 2200, 700]; // DXA, sums under the 9360 usable width
+
+  const headerCell = text => new TableCell({
+    width: { size: 0, type: WidthType.DXA }, // set per-column below via table columnWidths
+    shading: { fill: NAVY },
+    children: [new Paragraph({ children: [new TextRun({ text, bold: true, size: 15, color: 'ffffff', font: 'Calibri' })] })],
   });
-  const matterCard = m => ({
-    title: m.name || m.title || '(unnamed)',
-    sub: [m.type && `Type: ${m.type}`, m.division && `Division: ${m.division}`, m.status && `Status: ${m.status}`].filter(Boolean).join(' · ')
+  const dataCell = (text, opts={}) => new TableCell({
+    shading: opts.shade ? { fill: 'F5F3EE' } : undefined,
+    children: [new Paragraph({ children: [new TextRun({ text: text||'', bold: !!opts.bold, size: 16, color: opts.color||DKGRAY, font: 'Calibri' })] })],
   });
 
-  let html = `
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
-      <h2 style="font-family:Georgia,serif;color:#1a2340;margin:0">${monthName} ${year} — Month-in-Review</h2>
-      <span style="font-size:11px;color:#888">INSP Legal &amp; Business Affairs</span>
-    </div>
-    <p style="color:#888;font-size:12px;margin-top:4px;margin-bottom:24px">Generated ${generatedOn}</p>
+  function buildMatterTable(rows, isCompletedTable) {
+    const headerRow = new TableRow({ tableHeader: true, children: [
+      headerCell('File #'), headerCell('Name & Description'), headerCell('Date Opened / Re-activated'),
+      headerCell('Status'), headerCell('Notes / Comments'), headerCell('Feedback (from last meeting) / Future Activity'),
+      headerCell('Date Due'),
+    ]});
+    if (!rows.length) {
+      return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: COL_WIDTHS, rows: [
+        headerRow,
+        new TableRow({ children: [ new TableCell({ columnSpan: 7, children: [new Paragraph({ children: [new TextRun({ text: 'None.', italics: true, size: 16, color: GRAY })] })] }) ] }),
+      ]});
+    }
+    const body = rows.map((m, i) => new TableRow({ children: [
+      dataCell(m.num, { shade: i%2===1 }),
+      dataCell(m.name || '(unnamed matter)', { bold: true, shade: i%2===1 }),
+      dataCell(fmtDate(m.opened), { shade: i%2===1 }),
+      dataCell(isCompletedTable ? 'Completed' : 'Ongoing', { shade: i%2===1 }),
+      dataCell(m.notes, { shade: i%2===1 }),
+      dataCell(latestUpdate(m), { shade: i%2===1 }),
+      dataCell('N/A', { shade: i%2===1 }),
+    ]}));
+    return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: COL_WIDTHS, rows: [headerRow, ...body] });
+  }
 
-    <!-- Summary bar -->
-    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px">
-      ${[
-        ['New Contracts', newContracts.length, '#1a2340'],
-        ['Amendments', newAmendments.length, '#c8a96e'],
-        ['Updated Records', updatedContracts.length, '#4a6090'],
-        ['Expired / Term.', expiredContracts.length, '#c0392b'],
-        ['Matters Opened', openedMatters.length, '#2e7d52'],
-        ['Matters Closed', closedMatters.length, '#555'],
-      ].map(([label, val, color]) => `
-        <div style="flex:1;min-width:100px;background:#1a2340;border-radius:8px;padding:14px 16px;text-align:center">
-          <div style="font-size:28px;font-weight:700;color:${color === '#1a2340' ? '#c8a96e' : color};font-family:Georgia,serif">${val}</div>
-          <div style="font-size:10px;color:#aaa;margin-top:4px;letter-spacing:.06em;text-transform:uppercase">${label}</div>
-        </div>`).join('')}
-    </div>
+  const sectionHeading = text => new Paragraph({
+    children: [new TextRun({ text, bold: true, size: 22, color: NAVY, font: 'Calibri' })],
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: GOLD, space: 4 } },
+    spacing: { before: 300, after: 140 },
+  });
 
-    <!-- Contracts -->
-    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #c8a96e;padding-bottom:6px;margin-bottom:12px">New Contracts (${newContracts.length})</h3>
-    ${section('New Contracts','#1a2340', newContracts.map(contractCard))}
+  const children = [
+    new Paragraph({ children: [new TextRun({ text: 'To: ', bold: true, size: 20 }), new TextRun({ text: '[Recipient]', size: 20 })] }),
+    new Paragraph({ children: [new TextRun({ text: 'From: ', bold: true, size: 20 }), new TextRun({ text: currentUser() || 'Legal & Business Affairs', size: 20 })], spacing: { after: 160 } }),
+    new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      children: [new TextRun({ text: 'Privileged & Confidential / Attorney Work Product', bold: true, italics: true, size: 16, color: GRAY })],
+      spacing: { after: 200 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: `${monthName} ${year} Report (work completed as of ${asOfDate})`, bold: true, size: 26, color: NAVY, font: 'Calibri' })],
+      spacing: { after: 260 },
+    }),
+    sectionHeading('MAJOR / PRIORITY ITEMS'),
+    buildMatterTable(openMatters, false),
+    sectionHeading('COMPLETED'),
+    buildMatterTable(closedMatters, true),
+  ];
 
-    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #c8a96e;padding-bottom:6px;margin:20px 0 12px">Amendments (${newAmendments.length})</h3>
-    ${section('Amendments','#c8a96e', newAmendments.map(contractCard))}
-
-    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #c8a96e;padding-bottom:6px;margin:20px 0 12px">Updated Contract Records (${updatedContracts.length})</h3>
-    ${section('Updates','#4a6090', updatedContracts.map(contractCard))}
-
-    <h3 style="font-size:14px;color:#c0392b;border-bottom:2px solid #c0392b;padding-bottom:6px;margin:20px 0 12px">Expired / Terminated (${expiredContracts.length})</h3>
-    ${section('Expired','#c0392b', expiredContracts.map(contractCard))}
-
-    <!-- Matters -->
-    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #2e7d52;padding-bottom:6px;margin:28px 0 12px">Legal Matters Opened (${openedMatters.length})</h3>
-    ${section('Opened','#2e7d52', openedMatters.map(matterCard))}
-
-    <h3 style="font-size:14px;color:#1a2340;border-bottom:2px solid #555;padding-bottom:6px;margin:20px 0 12px">Legal Matters Closed (${closedMatters.length})</h3>
-    ${section('Closed','#555', closedMatters.map(matterCard))}
-  `;
-
-  _downloadHtmlReport(html, `${monthName} ${year} - Month-in-Review.html`);
+  const doc = new Document({ sections: [{
+    properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1440, right: 1080, bottom: 1440, left: 1080 } } },
+    children,
+  }]});
+  const blob = await Packer.toBlob(doc);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${monthName} ${year} - Monthly Legal Report.docx`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Monthly Legal Report downloaded.');
 }
 
 // ── SHARED HTML REPORT DOWNLOADER ────────────────────────────────────────────
@@ -4551,7 +4512,7 @@ document.getElementById('btn-reporting').addEventListener('click', e => {
 document.querySelectorAll('#reporting-menu .rpt-item').forEach(el => el.addEventListener('click', () => {
   document.getElementById('reporting-menu').style.display = 'none';
   const r = el.dataset.report;
-  if (r === 'activity') generateActivityReport();
+  if (r === 'activity') generateAnnualBudgetReport();
   else if (r === 'status') generateStatusReport();
   else if (r === 'matterstype') generateMattersTypeReport();
   else if (r === 'turnaround') generateTurnaroundReport();
@@ -4624,6 +4585,12 @@ function updateCounselFieldsUI() {
   document.getElementById('mf-counsel-scope-wrap').style.display = on ? '' : 'none';
 }
 document.getElementById('mf-counsel').addEventListener('input', updateCounselFieldsUI);
+
+function updateMatterTypeUI() {
+  const isTM = document.getElementById('mf-type').value === 'Trademarks';
+  document.getElementById('mf-renewal-wrap').style.display = isTM ? '' : 'none';
+}
+document.getElementById('mf-type').addEventListener('change', updateMatterTypeUI);
 
 // Intake tab
 document.getElementById('tab-intake').addEventListener('click', () => switchTab('intake'));
@@ -5024,7 +4991,9 @@ async function exportWord() {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
 
-  const doc = new Document({ sections:[{ children:[
+  const doc = new Document({ sections:[{
+    properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
+    children:[
     new Paragraph({ text:'LegalTrack — Contract Summary', heading: HeadingLevel.HEADING_1,
       spacing:{ after: 100 } }),
     new Paragraph({ children:[new TextRun({ text:`Generated ${dateStr} · ${rows.length} contract${rows.length!==1?'s':''}`, size:18, color:'888888', italics:true })], spacing:{ after: 300 } }),
