@@ -296,6 +296,24 @@ textarea{resize:vertical;min-height:64px;}
       </table>
     </div>
   </div>
+  <div id="dash-tmrenewal-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h">Trademark Renewals Approaching <span class="dash-sub">next 90 days</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Matter</th><th>Notes</th><th>Renewal Date</th><th>Due In</th></tr></thead>
+        <tbody id="dash-tmrenewal"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-tmrenewalpast-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h" style="color:#e05a5a">⚠ Trademark Renewal Overdue <span class="dash-sub">renewal date has passed — confirm status</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Matter</th><th>Notes</th><th>Renewal Date</th><th>Ago</th></tr></thead>
+        <tbody id="dash-tmrenewalpast"></tbody>
+      </table>
+    </div>
+  </div>
   <!-- ── Dashboard Charts ── -->
   <div class="dash-charts" id="dash-charts-section" style="margin-top:24px;display:none">
     <h3 class="dash-h" style="margin-bottom:16px">Portfolio Overview</h3>
@@ -1700,6 +1718,20 @@ function renderDashboard() {
     .map(c => ({ c, days: dashDaysUntil(c.end) }))
     .sort((a, b) => a.days - b.days);
 
+  // Trademark matters with a renewal date within the next 90 days
+  const tmRenewal = matters
+    .filter(m => m.type === 'Trademarks' && m.renewalDate)
+    .map(m => ({ m, days: dashDaysUntil(m.renewalDate) }))
+    .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
+    .sort((a, b) => a.days - b.days);
+
+  // Trademark matters whose renewal date has already passed
+  const tmRenewalPast = matters
+    .filter(m => m.type === 'Trademarks' && m.renewalDate)
+    .map(m => ({ m, days: dashDaysUntil(m.renewalDate) }))
+    .filter(x => x.days !== null && x.days < 0)
+    .sort((a, b) => a.days - b.days);
+
   statsEl.innerHTML = `
     <div class="stat"><div class="stat-value">${active.length}</div><div class="stat-label">Active Contracts</div></div>
     <div class="stat"><div class="stat-value">${inRange(expiring,30)}</div><div class="stat-label">Expiring ≤30d</div></div>
@@ -1749,6 +1781,33 @@ function renderDashboard() {
 
   [noticeBody, expBody, pastBody, noticePastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
     row.addEventListener('click', () => openModal(row.dataset.id))));
+
+  // Trademark renewals approaching (only shown when there are any)
+  const tmSection = document.getElementById('dash-tmrenewal-section');
+  const tmBody = document.getElementById('dash-tmrenewal');
+  tmSection.style.display = tmRenewal.length ? '' : 'none';
+  tmBody.innerHTML = tmRenewal.map(({ m, days }) => `
+    <tr data-id="${m.id}" class="dash-row">
+      <td class="name">${esc(m.name)}</td>
+      <td style="color:var(--text-muted)">${esc((m.notes||'').slice(0,60))}</td>
+      <td class="mono">${fmtDate(m.renewalDate)}</td>
+      <td class="mono">${dashDaysCell(days)}</td>
+    </tr>`).join('');
+
+  // Trademark renewals overdue (only shown when there are any)
+  const tmPastSection = document.getElementById('dash-tmrenewalpast-section');
+  const tmPastBody = document.getElementById('dash-tmrenewalpast');
+  tmPastSection.style.display = tmRenewalPast.length ? '' : 'none';
+  tmPastBody.innerHTML = tmRenewalPast.map(({ m, days }) => `
+    <tr data-id="${m.id}" class="dash-row">
+      <td class="name">${esc(m.name)}</td>
+      <td style="color:var(--text-muted)">${esc((m.notes||'').slice(0,60))}</td>
+      <td class="mono">${fmtDate(m.renewalDate)}</td>
+      <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
+    </tr>`).join('');
+
+  [tmBody, tmPastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
+    row.addEventListener('click', () => openMatterModal(row.dataset.id))));
 
   // Charts are rendered separately via scheduleDashboardCharts() to avoid
   // flickering on every render() call (filter changes, searches, etc.)
@@ -1803,6 +1862,28 @@ function computeAlerts() {
       }
     });
 
+  // 5. Trademark renewals ≤30 days
+  matters.forEach(m => {
+    if (m.type !== 'Trademarks' || !m.renewalDate) return;
+    const days = Math.round((new Date(m.renewalDate + 'T00:00:00') - now) / 86400000);
+    if (days >= 0 && days <= 30) {
+      alerts.push({ id: `tmrenewal-${m.id}`, type: 'tmrenewal', severity: days <= 7 ? 'high' : 'med',
+        title: m.name || '(unnamed matter)', detail: `Renewal due in ${days} day${days===1?'':'s'} — ${fmtDate(m.renewalDate)}`,
+        matterId: m.id });
+    }
+  });
+
+  // 6. Trademark renewals overdue
+  matters.forEach(m => {
+    if (m.type !== 'Trademarks' || !m.renewalDate) return;
+    const days = Math.round((new Date(m.renewalDate + 'T00:00:00') - now) / 86400000);
+    if (days < 0) {
+      alerts.push({ id: `tmrenewalpast-${m.id}`, type: 'tmrenewalpast', severity: 'high',
+        title: m.name || '(unnamed matter)', detail: `Renewal was due ${Math.abs(days)} day${Math.abs(days)===1?'':'s'} ago — ${fmtDate(m.renewalDate)}`,
+        matterId: m.id });
+    }
+  });
+
   return alerts.filter(a => !_dismissedAlerts.has(a.id));
 }
 
@@ -1823,13 +1904,13 @@ function renderAlerts() {
     if (alerts.length === 0) {
       list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">No alerts right now</div>`;
     } else {
-      const groups = { notice: [], expiring: [], pastexp: [], intake: [] };
-      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', intake: '📥 Intake Pending' };
+      const groups = { notice: [], expiring: [], pastexp: [], tmrenewal: [], tmrenewalpast: [], intake: [] };
+      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', tmrenewal: '™️ Trademark Renewals', tmrenewalpast: '⚠ Trademark Renewal Overdue', intake: '📥 Intake Pending' };
       alerts.forEach(a => groups[a.type]?.push(a));
       list.innerHTML = Object.keys(groups).filter(k => groups[k].length).map(k => `
         <div style="padding:8px 14px 4px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-top:1px solid var(--border)">${groupLabels[k]} (${groups[k].length})</div>
         ${groups[k].map(a => `
-          <div class="notif-item" data-id="${a.id}" data-cid="${a.contractId||''}" style="display:flex;align-items:flex-start;gap:8px;padding:8px 14px;cursor:${a.contractId?'pointer':'default'};border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+          <div class="notif-item" data-id="${a.id}" data-cid="${a.contractId||''}" data-mid="${a.matterId||''}" style="display:flex;align-items:flex-start;gap:8px;padding:8px 14px;cursor:${(a.contractId||a.matterId)?'pointer':'default'};border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
             <div style="width:6px;height:6px;border-radius:50%;background:${a.severity==='high'?'#e05a5a':'#c8a96e'};margin-top:5px;flex-shrink:0"></div>
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.title)}</div>
@@ -1845,6 +1926,14 @@ function renderAlerts() {
         if (el.dataset.cid) el.addEventListener('click', () => {
           document.getElementById('notif-dropdown').style.display = 'none';
           openModal(el.dataset.cid);
+        });
+      });
+
+      // Click matter row (e.g. trademark renewal alerts) → open matter modal
+      list.querySelectorAll('.notif-item[data-mid]').forEach(el => {
+        if (el.dataset.mid) el.addEventListener('click', () => {
+          document.getElementById('notif-dropdown').style.display = 'none';
+          openMatterModal(el.dataset.mid);
         });
       });
 
