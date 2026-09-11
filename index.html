@@ -14,9 +14,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg:#0f0f0f; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
+  --bg:#131a30; --surface:#19203a; --surface2:#1e2849; --border:#2a3658;
   --accent:#c8a96e; --accent-dim:rgba(200,169,110,0.12);
-  --text:#e8e4dc; --text-dim:#888; --text-muted:#555;
+  --text:#e8e4dc; --text-dim:#a8adc0; --text-muted:#6b7391;
   --red:#e05252; --green:#52a852; --yellow:#c8a040; --blue:#5289c8;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 /* HEADER */
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.logo{font-family:'Playfair Display',serif;font-size:19px;color:var(--accent);}
+.logo{font-family:'Playfair Display',serif;font-size:19px;color:var(--accent);display:flex;align-items:center;gap:11px;}
 .logo span{color:var(--text-dim);font-size:13px;margin-left:6px;font-family:'IBM Plex Sans',sans-serif;}
 .header-right{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 
@@ -211,7 +211,10 @@ textarea{resize:vertical;min-height:64px;}
 <body>
 
 <header>
-  <div class="logo">LegalTrack <span>/ Legal & Business Affairs</span></div>
+  <div class="logo">
+    <svg width="30" height="30" viewBox="0 0 64 64" style="flex-shrink:0"><rect width="64" height="64" rx="6" fill="#1a2340" stroke="#c8a96e" stroke-width="3"/><text x="32" y="46" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" fill="#c8a96e" text-anchor="middle">LT</text></svg>
+    LegalTrack <span>/ Legal & Business Affairs</span>
+  </div>
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
     <div id="gs-wrap" style="position:relative">
       <input type="text" id="globalSearch" placeholder="Search everything…" autocomplete="off" style="width:200px;font-size:12px;padding:5px 10px">
@@ -2117,7 +2120,7 @@ function renderDashboardCharts() {
         datasets: [{
           data,
           backgroundColor: PALETTE.slice(0, labels.length),
-          borderColor: '#0f0f0f',
+          borderColor: '#131a30',
           borderWidth: 2,
           borderRadius: type === 'bar' ? 4 : 0,
         }]
