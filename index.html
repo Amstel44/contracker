@@ -703,33 +703,6 @@ textarea{resize:vertical;min-height:64px;}
             <option>Change to an Existing Agreement</option>
           </select>
         </div>
-        <div class="field-group">
-          <div class="form-field" style="max-width:120px">
-            <label>Term</label>
-            <input type="number" id="if-term-length" placeholder="e.g. 3" min="0">
-          </div>
-          <div class="form-field" style="max-width:140px">
-            <label>&nbsp;</label>
-            <select id="if-term-unit">
-              <option value="">— Unit —</option>
-              <option>Years</option>
-              <option>Months</option>
-              <option>Days</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label>Term Starts From</label>
-            <select id="if-term-start-type">
-              <option value="">— Select —</option>
-              <option>Effective Date</option>
-              <option>Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-field" id="if-term-start-other-wrap" style="display:none">
-          <label>Describe Start Trigger</label>
-          <input type="text" id="if-term-start-other" placeholder="e.g. first use of each Program Title, or launch of service">
-        </div>
         <div class="form-field">
           <label>Brief Description *</label>
           <textarea id="if-description" placeholder="Describe your request in plain language. Include relevant parties, amounts, deadlines, or context that would help Legal understand the situation." style="min-height:96px"></textarea>
@@ -1104,6 +1077,33 @@ textarea{resize:vertical;min-height:64px;}
         </div>
       </div>
       <div class="field-group">
+        <div class="form-field" style="max-width:120px">
+          <label>Term</label>
+          <input type="number" id="f-term-length" placeholder="e.g. 3" min="0">
+        </div>
+        <div class="form-field" style="max-width:140px">
+          <label>&nbsp;</label>
+          <select id="f-term-unit">
+            <option value="">— Unit —</option>
+            <option>Years</option>
+            <option>Months</option>
+            <option>Days</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Term Starts From</label>
+          <select id="f-term-start-type">
+            <option value="">— Select —</option>
+            <option>Effective Date</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field" id="f-term-start-other-wrap" style="display:none">
+        <label>Describe Start Trigger</label>
+        <input type="text" id="f-term-start-other" placeholder="e.g. first use of each Program Title, or launch of service">
+      </div>
+      <div class="field-group">
         <div class="form-field">
           <label>Auto-Renewal?</label>
           <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
@@ -1286,9 +1286,9 @@ const SHEET_MATTERS   = 'Legal Matters';
 const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
-const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds'];
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther'];
 const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction'];
-const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes','agrType','termLength','termUnit','termStartType','termStartOther'];
+const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes','agrType'];
 
 // ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
 // Replaces the deprecated OAuth implicit redirect flow (response_type=token).
@@ -1494,7 +1494,8 @@ function contractToRow(c) {
     jsonCell(c.attachments),jsonCell(c.updates),c.value||'',c.territory||'',c.requester||'',c.requesterDesc||'',c.aiSummary||'',
     c.autoRenew===true||c.autoRenew==='true'?'true':'false',c.renewalTerm||'',c.renewalTermOther||'',c.reminderEmails||'',
     c.lastModifiedBy||'',c.lastModifiedAt||'',c.newFile===true||c.newFile==='true'?'true':'false',
-    Array.isArray(c.relatedIds) ? c.relatedIds.join('|') : (c.relatedIds||'')];
+    Array.isArray(c.relatedIds) ? c.relatedIds.join('|') : (c.relatedIds||''),
+    c.termLength||'',c.termUnit||'',c.termStartType||'',c.termStartOther||''];
 }
 function rowToContract(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -1517,8 +1518,7 @@ function rowToMatter(row, headers) {
 }
 function intakeToRow(r) {
   return [r.id,r.submitted,r.requestor,r.dept,r.type,r.counterparty,r.needby,r.description,
-    r.link,jsonCell(r.attachments),r.status,r.assigned,r.legalNotes,
-    r.agrType||'',r.termLength||'',r.termUnit||'',r.termStartType||'',r.termStartOther||''];
+    r.link,jsonCell(r.attachments),r.status,r.assigned,r.legalNotes,r.agrType||''];
 }
 function rowToIntake(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -2463,6 +2463,11 @@ function openModal(id) {
   document.getElementById('f-assigned').value = c?.assigned || '';
   document.getElementById('f-start').value = c?.start || '';
   document.getElementById('f-end').value = c?.end || '';
+  document.getElementById('f-term-length').value = c?.termLength || '';
+  document.getElementById('f-term-unit').value = c?.termUnit || '';
+  document.getElementById('f-term-start-type').value = c?.termStartType || '';
+  document.getElementById('f-term-start-other').value = c?.termStartOther || '';
+  document.getElementById('f-term-start-other-wrap').style.display = c?.termStartType === 'Other' ? '' : 'none';
   document.getElementById('f-remind').value = c?.remind || '';
   document.getElementById('f-renewal').value = c?.renewal || '30';
   document.getElementById('f-renewal-term').value = c?.renewalTerm || '';
@@ -2531,6 +2536,10 @@ function saveContract() {
     assigned: document.getElementById('f-assigned').value.trim(),
     start: document.getElementById('f-start').value,
     end: document.getElementById('f-end').value,
+    termLength: document.getElementById('f-term-length').value.trim(),
+    termUnit: document.getElementById('f-term-unit').value,
+    termStartType: document.getElementById('f-term-start-type').value,
+    termStartOther: document.getElementById('f-term-start-type').value === 'Other' ? document.getElementById('f-term-start-other').value.trim() : '',
     remind: document.getElementById('f-remind').value,
     reminderEmails: (document.getElementById('f-autorenew').checked && document.getElementById('f-remind').value.trim())
       ? document.getElementById('f-reminder-emails').value.trim() : '',
@@ -3402,11 +3411,6 @@ function openIntakeModal() {
   document.getElementById('if-counterparty-wrap').style.display = 'none';
   document.getElementById('if-agr-type').value = '';
   document.getElementById('if-agr-type-wrap').style.display = 'none';
-  document.getElementById('if-term-length').value = '';
-  document.getElementById('if-term-unit').value = '';
-  document.getElementById('if-term-start-type').value = '';
-  document.getElementById('if-term-start-other').value = '';
-  document.getElementById('if-term-start-other-wrap').style.display = 'none';
   document.getElementById('if-needby').value = '';
   document.getElementById('if-description').value = '';
   document.getElementById('if-link').value = '';
@@ -3445,10 +3449,6 @@ function submitIntakeRequest() {
     needby: document.getElementById('if-needby').value,
     counterparty: document.getElementById('if-counterparty').value.trim(),
     agrType: document.getElementById('if-agr-type').value,
-    termLength: document.getElementById('if-term-length').value.trim(),
-    termUnit: document.getElementById('if-term-unit').value,
-    termStartType: document.getElementById('if-term-start-type').value,
-    termStartOther: document.getElementById('if-term-start-type').value === 'Other' ? document.getElementById('if-term-start-other').value.trim() : '',
     link: document.getElementById('if-link').value.trim(),
     attachments: [...iAttachments],
     status: 'New',
@@ -3482,7 +3482,6 @@ function openReviewModal(id) {
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Type</div><div style="font-size:12px">${r.type}</div></div>
         ${r.counterparty ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Counterparty</div><div style="font-size:12px">${esc(r.counterparty)}</div></div>` : ''}
         ${r.agrType ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Agreement Type</div><div style="font-size:12px">${r.agrType}</div></div>` : ''}
-        ${r.termLength ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Term</div><div style="font-size:12px">${esc(r.termLength)} ${esc(r.termUnit||'')}${r.termStartType ? ` from ${r.termStartType==='Other' ? esc(r.termStartOther||'(unspecified)') : r.termStartType}` : ''}</div></div>` : ''}
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Need-by</div><div style="font-size:12px">${fmtDate(r.needby)}</div></div>
       </div>
       <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Description</div><div style="font-size:13px;color:var(--text-dim);line-height:1.5">${r.description.replace(/</g,'&lt;')}</div></div>
@@ -3544,8 +3543,7 @@ function convertToContract() {
     document.getElementById('f-division').value = parts[0].trim();
     updateDepartments(parts.length === 2 ? parts[1].trim() : undefined);
   }
-  const termLine = r.termLength ? `\nTerm: ${r.termLength} ${r.termUnit||''} from ${r.termStartType==='Other' ? (r.termStartOther||'(unspecified trigger)') : (r.termStartType||'(unspecified)')}` : '';
-  document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}${termLine}`.trim();
+  document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}`.trim();
   document.getElementById('f-assigned').value = r.assigned || '';
   // Default file-number mode from the intake's agreement type: "Change to an Existing
   // Agreement" → update an existing file (manual #); otherwise → new file (auto-assign).
@@ -4720,6 +4718,11 @@ document.getElementById('btn-gen-nonrenewal').addEventListener('click', generate
 document.getElementById('f-department').addEventListener('change', () => updateContractTypes());
 document.getElementById('f-end').addEventListener('change', calcNoticeDeadline);
 document.getElementById('f-autorenew').addEventListener('change', updateAutoRenewUI);
+document.getElementById('f-term-start-type').addEventListener('change', function() {
+  const on = this.value === 'Other';
+  document.getElementById('f-term-start-other-wrap').style.display = on ? '' : 'none';
+  if (!on) document.getElementById('f-term-start-other').value = '';
+});
 document.getElementById('f-newfile').addEventListener('change', updateNewFileUI);
 document.getElementById('f-renewal-term').addEventListener('change', updateRenewalTermUI);
 document.getElementById('f-remind').addEventListener('input', updateReminderRecipientsUI);
@@ -4837,12 +4840,6 @@ document.getElementById('if-type').addEventListener('change', function() {
     document.getElementById('if-agr-type').value = '';
   }
   refreshIntakePartyList();
-});
-
-document.getElementById('if-term-start-type').addEventListener('change', function() {
-  const on = this.value === 'Other';
-  document.getElementById('if-term-start-other-wrap').style.display = on ? '' : 'none';
-  if (!on) document.getElementById('if-term-start-other').value = '';
 });
 
 // Intake CSV export
