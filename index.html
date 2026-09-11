@@ -703,6 +703,33 @@ textarea{resize:vertical;min-height:64px;}
             <option>Change to an Existing Agreement</option>
           </select>
         </div>
+        <div class="field-group">
+          <div class="form-field" style="max-width:120px">
+            <label>Term</label>
+            <input type="number" id="if-term-length" placeholder="e.g. 3" min="0">
+          </div>
+          <div class="form-field" style="max-width:140px">
+            <label>&nbsp;</label>
+            <select id="if-term-unit">
+              <option value="">— Unit —</option>
+              <option>Years</option>
+              <option>Months</option>
+              <option>Days</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Term Starts From</label>
+            <select id="if-term-start-type">
+              <option value="">— Select —</option>
+              <option>Effective Date</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field" id="if-term-start-other-wrap" style="display:none">
+          <label>Describe Start Trigger</label>
+          <input type="text" id="if-term-start-other" placeholder="e.g. first use of each Program Title, or launch of service">
+        </div>
         <div class="form-field">
           <label>Brief Description *</label>
           <textarea id="if-description" placeholder="Describe your request in plain language. Include relevant parties, amounts, deadlines, or context that would help Legal understand the situation." style="min-height:96px"></textarea>
@@ -832,10 +859,60 @@ textarea{resize:vertical;min-height:64px;}
           <datalist id="counsel-list"></datalist>
         </div>
       </div>
-      <div class="field-group" id="mf-renewal-wrap" style="display:none">
-        <div class="form-field">
-          <label>Renewal / Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— when this trademark needs renewing</span></label>
-          <input type="date" id="mf-renewal-date">
+      <div id="mf-tm-wrap" style="display:none;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;background:var(--surface2)">
+        <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px">Trademark Details</div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Trademark Stage</label>
+            <select id="mf-tm-stage">
+              <option>Clearance / Availability Search</option>
+              <option>Application Filed</option>
+              <option>Under USPTO Review (Office Action Pending)</option>
+              <option>Registered</option>
+              <option>Renewal Due</option>
+              <option>Abandoned / Withdrawn</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Mark / Wordmark <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— if different from matter name</span></label>
+            <input type="text" id="mf-tm-mark" placeholder="e.g. INSP LEGAL TRACK">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Serial Number</label>
+            <input type="text" id="mf-tm-serial" placeholder="e.g. 98765432">
+          </div>
+          <div class="form-field">
+            <label>Registration Number</label>
+            <input type="text" id="mf-tm-regnum" placeholder="e.g. 7654321">
+          </div>
+          <div class="form-field">
+            <label>Filing Date</label>
+            <input type="date" id="mf-tm-filingdate">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Class(es) of Goods / Services</label>
+            <input type="text" id="mf-tm-classes" placeholder="e.g. 25, 41">
+          </div>
+          <div class="form-field">
+            <label>Jurisdiction</label>
+            <input type="text" id="mf-tm-jurisdiction" list="tm-jurisdiction-list" placeholder="US" value="US">
+            <datalist id="tm-jurisdiction-list">
+              <option value="US">
+              <option value="EU">
+              <option value="UK">
+              <option value="Canada">
+              <option value="Madrid Protocol (International)">
+              <option value="Other">
+            </datalist>
+          </div>
+          <div class="form-field">
+            <label>Renewal / Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— when this trademark needs renewing</span></label>
+            <input type="date" id="mf-renewal-date">
+          </div>
         </div>
       </div>
       <div class="form-field" id="mf-counsel-scope-wrap">
@@ -1210,8 +1287,8 @@ const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
 const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds'];
-const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate'];
-const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes'];
+const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction'];
+const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes','agrType','termLength','termUnit','termStartType','termStartOther'];
 
 // ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
 // Replaces the deprecated OAuth implicit redirect flow (response_type=token).
@@ -1430,7 +1507,8 @@ function matterToRow(m) {
   return [m.id,m.num,m.name,m.division,m.department,m.type,m.status,m.counsel,m.assigned,
     m.opened,m.closed,m.notes,jsonCell(m.updates),
     m.counselScope||'',
-    m.lastModifiedBy||'',m.lastModifiedAt||'',m.renewalDate||''];
+    m.lastModifiedBy||'',m.lastModifiedAt||'',m.renewalDate||'',
+    m.tmStage||'',m.tmMark||'',m.tmSerialNumber||'',m.tmRegistrationNumber||'',m.tmFilingDate||'',m.tmClasses||'',m.tmJurisdiction||''];
 }
 function rowToMatter(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -1439,7 +1517,8 @@ function rowToMatter(row, headers) {
 }
 function intakeToRow(r) {
   return [r.id,r.submitted,r.requestor,r.dept,r.type,r.counterparty,r.needby,r.description,
-    r.link,jsonCell(r.attachments),r.status,r.assigned,r.legalNotes];
+    r.link,jsonCell(r.attachments),r.status,r.assigned,r.legalNotes,
+    r.agrType||'',r.termLength||'',r.termUnit||'',r.termStartType||'',r.termStartOther||''];
 }
 function rowToIntake(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -2708,7 +2787,7 @@ function renderMatters() {
       <td>${esc(m.division) || '—'}</td>
       <td>${esc(m.department) || '—'}</td>
       <td class="mono">${esc(m.type)}</td>
-      <td>${mStatusPill(m.status)}</td>
+      <td>${mStatusPill(m.status)}${m.type==='Trademarks' && m.tmStage ? `<span class="pill" style="background:var(--accent-dim);color:var(--accent);font-size:9px;margin-left:4px">${esc(m.tmStage)}</span>` : ''}</td>
       <td>${esc(m.counsel) || '—'}</td>
       <td>${esc(m.assigned) || '—'}</td>
       <td class="mono">${fmtDate(m.opened)}</td>
@@ -2785,6 +2864,13 @@ function openMatterModal(id) {
   document.getElementById('mf-counsel-scope').value = m?.counselScope || '';
   updateCounselFieldsUI();
   document.getElementById('mf-renewal-date').value = m?.renewalDate || '';
+  document.getElementById('mf-tm-stage').value = m?.tmStage || 'Clearance / Availability Search';
+  document.getElementById('mf-tm-mark').value = m?.tmMark || '';
+  document.getElementById('mf-tm-serial').value = m?.tmSerialNumber || '';
+  document.getElementById('mf-tm-regnum').value = m?.tmRegistrationNumber || '';
+  document.getElementById('mf-tm-filingdate').value = m?.tmFilingDate || '';
+  document.getElementById('mf-tm-classes').value = m?.tmClasses || '';
+  document.getElementById('mf-tm-jurisdiction').value = m?.tmJurisdiction || 'US';
   updateMatterTypeUI();
   document.getElementById('mf-opened').value = m?.opened || '';
   document.getElementById('mf-closed').value = m?.closed || '';
@@ -2832,6 +2918,13 @@ function saveMatter() {
     counsel: document.getElementById('mf-counsel').value.trim(),
     counselScope: document.getElementById('mf-counsel-scope').value.trim(),
     renewalDate: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-renewal-date').value : '',
+    tmStage: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-stage').value : '',
+    tmMark: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-mark').value.trim() : '',
+    tmSerialNumber: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-serial').value.trim() : '',
+    tmRegistrationNumber: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-regnum').value.trim() : '',
+    tmFilingDate: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-filingdate').value : '',
+    tmClasses: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-classes').value.trim() : '',
+    tmJurisdiction: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-jurisdiction').value.trim() : '',
     opened: document.getElementById('mf-opened').value,
     closed: document.getElementById('mf-closed').value,
     assigned: document.getElementById('mf-assigned').value.trim(),
@@ -3309,6 +3402,11 @@ function openIntakeModal() {
   document.getElementById('if-counterparty-wrap').style.display = 'none';
   document.getElementById('if-agr-type').value = '';
   document.getElementById('if-agr-type-wrap').style.display = 'none';
+  document.getElementById('if-term-length').value = '';
+  document.getElementById('if-term-unit').value = '';
+  document.getElementById('if-term-start-type').value = '';
+  document.getElementById('if-term-start-other').value = '';
+  document.getElementById('if-term-start-other-wrap').style.display = 'none';
   document.getElementById('if-needby').value = '';
   document.getElementById('if-description').value = '';
   document.getElementById('if-link').value = '';
@@ -3347,6 +3445,10 @@ function submitIntakeRequest() {
     needby: document.getElementById('if-needby').value,
     counterparty: document.getElementById('if-counterparty').value.trim(),
     agrType: document.getElementById('if-agr-type').value,
+    termLength: document.getElementById('if-term-length').value.trim(),
+    termUnit: document.getElementById('if-term-unit').value,
+    termStartType: document.getElementById('if-term-start-type').value,
+    termStartOther: document.getElementById('if-term-start-type').value === 'Other' ? document.getElementById('if-term-start-other').value.trim() : '',
     link: document.getElementById('if-link').value.trim(),
     attachments: [...iAttachments],
     status: 'New',
@@ -3380,6 +3482,7 @@ function openReviewModal(id) {
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Type</div><div style="font-size:12px">${r.type}</div></div>
         ${r.counterparty ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Counterparty</div><div style="font-size:12px">${esc(r.counterparty)}</div></div>` : ''}
         ${r.agrType ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Agreement Type</div><div style="font-size:12px">${r.agrType}</div></div>` : ''}
+        ${r.termLength ? `<div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Term</div><div style="font-size:12px">${esc(r.termLength)} ${esc(r.termUnit||'')}${r.termStartType ? ` from ${r.termStartType==='Other' ? esc(r.termStartOther||'(unspecified)') : r.termStartType}` : ''}</div></div>` : ''}
         <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Need-by</div><div style="font-size:12px">${fmtDate(r.needby)}</div></div>
       </div>
       <div><div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Description</div><div style="font-size:13px;color:var(--text-dim);line-height:1.5">${r.description.replace(/</g,'&lt;')}</div></div>
@@ -3441,7 +3544,8 @@ function convertToContract() {
     document.getElementById('f-division').value = parts[0].trim();
     updateDepartments(parts.length === 2 ? parts[1].trim() : undefined);
   }
-  document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}`.trim();
+  const termLine = r.termLength ? `\nTerm: ${r.termLength} ${r.termUnit||''} from ${r.termStartType==='Other' ? (r.termStartOther||'(unspecified trigger)') : (r.termStartType||'(unspecified)')}` : '';
+  document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}${termLine}`.trim();
   document.getElementById('f-assigned').value = r.assigned || '';
   // Default file-number mode from the intake's agreement type: "Change to an Existing
   // Agreement" → update an existing file (manual #); otherwise → new file (auto-assign).
@@ -4292,7 +4396,7 @@ async function generateMonthInReviewReport(year, month) {
       dataCell(m.num, { shade: i%2===1 }),
       dataCell(m.name || '(unnamed matter)', { bold: true, shade: i%2===1 }),
       dataCell(fmtDate(m.opened), { shade: i%2===1 }),
-      dataCell(isCompletedTable ? 'Completed' : 'Ongoing', { shade: i%2===1 }),
+      dataCell(isCompletedTable ? 'Completed' : (m.type === 'Trademarks' && m.tmStage ? m.tmStage : 'Ongoing'), { shade: i%2===1 }),
       dataCell(m.notes, { shade: i%2===1 }),
       dataCell(latestUpdate(m), { shade: i%2===1 }),
       dataCell('N/A', { shade: i%2===1 }),
@@ -4677,7 +4781,7 @@ document.getElementById('mf-counsel').addEventListener('input', updateCounselFie
 
 function updateMatterTypeUI() {
   const isTM = document.getElementById('mf-type').value === 'Trademarks';
-  document.getElementById('mf-renewal-wrap').style.display = isTM ? '' : 'none';
+  document.getElementById('mf-tm-wrap').style.display = isTM ? '' : 'none';
 }
 document.getElementById('mf-type').addEventListener('change', updateMatterTypeUI);
 
@@ -4733,6 +4837,12 @@ document.getElementById('if-type').addEventListener('change', function() {
     document.getElementById('if-agr-type').value = '';
   }
   refreshIntakePartyList();
+});
+
+document.getElementById('if-term-start-type').addEventListener('change', function() {
+  const on = this.value === 'Other';
+  document.getElementById('if-term-start-other-wrap').style.display = on ? '' : 'none';
+  if (!on) document.getElementById('if-term-start-other').value = '';
 });
 
 // Intake CSV export
