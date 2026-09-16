@@ -1185,6 +1185,14 @@ textarea{resize:vertical;min-height:64px;}
         </div>
       </div>
       <div class="field-group">
+        <div class="form-field">
+          <label>Perpetual Term? <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— e.g. easements, some music licenses</span></label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
+            <input type="checkbox" id="f-term-perpetual" style="width:auto;margin:0"> Yes — no fixed term, continues indefinitely
+          </label>
+        </div>
+      </div>
+      <div class="field-group" id="f-term-detail-group">
         <div class="form-field" style="max-width:120px">
           <label>Term</label>
           <input type="number" id="f-term-length" placeholder="e.g. 3" min="0">
@@ -1439,7 +1447,7 @@ const SHEET_MATTERS   = 'Legal Matters';
 const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
-const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther','noticeDeadlineAuto','endAuto','coiRequired','coiExpiration','coiCoverage','executionStatus','renewalDecision','renewalDecisionDate','renewalDecidedBy','renewalDecisionNotes'];
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther','noticeDeadlineAuto','endAuto','coiRequired','coiExpiration','coiCoverage','executionStatus','renewalDecision','renewalDecisionDate','renewalDecidedBy','renewalDecisionNotes','termPerpetual'];
 const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction','litStage','litCaseNumber','litCourt','litRole','litOpposingParty','litOpposingCounsel','litFilingDate','litHearingDate'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes','agrType'];
 
@@ -1653,7 +1661,8 @@ function contractToRow(c) {
     c.endAuto===true||c.endAuto==='true'?'true':'false',
     c.coiRequired===true||c.coiRequired==='true'?'true':'false',
     c.coiExpiration||'',c.coiCoverage||'',c.executionStatus||'',
-    c.renewalDecision||'',c.renewalDecisionDate||'',c.renewalDecidedBy||'',c.renewalDecisionNotes||''];
+    c.renewalDecision||'',c.renewalDecisionDate||'',c.renewalDecidedBy||'',c.renewalDecisionNotes||'',
+    c.termPerpetual===true||c.termPerpetual==='true'?'true':'false'];
 }
 function rowToContract(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -2498,7 +2507,7 @@ function render() {
       <td>${esc(c.division) || '—'}</td>
       <td>${esc(c.department) || '—'}</td>
       <td class="mono">${esc(typeLabel(c.type))}</td>
-      <td>${statusPill(c.status)}${isPastExpiration(c) ? ' <span class="pill" style="background:#e05a5a22;color:#e05a5a;font-size:9px;margin-left:4px">⚠ past exp.</span>' : ''}</td>
+      <td>${statusPill(c.status)}${isPastExpiration(c) ? ' <span class="pill" style="background:#e05a5a22;color:#e05a5a;font-size:9px;margin-left:4px">⚠ past exp.</span>' : ''}${(c.termPerpetual===true||c.termPerpetual==='true') ? ' <span class="pill" style="background:var(--accent-dim);color:var(--accent);font-size:9px;margin-left:4px">∞ perpetual</span>' : ''}</td>
       <td>${esc(c.assigned) || '—'}</td>
       <td class="mono">${fmtDate(c.start)}</td>
       <td class="mono ${deadlineClass(c.end)}">${fmtDate(c.end)}</td>
@@ -2757,6 +2766,8 @@ function openModal(id) {
   document.getElementById('f-term-start-type').value = c?.termStartType || '';
   document.getElementById('f-term-start-other').value = c?.termStartOther || '';
   document.getElementById('f-term-start-other-wrap').style.display = c?.termStartType === 'Other' ? '' : 'none';
+  document.getElementById('f-term-perpetual').checked = c?.termPerpetual === true || c?.termPerpetual === 'true';
+  updateTermPerpetualUI();
   document.getElementById('f-remind').value = c?.remind || '';
   document.getElementById('f-renewal').value = c?.renewal || '30';
   document.getElementById('f-renewal-term').value = c?.renewalTerm || '';
@@ -2833,11 +2844,12 @@ function saveContract() {
     related: document.getElementById('f-related').value.trim(),
     assigned: document.getElementById('f-assigned').value.trim(),
     start: document.getElementById('f-start').value,
-    end: document.getElementById('f-end').value,
-    termLength: document.getElementById('f-term-length').value.trim(),
-    termUnit: document.getElementById('f-term-unit').value,
-    termStartType: document.getElementById('f-term-start-type').value,
-    termStartOther: document.getElementById('f-term-start-type').value === 'Other' ? document.getElementById('f-term-start-other').value.trim() : '',
+    end: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-end').value,
+    termPerpetual: document.getElementById('f-term-perpetual').checked,
+    termLength: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-term-length').value.trim(),
+    termUnit: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-term-unit').value,
+    termStartType: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-term-start-type').value,
+    termStartOther: (!document.getElementById('f-term-perpetual').checked && document.getElementById('f-term-start-type').value === 'Other') ? document.getElementById('f-term-start-other').value.trim() : '',
     remind: document.getElementById('f-remind').value,
     reminderEmails: (document.getElementById('f-autorenew').checked && document.getElementById('f-remind').value.trim())
       ? document.getElementById('f-reminder-emails').value.trim() : '',
@@ -4951,6 +4963,7 @@ function addTermDuration(dateStr, length, unit) {
 // basis there). Respects a manually-entered Expiration Date, same pattern
 // as the Notice Deadline auto-calc below.
 function calcExpirationFromTerm() {
+  if (document.getElementById('f-term-perpetual').checked) return;
   const startType = document.getElementById('f-term-start-type').value;
   if (startType !== 'Effective Date') return;
   const startVal = document.getElementById('f-start').value;
@@ -5083,6 +5096,29 @@ function updateCoiUI() {
   document.getElementById('f-coi-detail').style.display = on ? '' : 'none';
 }
 document.getElementById('f-coi-required').addEventListener('change', updateCoiUI);
+
+function updateTermPerpetualUI() {
+  const perpetual = document.getElementById('f-term-perpetual').checked;
+  document.getElementById('f-term-detail-group').style.display = perpetual ? 'none' : '';
+  document.getElementById('f-term-start-other-wrap').style.display = (!perpetual && document.getElementById('f-term-start-type').value === 'Other') ? '' : 'none';
+  const endField = document.getElementById('f-end');
+  endField.disabled = perpetual;
+  if (perpetual) {
+    // No fixed duration or expiration — clear values so stale dates/lengths
+    // from before "Perpetual" was checked don't linger unseen in the background.
+    document.getElementById('f-term-length').value = '';
+    document.getElementById('f-term-unit').value = '';
+    document.getElementById('f-term-start-type').value = '';
+    document.getElementById('f-term-start-other').value = '';
+    endField.value = '';
+    endField.placeholder = 'Perpetual — never expires';
+    const noticeField = document.getElementById('f-notice-deadline');
+    if (noticeField.dataset.auto === 'true') noticeField.value = '';
+  } else {
+    endField.placeholder = '';
+  }
+}
+document.getElementById('f-term-perpetual').addEventListener('change', updateTermPerpetualUI);
 document.getElementById('f-term-start-type').addEventListener('change', function() {
   const on = this.value === 'Other';
   document.getElementById('f-term-start-other-wrap').style.display = on ? '' : 'none';
