@@ -14,9 +14,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg:#131a30; --surface:#19203a; --surface2:#1e2849; --border:#2a3658;
+  --bg:#090c18; --surface:#0e1324; --surface2:#121a34; --border:#1e2740;
   --accent:#c8a96e; --accent-dim:rgba(200,169,110,0.12);
-  --text:#e8e4dc; --text-dim:#a8adc0; --text-muted:#6b7391;
+  --text:#e8e4dc; --text-dim:#ccd0e4; --text-muted:#9aa1c4;
   --red:#e05252; --green:#52a852; --yellow:#c8a040; --blue:#5289c8;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -24,8 +24,8 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 /* HEADER */
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.logo{font-family:'Playfair Display',serif;font-size:19px;color:var(--accent);display:flex;align-items:center;gap:11px;}
-.logo span{color:var(--text-dim);font-size:13px;margin-left:6px;font-family:'IBM Plex Sans',sans-serif;}
+.logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#e0c48f;display:flex;align-items:center;gap:11px;}
+.logo span{color:var(--text-dim);font-size:13px;margin-left:6px;font-family:'IBM Plex Sans',sans-serif;font-weight:400;}
 .header-right{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 
 /* TABS */
@@ -47,7 +47,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 
 /* STATS */
 .stats{display:flex;gap:1px;margin-bottom:12px;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
-.stat{flex:1;padding:8px 10px;background:var(--surface);border-right:1px solid var(--border);}
+.stat{flex:1;padding:8px 10px;background:var(--surface);border-right:1px solid var(--border);text-align:center;}
 .stat:last-child{border-right:none;}
 .stat-value{font-family:'Playfair Display',serif;font-size:22px;color:var(--accent);line-height:1;margin-bottom:2px;}
 .stat-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;}
@@ -77,6 +77,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 /* INPUTS */
 input[type=text],input[type=date],input[type=number],select,textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:7px 10px;transition:border-color .15s;width:100%;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+::placeholder{color:var(--text-muted);opacity:1;}
 .search-wrap input{padding-left:28px;}
 select{cursor:pointer;}
 option{background:var(--surface2);}
@@ -315,6 +316,42 @@ textarea{resize:vertical;min-height:64px;}
       <table>
         <thead><tr><th>Matter</th><th>Notes</th><th>Renewal Date</th><th>Ago</th></tr></thead>
         <tbody id="dash-tmrenewalpast"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-lithearing-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h">Upcoming Hearings <span class="dash-sub">next 90 days</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Matter</th><th>Court</th><th>Hearing Date</th><th>Due In</th></tr></thead>
+        <tbody id="dash-lithearing"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-lithearingpast-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h" style="color:#e05a5a">⚠ Past Hearing — Needs Update <span class="dash-sub">hearing date has passed — log outcome and update this matter</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Matter</th><th>Court</th><th>Hearing Date</th><th>Ago</th></tr></thead>
+        <tbody id="dash-lithearingpast"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-coiexpiring-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h">COI Expiring Soon <span class="dash-sub">next 90 days</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>COI Expires</th><th>Due In</th></tr></thead>
+        <tbody id="dash-coiexpiring"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-coiexpired-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h" style="color:#e05a5a">⚠ COI Expired <span class="dash-sub">certificate has lapsed — request an updated COI</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>COI Expired</th><th>Ago</th></tr></thead>
+        <tbody id="dash-coiexpired"></tbody>
       </table>
     </div>
   </div>
@@ -660,6 +697,7 @@ textarea{resize:vertical;min-height:64px;}
                 <option>INSP / Marketing</option>
                 <option>INSP / Creative</option>
                 <option>INSP / Digital-Social</option>
+                <option>INSP / Programming</option>
                 <option>INSP / Other</option>
               </optgroup>
               <optgroup label="CrossRidge">
@@ -892,6 +930,63 @@ textarea{resize:vertical;min-height:64px;}
           </div>
         </div>
       </div>
+      <div id="mf-lit-wrap" style="display:none;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;background:var(--surface2)">
+        <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px">Litigation Details</div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Litigation Stage</label>
+            <select id="mf-lit-stage">
+              <option>Pre-Suit / Demand</option>
+              <option>Filed / Served</option>
+              <option>Discovery</option>
+              <option>Motion Practice</option>
+              <option>Settlement Negotiations</option>
+              <option>Trial</option>
+              <option>Appeal</option>
+              <option>Resolved / Closed</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Our Role</label>
+            <select id="mf-lit-role">
+              <option>Plaintiff</option>
+              <option>Defendant</option>
+              <option>Third Party</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Case Number</label>
+            <input type="text" id="mf-lit-casenumber" placeholder="e.g. 2026-CV-00123">
+          </div>
+          <div class="form-field">
+            <label>Court / Jurisdiction</label>
+            <input type="text" id="mf-lit-court" placeholder="e.g. U.S. District Court, D.S.C.">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Opposing Party</label>
+            <input type="text" id="mf-lit-opposingparty" placeholder="Name of opposing party">
+          </div>
+          <div class="form-field">
+            <label>Opposing Counsel</label>
+            <input type="text" id="mf-lit-opposingcounsel" placeholder="Firm / Attorney name">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Filing Date</label>
+            <input type="date" id="mf-lit-filingdate">
+          </div>
+          <div class="form-field">
+            <label>Next Hearing Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— shows on dashboard and alerts</span></label>
+            <input type="date" id="mf-lit-hearingdate">
+          </div>
+        </div>
+      </div>
       <div class="form-field" id="mf-counsel-scope-wrap">
         <label>Outside Counsel — Scope / Area of Involvement</label>
         <textarea id="mf-counsel-scope" placeholder="Brief description of this firm's involvement (e.g. broadcast regulatory, litigation counsel for DeltaVision dispute)…" style="min-height:56px"></textarea>
@@ -1043,6 +1138,15 @@ textarea{resize:vertical;min-height:64px;}
             <option>Expired/Terminated</option>
           </select>
         </div>
+        <div class="form-field">
+          <label>Execution Status</label>
+          <select id="f-execution-status">
+            <option>Draft</option>
+            <option>Sent for Signature</option>
+            <option>Pending Countersignature</option>
+            <option>Fully Executed</option>
+          </select>
+        </div>
       </div>
       <div class="field-group">
         <div class="form-field">
@@ -1163,6 +1267,51 @@ textarea{resize:vertical;min-height:64px;}
       <div id="f-nonrenewal-wrap" style="display:none;margin-top:4px">
         <button class="btn-ai" id="btn-gen-nonrenewal" type="button">📄 Generate Notice of Non-Renewal Letter</button>
         <span style="font-size:10px;color:var(--text-muted);font-style:italic;margin-left:8px">Downloads as .docx</span>
+      </div>
+      <div class="field-group" style="margin-top:14px">
+        <div class="form-field">
+          <label>Renewal Decision <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— outcome of the renewal decision, once made</span></label>
+          <select id="f-renewal-decision">
+            <option value="">— Pending Decision —</option>
+            <option>Renew</option>
+            <option>Do Not Renew</option>
+            <option>Renegotiate</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Decision Date</label>
+          <input type="date" id="f-renewal-decision-date">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Decided By</label>
+          <input type="text" id="f-renewal-decided-by" placeholder="Name of decision-maker">
+        </div>
+        <div class="form-field">
+          <label>Decision Notes</label>
+          <input type="text" id="f-renewal-decision-notes" placeholder="Context on the decision, if any">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="form-field">
+          <label>Requires Insurance Certificate (COI)?</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
+            <input type="checkbox" id="f-coi-required" style="width:auto;margin:0"> Yes — this counterparty must maintain a COI on file
+          </label>
+        </div>
+      </div>
+      <div id="f-coi-detail" style="display:none">
+        <div class="field-group">
+          <div class="form-field">
+            <label>COI Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— shows on dashboard and alerts</span></label>
+            <input type="date" id="f-coi-expiration">
+          </div>
+          <div class="form-field">
+            <label>Coverage Description</label>
+            <input type="text" id="f-coi-coverage" placeholder="e.g. General Liability $1M/$2M; Auto $1M; Umbrella $5M">
+          </div>
+        </div>
       </div>
       <div class="form-field" id="f-requester-desc-wrap" style="display:none">
         <label>Requester Description</label>
@@ -1290,8 +1439,8 @@ const SHEET_MATTERS   = 'Legal Matters';
 const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
-const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther'];
-const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction'];
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther','noticeDeadlineAuto','endAuto','coiRequired','coiExpiration','coiCoverage','executionStatus','renewalDecision','renewalDecisionDate','renewalDecidedBy','renewalDecisionNotes'];
+const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction','litStage','litCaseNumber','litCourt','litRole','litOpposingParty','litOpposingCounsel','litFilingDate','litHearingDate'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes','agrType'];
 
 // ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
@@ -1499,7 +1648,12 @@ function contractToRow(c) {
     c.autoRenew===true||c.autoRenew==='true'?'true':'false',c.renewalTerm||'',c.renewalTermOther||'',c.reminderEmails||'',
     c.lastModifiedBy||'',c.lastModifiedAt||'',c.newFile===true||c.newFile==='true'?'true':'false',
     Array.isArray(c.relatedIds) ? c.relatedIds.join('|') : (c.relatedIds||''),
-    c.termLength||'',c.termUnit||'',c.termStartType||'',c.termStartOther||''];
+    c.termLength||'',c.termUnit||'',c.termStartType||'',c.termStartOther||'',
+    c.noticeDeadlineAuto===true||c.noticeDeadlineAuto==='true'?'true':'false',
+    c.endAuto===true||c.endAuto==='true'?'true':'false',
+    c.coiRequired===true||c.coiRequired==='true'?'true':'false',
+    c.coiExpiration||'',c.coiCoverage||'',c.executionStatus||'',
+    c.renewalDecision||'',c.renewalDecisionDate||'',c.renewalDecidedBy||'',c.renewalDecisionNotes||''];
 }
 function rowToContract(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -1513,7 +1667,8 @@ function matterToRow(m) {
     m.opened,m.closed,m.notes,jsonCell(m.updates),
     m.counselScope||'',
     m.lastModifiedBy||'',m.lastModifiedAt||'',m.renewalDate||'',
-    m.tmStage||'',m.tmMark||'',m.tmSerialNumber||'',m.tmRegistrationNumber||'',m.tmFilingDate||'',m.tmClasses||'',m.tmJurisdiction||''];
+    m.tmStage||'',m.tmMark||'',m.tmSerialNumber||'',m.tmRegistrationNumber||'',m.tmFilingDate||'',m.tmClasses||'',m.tmJurisdiction||'',
+    m.litStage||'',m.litCaseNumber||'',m.litCourt||'',m.litRole||'',m.litOpposingParty||'',m.litOpposingCounsel||'',m.litFilingDate||'',m.litHearingDate||''];
 }
 function rowToMatter(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -1815,6 +1970,34 @@ function renderDashboard() {
     .filter(x => x.days !== null && x.days < 0)
     .sort((a, b) => a.days - b.days);
 
+  // Litigation matters with a hearing date within the next 90 days
+  const litHearing = matters
+    .filter(m => m.type === 'Litigation' && m.litHearingDate)
+    .map(m => ({ m, days: dashDaysUntil(m.litHearingDate) }))
+    .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
+    .sort((a, b) => a.days - b.days);
+
+  // Litigation matters whose hearing date has already passed
+  const litHearingPast = matters
+    .filter(m => m.type === 'Litigation' && m.litHearingDate)
+    .map(m => ({ m, days: dashDaysUntil(m.litHearingDate) }))
+    .filter(x => x.days !== null && x.days < 0)
+    .sort((a, b) => a.days - b.days);
+
+  // Contracts requiring a COI, with an expiration date within the next 90 days
+  const coiExpiring = contracts
+    .filter(c => (c.coiRequired === true || c.coiRequired === 'true') && c.coiExpiration && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.coiExpiration) }))
+    .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
+    .sort((a, b) => a.days - b.days);
+
+  // Contracts requiring a COI whose certificate has already lapsed
+  const coiExpired = contracts
+    .filter(c => (c.coiRequired === true || c.coiRequired === 'true') && c.coiExpiration && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.coiExpiration) }))
+    .filter(x => x.days !== null && x.days < 0)
+    .sort((a, b) => a.days - b.days);
+
   statsEl.innerHTML = `
     <div class="stat"><div class="stat-value">${active.length}</div><div class="stat-label">Active Contracts</div></div>
     <div class="stat"><div class="stat-value">${inRange(expiring,30)}</div><div class="stat-label">Expiring ≤30d</div></div>
@@ -1892,6 +2075,60 @@ function renderDashboard() {
   [tmBody, tmPastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
     row.addEventListener('click', () => openMatterModal(row.dataset.id))));
 
+  // Upcoming hearings (only shown when there are any)
+  const litSection = document.getElementById('dash-lithearing-section');
+  const litBody = document.getElementById('dash-lithearing');
+  litSection.style.display = litHearing.length ? '' : 'none';
+  litBody.innerHTML = litHearing.map(({ m, days }) => `
+    <tr data-id="${m.id}" class="dash-row">
+      <td class="name">${esc(m.name)}</td>
+      <td style="color:var(--text-muted)">${esc((m.litCourt||'').slice(0,60))}</td>
+      <td class="mono">${fmtDate(m.litHearingDate)}</td>
+      <td class="mono">${dashDaysCell(days)}</td>
+    </tr>`).join('');
+
+  // Past hearings needing an update (only shown when there are any)
+  const litPastSection = document.getElementById('dash-lithearingpast-section');
+  const litPastBody = document.getElementById('dash-lithearingpast');
+  litPastSection.style.display = litHearingPast.length ? '' : 'none';
+  litPastBody.innerHTML = litHearingPast.map(({ m, days }) => `
+    <tr data-id="${m.id}" class="dash-row">
+      <td class="name">${esc(m.name)}</td>
+      <td style="color:var(--text-muted)">${esc((m.litCourt||'').slice(0,60))}</td>
+      <td class="mono">${fmtDate(m.litHearingDate)}</td>
+      <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
+    </tr>`).join('');
+
+  [litBody, litPastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
+    row.addEventListener('click', () => openMatterModal(row.dataset.id))));
+
+  // COI expiring soon (only shown when there are any)
+  const coiSection = document.getElementById('dash-coiexpiring-section');
+  const coiBody = document.getElementById('dash-coiexpiring');
+  coiSection.style.display = coiExpiring.length ? '' : 'none';
+  coiBody.innerHTML = coiExpiring.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.coiExpiration)}</td>
+      <td class="mono">${dashDaysCell(days)}</td>
+    </tr>`).join('');
+
+  // COI expired (only shown when there are any)
+  const coiPastSection = document.getElementById('dash-coiexpired-section');
+  const coiPastBody = document.getElementById('dash-coiexpired');
+  coiPastSection.style.display = coiExpired.length ? '' : 'none';
+  coiPastBody.innerHTML = coiExpired.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.coiExpiration)}</td>
+      <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
+    </tr>`).join('');
+
+  [coiBody, coiPastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
+    row.addEventListener('click', () => openModal(row.dataset.id))));
+
   // Charts are rendered separately via scheduleDashboardCharts() to avoid
   // flickering on every render() call (filter changes, searches, etc.)
 }
@@ -1967,6 +2204,52 @@ function computeAlerts() {
     }
   });
 
+  // 7. Litigation hearings ≤30 days
+  matters.forEach(m => {
+    if (m.type !== 'Litigation' || !m.litHearingDate) return;
+    const days = Math.round((new Date(m.litHearingDate + 'T00:00:00') - now) / 86400000);
+    if (days >= 0 && days <= 30) {
+      alerts.push({ id: `lithearing-${m.id}`, type: 'lithearing', severity: days <= 7 ? 'high' : 'med',
+        title: m.name || '(unnamed matter)', detail: `Hearing in ${days} day${days===1?'':'s'} — ${fmtDate(m.litHearingDate)}`,
+        matterId: m.id });
+    }
+  });
+
+  // 8. Litigation hearings past — matter needs an update
+  matters.forEach(m => {
+    if (m.type !== 'Litigation' || !m.litHearingDate) return;
+    const days = Math.round((new Date(m.litHearingDate + 'T00:00:00') - now) / 86400000);
+    if (days < 0) {
+      alerts.push({ id: `lithearingpast-${m.id}`, type: 'lithearingpast', severity: 'high',
+        title: m.name || '(unnamed matter)', detail: `Hearing was ${Math.abs(days)} day${Math.abs(days)===1?'':'s'} ago — log outcome and update`,
+        matterId: m.id });
+    }
+  });
+
+  // 9. COI expiring ≤30 days
+  contracts.forEach(c => {
+    if (!(c.coiRequired === true || c.coiRequired === 'true') || !c.coiExpiration) return;
+    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.coiExpiration + 'T00:00:00') - now) / 86400000);
+    if (days >= 0 && days <= 30) {
+      alerts.push({ id: `coiexpiring-${c.id}`, type: 'coiexpiring', severity: days <= 7 ? 'high' : 'med',
+        title: c.name || '(unnamed)', detail: `COI expires in ${days} day${days===1?'':'s'} — ${fmtDate(c.coiExpiration)}`,
+        contractId: c.id });
+    }
+  });
+
+  // 10. COI expired
+  contracts.forEach(c => {
+    if (!(c.coiRequired === true || c.coiRequired === 'true') || !c.coiExpiration) return;
+    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.coiExpiration + 'T00:00:00') - now) / 86400000);
+    if (days < 0) {
+      alerts.push({ id: `coiexpired-${c.id}`, type: 'coiexpired', severity: 'high',
+        title: c.name || '(unnamed)', detail: `COI expired ${Math.abs(days)} day${Math.abs(days)===1?'':'s'} ago — request an updated certificate`,
+        contractId: c.id });
+    }
+  });
+
   return alerts.filter(a => !_dismissedAlerts.has(a.id));
 }
 
@@ -1987,8 +2270,8 @@ function renderAlerts() {
     if (alerts.length === 0) {
       list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">No alerts right now</div>`;
     } else {
-      const groups = { notice: [], expiring: [], pastexp: [], tmrenewal: [], tmrenewalpast: [], intake: [] };
-      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', tmrenewal: '™️ Trademark Renewals', tmrenewalpast: '⚠ Trademark Renewal Overdue', intake: '📥 Intake Pending' };
+      const groups = { notice: [], expiring: [], pastexp: [], tmrenewal: [], tmrenewalpast: [], lithearing: [], lithearingpast: [], coiexpiring: [], coiexpired: [], intake: [] };
+      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', tmrenewal: '™️ Trademark Renewals', tmrenewalpast: '⚠ Trademark Renewal Overdue', lithearing: '⚖️ Upcoming Hearings', lithearingpast: '⚠ Past Hearing — Needs Update', coiexpiring: '📋 COI Expiring Soon', coiexpired: '⚠ COI Expired', intake: '📥 Intake Pending' };
       alerts.forEach(a => groups[a.type]?.push(a));
       list.innerHTML = Object.keys(groups).filter(k => groups[k].length).map(k => `
         <div style="padding:8px 14px 4px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-top:1px solid var(--border)">${groupLabels[k]} (${groups[k].length})</div>
@@ -2120,7 +2403,7 @@ function renderDashboardCharts() {
         datasets: [{
           data,
           backgroundColor: PALETTE.slice(0, labels.length),
-          borderColor: '#131a30',
+          borderColor: '#090c18',
           borderWidth: 2,
           borderRadius: type === 'bar' ? 4 : 0,
         }]
@@ -2333,7 +2616,7 @@ function refreshAssignedList() {
 // ── DEPARTMENTS ───────────────────────────────────────────────────────────────
 const DEPT_MAP = {
   'Corporate':    ['Aviation','Finance','HR','Media Ops & Tech','Other'],
-  'INSP':         ['WWD','WWS','Marketing','Creative','Digital-Social','Other'],
+  'INSP':         ['WWD','WWS','Marketing','Creative','Digital-Social','Programming','Other'],
   'CrossRidge':   ['CrossRidge North','CrossRidge South','CRMA','Other'],
   'Ministry':     ['Ministry','Facilities','Security','Other'],
   'Wrangle Media': [],   // no departments — Department field is disabled when selected
@@ -2460,6 +2743,7 @@ function openModal(id) {
   document.getElementById('f-territory-wrap').style.display = showTerritory ? '' : 'none';
   document.getElementById('f-territory').value = c?.territory || '';
   document.getElementById('f-status').value = c?.status || 'Active';
+  document.getElementById('f-execution-status').value = c?.executionStatus || 'Draft';
   document.getElementById('f-filenum').value = c?.filenum || '';
   document.getElementById('f-newfile').checked = c ? (c.newFile === true || c.newFile === 'true') : true;
   updateNewFileUI();
@@ -2467,6 +2751,7 @@ function openModal(id) {
   document.getElementById('f-assigned').value = c?.assigned || '';
   document.getElementById('f-start').value = c?.start || '';
   document.getElementById('f-end').value = c?.end || '';
+  document.getElementById('f-end').dataset.auto = c?.endAuto ? 'true' : 'false';
   document.getElementById('f-term-length').value = c?.termLength || '';
   document.getElementById('f-term-unit').value = c?.termUnit || '';
   document.getElementById('f-term-start-type').value = c?.termStartType || '';
@@ -2481,6 +2766,14 @@ function openModal(id) {
   document.getElementById('f-notice-deadline').dataset.auto = c?.noticeDeadlineAuto ? 'true' : 'false';
   document.getElementById('f-autorenew').checked = isAutoRenew(c);
   updateAutoRenewUI();
+  document.getElementById('f-coi-required').checked = c?.coiRequired === true || c?.coiRequired === 'true';
+  document.getElementById('f-coi-expiration').value = c?.coiExpiration || '';
+  document.getElementById('f-coi-coverage').value = c?.coiCoverage || '';
+  updateCoiUI();
+  document.getElementById('f-renewal-decision').value = c?.renewalDecision || '';
+  document.getElementById('f-renewal-decision-date').value = c?.renewalDecisionDate || '';
+  document.getElementById('f-renewal-decided-by').value = c?.renewalDecidedBy || '';
+  document.getElementById('f-renewal-decision-notes').value = c?.renewalDecisionNotes || '';
   document.getElementById('f-notes').value = c?.notes || '';
   // Requester Description — read-only, only shown if populated from intake
   const rdesc = c?.requesterDesc || '';
@@ -2535,6 +2828,7 @@ function saveContract() {
     type: document.getElementById('f-type').value,
     territory: document.getElementById('f-territory').value.trim(),
     status: document.getElementById('f-status').value,
+    executionStatus: document.getElementById('f-execution-status').value,
     filenum: filenumVal,
     related: document.getElementById('f-related').value.trim(),
     assigned: document.getElementById('f-assigned').value.trim(),
@@ -2554,6 +2848,14 @@ function saveContract() {
       ? document.getElementById('f-renewal-term-other').value.trim() : '',
     noticeDeadline: document.getElementById('f-notice-deadline').value,
     noticeDeadlineAuto: document.getElementById('f-notice-deadline').dataset.auto === 'true',
+    endAuto: document.getElementById('f-end').dataset.auto === 'true',
+    coiRequired: document.getElementById('f-coi-required').checked,
+    coiExpiration: document.getElementById('f-coi-required').checked ? document.getElementById('f-coi-expiration').value : '',
+    coiCoverage: document.getElementById('f-coi-required').checked ? document.getElementById('f-coi-coverage').value.trim() : '',
+    renewalDecision: document.getElementById('f-renewal-decision').value,
+    renewalDecisionDate: document.getElementById('f-renewal-decision-date').value,
+    renewalDecidedBy: document.getElementById('f-renewal-decided-by').value.trim(),
+    renewalDecisionNotes: document.getElementById('f-renewal-decision-notes').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
     requesterDesc: document.getElementById('f-requester-desc').value.trim(),
     attachments: [...cAttachments],
@@ -2800,7 +3102,7 @@ function renderMatters() {
       <td>${esc(m.division) || '—'}</td>
       <td>${esc(m.department) || '—'}</td>
       <td class="mono">${esc(m.type)}</td>
-      <td>${mStatusPill(m.status)}${m.type==='Trademarks' && m.tmStage ? `<span class="pill" style="background:var(--accent-dim);color:var(--accent);font-size:9px;margin-left:4px">${esc(m.tmStage)}</span>` : ''}</td>
+      <td>${mStatusPill(m.status)}${m.type==='Trademarks' && m.tmStage ? `<span class="pill" style="background:var(--accent-dim);color:var(--accent);font-size:9px;margin-left:4px">${esc(m.tmStage)}</span>` : ''}${m.type==='Litigation' && m.litStage ? `<span class="pill" style="background:var(--accent-dim);color:var(--accent);font-size:9px;margin-left:4px">${esc(m.litStage)}</span>` : ''}</td>
       <td>${esc(m.counsel) || '—'}</td>
       <td>${esc(m.assigned) || '—'}</td>
       <td class="mono">${fmtDate(m.opened)}</td>
@@ -2884,6 +3186,14 @@ function openMatterModal(id) {
   document.getElementById('mf-tm-filingdate').value = m?.tmFilingDate || '';
   document.getElementById('mf-tm-classes').value = m?.tmClasses || '';
   document.getElementById('mf-tm-jurisdiction').value = m?.tmJurisdiction || 'US';
+  document.getElementById('mf-lit-stage').value = m?.litStage || 'Pre-Suit / Demand';
+  document.getElementById('mf-lit-role').value = m?.litRole || 'Plaintiff';
+  document.getElementById('mf-lit-casenumber').value = m?.litCaseNumber || '';
+  document.getElementById('mf-lit-court').value = m?.litCourt || '';
+  document.getElementById('mf-lit-opposingparty').value = m?.litOpposingParty || '';
+  document.getElementById('mf-lit-opposingcounsel').value = m?.litOpposingCounsel || '';
+  document.getElementById('mf-lit-filingdate').value = m?.litFilingDate || '';
+  document.getElementById('mf-lit-hearingdate').value = m?.litHearingDate || '';
   updateMatterTypeUI();
   document.getElementById('mf-opened').value = m?.opened || '';
   document.getElementById('mf-closed').value = m?.closed || '';
@@ -2938,6 +3248,14 @@ function saveMatter() {
     tmFilingDate: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-filingdate').value : '',
     tmClasses: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-classes').value.trim() : '',
     tmJurisdiction: document.getElementById('mf-type').value === 'Trademarks' ? document.getElementById('mf-tm-jurisdiction').value.trim() : '',
+    litStage: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-stage').value : '',
+    litCaseNumber: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-casenumber').value.trim() : '',
+    litCourt: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-court').value.trim() : '',
+    litRole: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-role').value : '',
+    litOpposingParty: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-opposingparty').value.trim() : '',
+    litOpposingCounsel: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-opposingcounsel').value.trim() : '',
+    litFilingDate: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-filingdate').value : '',
+    litHearingDate: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-hearingdate').value : '',
     opened: document.getElementById('mf-opened').value,
     closed: document.getElementById('mf-closed').value,
     assigned: document.getElementById('mf-assigned').value.trim(),
@@ -4398,7 +4716,7 @@ async function generateMonthInReviewReport(year, month) {
       dataCell(m.num, { shade: i%2===1 }),
       dataCell(m.name || '(unnamed matter)', { bold: true, shade: i%2===1 }),
       dataCell(fmtDate(m.opened), { shade: i%2===1 }),
-      dataCell(isCompletedTable ? 'Completed' : (m.type === 'Trademarks' && m.tmStage ? m.tmStage : 'Ongoing'), { shade: i%2===1 }),
+      dataCell(isCompletedTable ? 'Completed' : (m.type === 'Trademarks' && m.tmStage ? m.tmStage : (m.type === 'Litigation' && m.litStage ? m.litStage : 'Ongoing')), { shade: i%2===1 }),
       dataCell(m.notes, { shade: i%2===1 }),
       dataCell(latestUpdate(m), { shade: i%2===1 }),
       dataCell('N/A', { shade: i%2===1 }),
@@ -4615,6 +4933,40 @@ document.getElementById('f-dropzone').addEventListener('drop', e => {
 
 // Division → Department cascade in form, then update contract types
 document.getElementById('f-division').addEventListener('change', () => { updateDepartments(); updateContractTypes(); });
+// Adds a Term duration (Years/Months/Days) to a YYYY-MM-DD date string.
+function addTermDuration(dateStr, length, unit) {
+  const n = parseInt(length, 10);
+  if (!dateStr || isNaN(n) || !unit) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return null;
+  if (unit === 'Years') d.setFullYear(d.getFullYear() + n);
+  else if (unit === 'Months') d.setMonth(d.getMonth() + n);
+  else if (unit === 'Days') d.setDate(d.getDate() + n);
+  else return null;
+  return d.toISOString().slice(0, 10);
+}
+
+// Auto-fills Expiration Date from Effective Date + Term, only when the term
+// is defined to run from the Effective Date (not "Other" — no calculable
+// basis there). Respects a manually-entered Expiration Date, same pattern
+// as the Notice Deadline auto-calc below.
+function calcExpirationFromTerm() {
+  const startType = document.getElementById('f-term-start-type').value;
+  if (startType !== 'Effective Date') return;
+  const startVal = document.getElementById('f-start').value;
+  const length = document.getElementById('f-term-length').value;
+  const unit = document.getElementById('f-term-unit').value;
+  const calculated = addTermDuration(startVal, length, unit);
+  if (!calculated) return;
+  const endField = document.getElementById('f-end');
+  const current = endField.value;
+  if (!current || endField.dataset.auto === 'true') {
+    endField.value = calculated;
+    endField.dataset.auto = 'true';
+    calcNoticeDeadline();
+  }
+}
+
 function calcNoticeDeadline() {
   const endVal = document.getElementById('f-end').value;
   const renewal = document.getElementById('f-renewal').value;
@@ -4720,13 +5072,40 @@ document.addEventListener('click', e => {
 });
 document.getElementById('btn-gen-nonrenewal').addEventListener('click', generateNonRenewalLetter);
 document.getElementById('f-department').addEventListener('change', () => updateContractTypes());
-document.getElementById('f-end').addEventListener('change', calcNoticeDeadline);
+document.getElementById('f-end').addEventListener('change', function() {
+  // If user manually edits, stop auto-calculating from Term
+  this.dataset.auto = 'false';
+  calcNoticeDeadline();
+});
 document.getElementById('f-autorenew').addEventListener('change', updateAutoRenewUI);
+function updateCoiUI() {
+  const on = document.getElementById('f-coi-required').checked;
+  document.getElementById('f-coi-detail').style.display = on ? '' : 'none';
+}
+document.getElementById('f-coi-required').addEventListener('change', updateCoiUI);
 document.getElementById('f-term-start-type').addEventListener('change', function() {
   const on = this.value === 'Other';
   document.getElementById('f-term-start-other-wrap').style.display = on ? '' : 'none';
   if (!on) document.getElementById('f-term-start-other').value = '';
+  // Switching to "Other" means Expiration Date no longer has a calculable
+  // basis (the actual trigger event is unknown/future) — clear it if it was
+  // auto-filled, so a stale date doesn't linger looking valid. A manually
+  // typed date (dataset.auto !== 'true') is left untouched either way.
+  // Notice Deadline is itself calculated from Expiration Date, so if it was
+  // auto-filled too, it's now equally stale and gets cleared alongside it.
+  if (on) {
+    const endField = document.getElementById('f-end');
+    if (endField.dataset.auto === 'true') {
+      endField.value = '';
+      const noticeField = document.getElementById('f-notice-deadline');
+      if (noticeField.dataset.auto === 'true') noticeField.value = '';
+    }
+  }
+  calcExpirationFromTerm();
 });
+document.getElementById('f-start').addEventListener('change', calcExpirationFromTerm);
+document.getElementById('f-term-length').addEventListener('input', calcExpirationFromTerm);
+document.getElementById('f-term-unit').addEventListener('change', calcExpirationFromTerm);
 document.getElementById('f-newfile').addEventListener('change', updateNewFileUI);
 document.getElementById('f-renewal-term').addEventListener('change', updateRenewalTermUI);
 document.getElementById('f-remind').addEventListener('input', updateReminderRecipientsUI);
@@ -4787,8 +5166,9 @@ function updateCounselFieldsUI() {
 document.getElementById('mf-counsel').addEventListener('input', updateCounselFieldsUI);
 
 function updateMatterTypeUI() {
-  const isTM = document.getElementById('mf-type').value === 'Trademarks';
-  document.getElementById('mf-tm-wrap').style.display = isTM ? '' : 'none';
+  const type = document.getElementById('mf-type').value;
+  document.getElementById('mf-tm-wrap').style.display = type === 'Trademarks' ? '' : 'none';
+  document.getElementById('mf-lit-wrap').style.display = type === 'Litigation' ? '' : 'none';
 }
 document.getElementById('mf-type').addEventListener('change', updateMatterTypeUI);
 
