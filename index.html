@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LegalTrack</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%226%22%20fill%3D%22%231a2340%22/%3E%0A%20%20%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20font-family%3D%22Georgia%2C%20%27Times%20New%20Roman%27%2C%20serif%22%20font-size%3D%2238%22%20font-weight%3D%22700%22%20fill%3D%22%23c8a96e%22%20text-anchor%3D%22middle%22%3ELT%3C/text%3E%0A%3C/svg%3E%0A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%226%22%20fill%3D%22%231a2340%22/%3E%0A%20%20%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20font-family%3D%22Georgia%2C%20%27Times%20New%20Roman%27%2C%20serif%22%20font-size%3D%2238%22%20font-weight%3D%22700%22%20fill%3D%22%23ffbf3b%22%20text-anchor%3D%22middle%22%3ELT%3C/text%3E%0A%3C/svg%3E%0A">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -15,7 +15,7 @@
 <style>
 :root {
   --bg:#090c18; --surface:#0e1324; --surface2:#121a34; --border:#1e2740;
-  --accent:#c8a96e; --accent-dim:rgba(200,169,110,0.12);
+  --accent:#ffbf3b; --accent-dim:rgba(255,191,59,0.12);
   --text:#e8e4dc; --text-dim:#ccd0e4; --text-muted:#9aa1c4;
   --red:#e05252; --green:#52a852; --yellow:#c8a040; --blue:#5289c8;
 }
@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 /* HEADER */
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#e0c48f;display:flex;align-items:center;gap:11px;}
+.logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#ffbf3b;display:flex;align-items:center;gap:11px;}
 .logo span{color:var(--text-dim);font-size:13px;margin-left:6px;font-family:'IBM Plex Sans',sans-serif;font-weight:400;}
 .header-right{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 
@@ -213,7 +213,7 @@ textarea{resize:vertical;min-height:64px;}
 
 <header>
   <div class="logo">
-    <svg width="30" height="30" viewBox="0 0 64 64" style="flex-shrink:0"><rect width="64" height="64" rx="6" fill="#1a2340" stroke="#c8a96e" stroke-width="3"/><text x="32" y="46" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" fill="#c8a96e" text-anchor="middle">LT</text></svg>
+    <svg width="30" height="30" viewBox="0 0 64 64" style="flex-shrink:0"><rect width="64" height="64" rx="6" fill="#1a2340" stroke="#ffbf3b" stroke-width="3"/><text x="32" y="46" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" fill="#ffbf3b" text-anchor="middle">LT</text></svg>
     LegalTrack <span>/ Legal & Business Affairs</span>
   </div>
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -352,6 +352,42 @@ textarea{resize:vertical;min-height:64px;}
       <table>
         <thead><tr><th>Contract</th><th>Counterparty</th><th>COI Expired</th><th>Ago</th></tr></thead>
         <tbody id="dash-coiexpired"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-coioutexpiring-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h">Our COI Expiring Soon <span class="dash-sub">next 90 days — renew and resend to counterparty</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>Our COI Expires</th><th>Due In</th></tr></thead>
+        <tbody id="dash-coioutexpiring"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-coioutexpired-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h" style="color:#e05a5a">⚠ Our COI Expired <span class="dash-sub">our certificate has lapsed — renew and resend to counterparty</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>Our COI Expired</th><th>Ago</th></tr></thead>
+        <tbody id="dash-coioutexpired"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-coinotreceived-soon-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h">COI Due Soon <span class="dash-sub">not yet received — due within 30 days</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>COI Due</th><th>Due In</th></tr></thead>
+        <tbody id="dash-coinotreceived-soon"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="dash-coinotreceived-past-section" style="display:none;margin-top:16px">
+    <h3 class="dash-h" style="color:#e05a5a">⚠ COI Not Received — Past Due <span class="dash-sub">follow up with the counterparty</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contract</th><th>Counterparty</th><th>COI Was Due</th><th>Ago</th></tr></thead>
+        <tbody id="dash-coinotreceived-past"></tbody>
       </table>
     </div>
   </div>
@@ -791,7 +827,14 @@ textarea{resize:vertical;min-height:64px;}
         </div>
         <div class="form-field">
           <label>Assign To (Attorney)</label>
-          <input type="text" id="rv-assigned" placeholder="Attorney name" autocomplete="off" list="assigned-list">
+          <select id="rv-assigned">
+            <option value="">— Select —</option>
+            <option>Greg Richardson</option>
+            <option>Amy McLean</option>
+            <option>Marsha McClurkin-Wade</option>
+            <option>Other</option>
+          </select>
+          <input type="text" id="rv-assigned-other" placeholder="Enter name" style="display:none;margin-top:6px">
         </div>
       </div>
       <div class="form-field" style="margin-top:12px">
@@ -1004,7 +1047,14 @@ textarea{resize:vertical;min-height:64px;}
       <div class="field-group">
         <div class="form-field">
           <label>Assigned To</label>
-          <input type="text" id="mf-assigned" placeholder="Name" autocomplete="off" list="assigned-list">
+          <select id="mf-assigned">
+            <option value="">— Select —</option>
+            <option>Greg Richardson</option>
+            <option>Amy McLean</option>
+            <option>Marsha McClurkin-Wade</option>
+            <option>Other</option>
+          </select>
+          <input type="text" id="mf-assigned-other" placeholder="Enter name" style="display:none;margin-top:6px">
         </div>
       </div>
       <div class="form-field">
@@ -1066,6 +1116,7 @@ textarea{resize:vertical;min-height:64px;}
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-title">New Contract</div>
+      <button class="btn btn-ghost btn-sm" id="btn-add-amendment" type="button" style="display:none;margin-left:auto;margin-right:10px">↳ Add Amendment</button>
       <button class="modal-close" id="btn-modal-close">×</button>
     </div>
     <div class="modal-body">
@@ -1165,8 +1216,14 @@ textarea{resize:vertical;min-height:64px;}
         </div>
         <div class="form-field">
           <label>Assigned To</label>
-          <input type="text" id="f-assigned" placeholder="Name" autocomplete="off" list="assigned-list">
-          <datalist id="assigned-list"></datalist>
+          <select id="f-assigned">
+            <option value="">— Select —</option>
+            <option>Greg Richardson</option>
+            <option>Amy McLean</option>
+            <option>Marsha McClurkin-Wade</option>
+            <option>Other</option>
+          </select>
+          <input type="text" id="f-assigned-other" placeholder="Enter name" style="display:none;margin-top:6px">
         </div>
       </div>
       <div class="form-field" id="f-territory-wrap" style="display:none">
@@ -1179,7 +1236,7 @@ textarea{resize:vertical;min-height:64px;}
           <label>Effective Date</label>
           <input type="date" id="f-start">
         </div>
-        <div class="form-field">
+        <div class="form-field" id="f-end-wrap">
           <label>Expiration Date</label>
           <input type="date" id="f-end">
         </div>
@@ -1219,105 +1276,142 @@ textarea{resize:vertical;min-height:64px;}
         <label>Describe Start Trigger</label>
         <input type="text" id="f-term-start-other" placeholder="e.g. first use of each Program Title, or launch of service">
       </div>
-      <div class="field-group">
-        <div class="form-field">
-          <label>Auto-Renewal?</label>
-          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
-            <input type="checkbox" id="f-autorenew" style="width:auto;margin:0"> Yes — this agreement auto-renews
-          </label>
-        </div>
-      </div>
-      <div id="f-autorenew-detail" style="display:none">
+      <div id="f-autorenew-section-wrap">
         <div class="field-group">
           <div class="form-field">
-            <label>Auto-Renewal Term</label>
-            <select id="f-renewal-term">
-              <option value="">— Select —</option>
-              <option>Year-to-Year</option>
-              <option>Month-to-Month</option>
-              <option>Other</option>
+            <label>Auto-Renewal?</label>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
+              <input type="checkbox" id="f-autorenew" style="width:auto;margin:0"> Yes — this agreement auto-renews
+            </label>
+          </div>
+        </div>
+        <div id="f-autorenew-detail" style="display:none">
+          <div class="field-group">
+            <div class="form-field">
+              <label>Auto-Renewal Term</label>
+              <select id="f-renewal-term">
+                <option value="">— Select —</option>
+                <option>Year-to-Year</option>
+                <option>Month-to-Month</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-field" id="f-renewal-term-other-wrap" style="display:none">
+              <label>Describe Term</label>
+              <input type="text" id="f-renewal-term-other" placeholder="e.g. renews for successive 2-year terms">
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="form-field">
+              <label>Cancellation Notice</label>
+              <select id="f-renewal">
+                <option value="30">30-day notice required</option>
+                <option value="60">60-day notice required</option>
+                <option value="90">90-day notice required</option>
+                <option value="custom">See notes</option>
+              </select>
+            </div>
+            <div class="form-field" id="f-notice-deadline-wrap" style="display:none">
+              <label>Notice Deadline <span id="f-notice-calc-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">(auto-calculated — edit to override)</span></label>
+              <input type="date" id="f-notice-deadline">
+            </div>
+          </div>
+        </div>
+        <div class="field-group" id="f-remind-wrap" style="display:none">
+          <div class="form-field">
+            <label>Remind Me (x Days before Notice Deadline)</label>
+            <input type="number" id="f-remind" placeholder="e.g. 30, 60, 90" min="1" max="365">
+          </div>
+        </div>
+        <div class="field-group" id="f-reminder-emails-wrap" style="display:none">
+          <div class="form-field">
+            <label>Reminder Recipients <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— in addition to the Requester &amp; Assignee</span></label>
+            <input type="text" id="f-reminder-emails" placeholder="name@insp.com, another@insp.com">
+            <span style="font-size:10px;color:var(--text-muted);font-style:italic">Separate multiple addresses with commas.</span>
+          </div>
+        </div>
+        <div id="f-nonrenewal-wrap" style="display:none;margin-top:4px">
+          <button class="btn-ai" id="btn-gen-nonrenewal" type="button">📄 Generate Notice of Non-Renewal Letter</button>
+          <span style="font-size:10px;color:var(--text-muted);font-style:italic;margin-left:8px">Downloads as .docx</span>
+        </div>
+      </div>
+      <div id="f-renewal-decision-wrap">
+        <div class="field-group" style="margin-top:14px">
+          <div class="form-field">
+            <label>Renewal Decision <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— outcome of the renewal decision, once made</span></label>
+            <select id="f-renewal-decision">
+              <option value="">— Pending Decision —</option>
+              <option>Renew</option>
+              <option>Do Not Renew</option>
+              <option>Renegotiate</option>
             </select>
           </div>
-          <div class="form-field" id="f-renewal-term-other-wrap" style="display:none">
-            <label>Describe Term</label>
-            <input type="text" id="f-renewal-term-other" placeholder="e.g. renews for successive 2-year terms">
+          <div class="form-field">
+            <label>Decision Date</label>
+            <input type="date" id="f-renewal-decision-date">
           </div>
         </div>
         <div class="field-group">
           <div class="form-field">
-            <label>Cancellation Notice</label>
-            <select id="f-renewal">
-              <option value="30">30-day notice required</option>
-              <option value="60">60-day notice required</option>
-              <option value="90">90-day notice required</option>
-              <option value="custom">See notes</option>
-            </select>
+            <label>Decided By</label>
+            <input type="text" id="f-renewal-decided-by" placeholder="Name of decision-maker">
           </div>
-          <div class="form-field" id="f-notice-deadline-wrap" style="display:none">
-            <label>Notice Deadline <span id="f-notice-calc-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">(auto-calculated — edit to override)</span></label>
-            <input type="date" id="f-notice-deadline">
+          <div class="form-field">
+            <label>Decision Notes</label>
+            <input type="text" id="f-renewal-decision-notes" placeholder="Context on the decision, if any">
           </div>
-        </div>
-      </div>
-      <div class="field-group" id="f-remind-wrap" style="display:none">
-        <div class="form-field">
-          <label>Remind Me (x Days before Notice Deadline)</label>
-          <input type="number" id="f-remind" placeholder="e.g. 30, 60, 90" min="1" max="365">
-        </div>
-      </div>
-      <div class="field-group" id="f-reminder-emails-wrap" style="display:none">
-        <div class="form-field">
-          <label>Reminder Recipients <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— in addition to the Requester &amp; Assignee</span></label>
-          <input type="text" id="f-reminder-emails" placeholder="name@insp.com, another@insp.com">
-          <span style="font-size:10px;color:var(--text-muted);font-style:italic">Separate multiple addresses with commas.</span>
-        </div>
-      </div>
-      <div id="f-nonrenewal-wrap" style="display:none;margin-top:4px">
-        <button class="btn-ai" id="btn-gen-nonrenewal" type="button">📄 Generate Notice of Non-Renewal Letter</button>
-        <span style="font-size:10px;color:var(--text-muted);font-style:italic;margin-left:8px">Downloads as .docx</span>
-      </div>
-      <div class="field-group" style="margin-top:14px">
-        <div class="form-field">
-          <label>Renewal Decision <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— outcome of the renewal decision, once made</span></label>
-          <select id="f-renewal-decision">
-            <option value="">— Pending Decision —</option>
-            <option>Renew</option>
-            <option>Do Not Renew</option>
-            <option>Renegotiate</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Decision Date</label>
-          <input type="date" id="f-renewal-decision-date">
         </div>
       </div>
       <div class="field-group">
         <div class="form-field">
-          <label>Decided By</label>
-          <input type="text" id="f-renewal-decided-by" placeholder="Name of decision-maker">
-        </div>
-        <div class="form-field">
-          <label>Decision Notes</label>
-          <input type="text" id="f-renewal-decision-notes" placeholder="Context on the decision, if any">
-        </div>
-      </div>
-      <div class="field-group">
-        <div class="form-field">
-          <label>Requires Insurance Certificate (COI)?</label>
+          <label>Counterparty Must Provide COI to Us?</label>
           <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
-            <input type="checkbox" id="f-coi-required" style="width:auto;margin:0"> Yes — this counterparty must maintain a COI on file
+            <input type="checkbox" id="f-coi-required" style="width:auto;margin:0"> Yes — counterparty must maintain a COI on file with us
           </label>
         </div>
       </div>
       <div id="f-coi-detail" style="display:none">
         <div class="field-group">
           <div class="form-field">
-            <label>COI Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— shows on dashboard and alerts</span></label>
+            <label>COI Received?</label>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
+              <input type="checkbox" id="f-coi-received" style="width:auto;margin:0"> Yes — certificate is on file
+            </label>
+          </div>
+          <div class="form-field">
+            <label>COI Due Date <span id="f-coi-due-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— auto-set to 30 days after execution; edit to override</span></label>
+            <input type="date" id="f-coi-due-date">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="form-field">
+            <label>Counterparty's COI Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— shows on dashboard and alerts</span></label>
             <input type="date" id="f-coi-expiration">
           </div>
           <div class="form-field">
             <label>Coverage Description</label>
             <input type="text" id="f-coi-coverage" placeholder="e.g. General Liability $1M/$2M; Auto $1M; Umbrella $5M">
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="f-execution-fully-executed-date">
+      <div class="field-group">
+        <div class="form-field">
+          <label>We Must Provide COI to Counterparty?</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
+            <input type="checkbox" id="f-coi-out-required" style="width:auto;margin:0"> Yes — we must furnish our COI to the counterparty
+          </label>
+        </div>
+      </div>
+      <div id="f-coi-out-detail" style="display:none">
+        <div class="field-group">
+          <div class="form-field">
+            <label>Our COI Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— when our certificate needs renewing/resending</span></label>
+            <input type="date" id="f-coi-out-expiration">
+          </div>
+          <div class="form-field">
+            <label>Coverage Description</label>
+            <input type="text" id="f-coi-out-coverage" placeholder="e.g. General Liability $1M/$2M; Auto $1M; Umbrella $5M">
           </div>
         </div>
       </div>
@@ -1447,7 +1541,7 @@ const SHEET_MATTERS   = 'Legal Matters';
 const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
-const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther','noticeDeadlineAuto','endAuto','coiRequired','coiExpiration','coiCoverage','executionStatus','renewalDecision','renewalDecisionDate','renewalDecidedBy','renewalDecisionNotes','termPerpetual'];
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther','noticeDeadlineAuto','endAuto','coiRequired','coiExpiration','coiCoverage','executionStatus','renewalDecision','renewalDecisionDate','renewalDecidedBy','renewalDecisionNotes','termPerpetual','coiOutRequired','coiOutExpiration','coiOutCoverage','executionFullyExecutedDate','coiDueDate','coiDueDateAuto','coiReceived','amendmentOfId'];
 const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction','litStage','litCaseNumber','litCourt','litRole','litOpposingParty','litOpposingCounsel','litFilingDate','litHearingDate'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes','agrType'];
 
@@ -1662,7 +1756,13 @@ function contractToRow(c) {
     c.coiRequired===true||c.coiRequired==='true'?'true':'false',
     c.coiExpiration||'',c.coiCoverage||'',c.executionStatus||'',
     c.renewalDecision||'',c.renewalDecisionDate||'',c.renewalDecidedBy||'',c.renewalDecisionNotes||'',
-    c.termPerpetual===true||c.termPerpetual==='true'?'true':'false'];
+    c.termPerpetual===true||c.termPerpetual==='true'?'true':'false',
+    c.coiOutRequired===true||c.coiOutRequired==='true'?'true':'false',
+    c.coiOutExpiration||'',c.coiOutCoverage||'',
+    c.executionFullyExecutedDate||'',c.coiDueDate||'',
+    c.coiDueDateAuto===true||c.coiDueDateAuto==='true'?'true':'false',
+    c.coiReceived===true||c.coiReceived==='true'?'true':'false',
+    c.amendmentOfId||''];
 }
 function rowToContract(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
@@ -2007,6 +2107,34 @@ function renderDashboard() {
     .filter(x => x.days !== null && x.days < 0)
     .sort((a, b) => a.days - b.days);
 
+  // Contracts where we must provide our own COI, expiring within 90 days
+  const coiOutExpiring = contracts
+    .filter(c => (c.coiOutRequired === true || c.coiOutRequired === 'true') && c.coiOutExpiration && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.coiOutExpiration) }))
+    .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
+    .sort((a, b) => a.days - b.days);
+
+  // Contracts where our own COI has already lapsed
+  const coiOutExpired = contracts
+    .filter(c => (c.coiOutRequired === true || c.coiOutRequired === 'true') && c.coiOutExpiration && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.coiOutExpiration) }))
+    .filter(x => x.days !== null && x.days < 0)
+    .sort((a, b) => a.days - b.days);
+
+  // Contracts requiring a COI, not yet received, due within the next 30 days
+  const coiNotReceivedSoon = contracts
+    .filter(c => (c.coiRequired === true || c.coiRequired === 'true') && !(c.coiReceived === true || c.coiReceived === 'true') && c.coiDueDate && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.coiDueDate) }))
+    .filter(x => x.days !== null && x.days >= 0 && x.days <= 30)
+    .sort((a, b) => a.days - b.days);
+
+  // Contracts requiring a COI, not yet received, past their due date
+  const coiNotReceivedPast = contracts
+    .filter(c => (c.coiRequired === true || c.coiRequired === 'true') && !(c.coiReceived === true || c.coiReceived === 'true') && c.coiDueDate && !isExpired(c))
+    .map(c => ({ c, days: dashDaysUntil(c.coiDueDate) }))
+    .filter(x => x.days !== null && x.days < 0)
+    .sort((a, b) => a.days - b.days);
+
   statsEl.innerHTML = `
     <div class="stat"><div class="stat-value">${active.length}</div><div class="stat-label">Active Contracts</div></div>
     <div class="stat"><div class="stat-value">${inRange(expiring,30)}</div><div class="stat-label">Expiring ≤30d</div></div>
@@ -2138,6 +2266,60 @@ function renderDashboard() {
   [coiBody, coiPastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
     row.addEventListener('click', () => openModal(row.dataset.id))));
 
+  // Our COI expiring soon (only shown when there are any)
+  const coiOutSection = document.getElementById('dash-coioutexpiring-section');
+  const coiOutBody = document.getElementById('dash-coioutexpiring');
+  coiOutSection.style.display = coiOutExpiring.length ? '' : 'none';
+  coiOutBody.innerHTML = coiOutExpiring.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.coiOutExpiration)}</td>
+      <td class="mono">${dashDaysCell(days)}</td>
+    </tr>`).join('');
+
+  // Our COI expired (only shown when there are any)
+  const coiOutPastSection = document.getElementById('dash-coioutexpired-section');
+  const coiOutPastBody = document.getElementById('dash-coioutexpired');
+  coiOutPastSection.style.display = coiOutExpired.length ? '' : 'none';
+  coiOutPastBody.innerHTML = coiOutExpired.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.coiOutExpiration)}</td>
+      <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
+    </tr>`).join('');
+
+  [coiOutBody, coiOutPastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
+    row.addEventListener('click', () => openModal(row.dataset.id))));
+
+  // COI due soon, not yet received (only shown when there are any)
+  const coiNRSoonSection = document.getElementById('dash-coinotreceived-soon-section');
+  const coiNRSoonBody = document.getElementById('dash-coinotreceived-soon');
+  coiNRSoonSection.style.display = coiNotReceivedSoon.length ? '' : 'none';
+  coiNRSoonBody.innerHTML = coiNotReceivedSoon.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.coiDueDate)}</td>
+      <td class="mono">${dashDaysCell(days)}</td>
+    </tr>`).join('');
+
+  // COI past due, not yet received (only shown when there are any)
+  const coiNRPastSection = document.getElementById('dash-coinotreceived-past-section');
+  const coiNRPastBody = document.getElementById('dash-coinotreceived-past');
+  coiNRPastSection.style.display = coiNotReceivedPast.length ? '' : 'none';
+  coiNRPastBody.innerHTML = coiNotReceivedPast.map(({ c, days }) => `
+    <tr data-id="${c.id}" class="dash-row">
+      <td class="name">${esc(c.name)}</td>
+      <td>${esc(c.party) || '—'}</td>
+      <td class="mono">${fmtDate(c.coiDueDate)}</td>
+      <td class="mono"><span style="color:#e05a5a;font-weight:600">${Math.abs(days)}d ago</span></td>
+    </tr>`).join('');
+
+  [coiNRSoonBody, coiNRPastBody].forEach(tb => tb.querySelectorAll('.dash-row').forEach(row =>
+    row.addEventListener('click', () => openModal(row.dataset.id))));
+
   // Charts are rendered separately via scheduleDashboardCharts() to avoid
   // flickering on every render() call (filter changes, searches, etc.)
 }
@@ -2259,6 +2441,54 @@ function computeAlerts() {
     }
   });
 
+  // 11. Our COI expiring ≤30 days
+  contracts.forEach(c => {
+    if (!(c.coiOutRequired === true || c.coiOutRequired === 'true') || !c.coiOutExpiration) return;
+    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.coiOutExpiration + 'T00:00:00') - now) / 86400000);
+    if (days >= 0 && days <= 30) {
+      alerts.push({ id: `coioutexpiring-${c.id}`, type: 'coioutexpiring', severity: days <= 7 ? 'high' : 'med',
+        title: c.name || '(unnamed)', detail: `Our COI expires in ${days} day${days===1?'':'s'} — renew and resend to counterparty`,
+        contractId: c.id });
+    }
+  });
+
+  // 12. Our COI expired
+  contracts.forEach(c => {
+    if (!(c.coiOutRequired === true || c.coiOutRequired === 'true') || !c.coiOutExpiration) return;
+    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.coiOutExpiration + 'T00:00:00') - now) / 86400000);
+    if (days < 0) {
+      alerts.push({ id: `coioutexpired-${c.id}`, type: 'coioutexpired', severity: 'high',
+        title: c.name || '(unnamed)', detail: `Our COI expired ${Math.abs(days)} day${Math.abs(days)===1?'':'s'} ago — renew and resend to counterparty`,
+        contractId: c.id });
+    }
+  });
+
+  // 13. COI due soon, not yet received
+  contracts.forEach(c => {
+    if (!(c.coiRequired === true || c.coiRequired === 'true') || (c.coiReceived === true || c.coiReceived === 'true') || !c.coiDueDate) return;
+    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.coiDueDate + 'T00:00:00') - now) / 86400000);
+    if (days >= 0 && days <= 30) {
+      alerts.push({ id: `coinotreceivedsoon-${c.id}`, type: 'coinotreceivedsoon', severity: days <= 7 ? 'high' : 'med',
+        title: c.name || '(unnamed)', detail: `COI due in ${days} day${days===1?'':'s'} — not yet received`,
+        contractId: c.id });
+    }
+  });
+
+  // 14. COI not received, past due
+  contracts.forEach(c => {
+    if (!(c.coiRequired === true || c.coiRequired === 'true') || (c.coiReceived === true || c.coiReceived === 'true') || !c.coiDueDate) return;
+    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    const days = Math.round((new Date(c.coiDueDate + 'T00:00:00') - now) / 86400000);
+    if (days < 0) {
+      alerts.push({ id: `coinotreceivedpast-${c.id}`, type: 'coinotreceivedpast', severity: 'high',
+        title: c.name || '(unnamed)', detail: `COI was due ${Math.abs(days)} day${Math.abs(days)===1?'':'s'} ago — follow up with counterparty`,
+        contractId: c.id });
+    }
+  });
+
   return alerts.filter(a => !_dismissedAlerts.has(a.id));
 }
 
@@ -2279,14 +2509,14 @@ function renderAlerts() {
     if (alerts.length === 0) {
       list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">No alerts right now</div>`;
     } else {
-      const groups = { notice: [], expiring: [], pastexp: [], tmrenewal: [], tmrenewalpast: [], lithearing: [], lithearingpast: [], coiexpiring: [], coiexpired: [], intake: [] };
-      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', tmrenewal: '™️ Trademark Renewals', tmrenewalpast: '⚠ Trademark Renewal Overdue', lithearing: '⚖️ Upcoming Hearings', lithearingpast: '⚠ Past Hearing — Needs Update', coiexpiring: '📋 COI Expiring Soon', coiexpired: '⚠ COI Expired', intake: '📥 Intake Pending' };
+      const groups = { notice: [], expiring: [], pastexp: [], tmrenewal: [], tmrenewalpast: [], lithearing: [], lithearingpast: [], coiexpiring: [], coiexpired: [], coioutexpiring: [], coioutexpired: [], coinotreceivedsoon: [], coinotreceivedpast: [], intake: [] };
+      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', tmrenewal: '™️ Trademark Renewals', tmrenewalpast: '⚠ Trademark Renewal Overdue', lithearing: '⚖️ Upcoming Hearings', lithearingpast: '⚠ Past Hearing — Needs Update', coiexpiring: '📋 COI Expiring Soon', coiexpired: '⚠ COI Expired', coioutexpiring: '📋 Our COI Expiring Soon', coioutexpired: '⚠ Our COI Expired', coinotreceivedsoon: '📋 COI Due Soon', coinotreceivedpast: '⚠ COI Not Received — Past Due', intake: '📥 Intake Pending' };
       alerts.forEach(a => groups[a.type]?.push(a));
       list.innerHTML = Object.keys(groups).filter(k => groups[k].length).map(k => `
         <div style="padding:8px 14px 4px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-top:1px solid var(--border)">${groupLabels[k]} (${groups[k].length})</div>
         ${groups[k].map(a => `
           <div class="notif-item" data-id="${a.id}" data-cid="${a.contractId||''}" data-mid="${a.matterId||''}" style="display:flex;align-items:flex-start;gap:8px;padding:8px 14px;cursor:${(a.contractId||a.matterId)?'pointer':'default'};border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-            <div style="width:6px;height:6px;border-radius:50%;background:${a.severity==='high'?'#e05a5a':'#c8a96e'};margin-top:5px;flex-shrink:0"></div>
+            <div style="width:6px;height:6px;border-radius:50%;background:${a.severity==='high'?'#e05a5a':'#ffbf3b'};margin-top:5px;flex-shrink:0"></div>
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.title)}</div>
               <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${a.detail}</div>
@@ -2347,7 +2577,7 @@ function renderAlerts() {
   // Build notice rows with Generate button if any
   const noticeRows = notice.map(a => `
     <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(200,169,110,.15);flex-wrap:wrap">
-      <div style="width:6px;height:6px;border-radius:50%;background:${a.severity==='high'?'#e05a5a':'#c8a96e'};flex-shrink:0"></div>
+      <div style="width:6px;height:6px;border-radius:50%;background:${a.severity==='high'?'#e05a5a':'#ffbf3b'};flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
         <span style="font-weight:500;color:var(--text)">${esc(a.title)}</span>
         <span style="color:var(--text-muted);font-size:12px;margin-left:6px">${a.detail}</span>
@@ -2613,14 +2843,68 @@ function refreshPartyList() {
   dl.innerHTML = names.map(n => `<option value="${n.replace(/"/g,'&quot;')}">`).join('');
 }
 
+// Fixed roster shown first in every "Assigned To" dropdown. Any other name
+// ever entered via "Other" is remembered automatically — once saved, it's
+// just part of the data (contracts/matters), so the next scan below picks it
+// up as a real option going forward. No separate storage needed.
+const ASSIGNED_DEFAULTS = ['Greg Richardson', 'Amy McLean', 'Marsha McClurkin-Wade'];
+const ASSIGNED_FIELD_IDS = ['f-assigned', 'mf-assigned', 'rv-assigned'];
+
 function refreshAssignedList() {
-  const names = [...new Set([
+  const extras = [...new Set([
     ...contracts.map(c => c.assigned),
     ...matters.map(m => m.assigned)
-  ].filter(Boolean))].sort();
-  const dl = document.getElementById('assigned-list');
-  if (dl) dl.innerHTML = names.map(n => `<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+  ].filter(Boolean).filter(n => !ASSIGNED_DEFAULTS.includes(n)))].sort();
+  const optionsHtml = '<option value="">\u2014 Select \u2014</option>' +
+    ASSIGNED_DEFAULTS.map(n => `<option>${n}</option>`).join('') +
+    extras.map(n => `<option>${n.replace(/"/g,'&quot;')}</option>`).join('') +
+    '<option>Other</option>';
+  ASSIGNED_FIELD_IDS.forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = optionsHtml;
+  });
 }
+
+// Sets an "Assigned To" dropdown + its Other field to match a stored value --
+// selects it directly if already a known option, or reveals Other with the
+// value pre-filled if it's a name not yet seen (shouldn't normally happen,
+// since refreshAssignedList() is always called first, but stays correct
+// even for a stale/edge-case value).
+function setAssignedValue(selectId, otherId, value) {
+  const sel = document.getElementById(selectId);
+  const other = document.getElementById(otherId);
+  if (!value) { sel.value = ''; other.value = ''; other.style.display = 'none'; return; }
+  const known = Array.from(sel.options).some(o => o.value === value);
+  if (known) {
+    sel.value = value;
+    other.value = '';
+    other.style.display = 'none';
+  } else {
+    sel.value = 'Other';
+    other.value = value;
+    other.style.display = '';
+  }
+}
+
+function updateAssignedOtherUI(selectId, otherId) {
+  const sel = document.getElementById(selectId);
+  const other = document.getElementById(otherId);
+  const on = sel.value === 'Other';
+  other.style.display = on ? '' : 'none';
+  if (!on) other.value = '';
+}
+document.getElementById('f-assigned').addEventListener('change', () => updateAssignedOtherUI('f-assigned', 'f-assigned-other'));
+document.getElementById('mf-assigned').addEventListener('change', () => updateAssignedOtherUI('mf-assigned', 'mf-assigned-other'));
+document.getElementById('rv-assigned').addEventListener('change', () => updateAssignedOtherUI('rv-assigned', 'rv-assigned-other'));
+
+// Reads the final value from a converted "Assigned To" dropdown: the typed
+// name if Other is selected, otherwise the dropdown's own selected value.
+function getAssignedValue(selectId, otherId) {
+  const sel = document.getElementById(selectId);
+  if (sel.value === 'Other') return document.getElementById(otherId).value.trim();
+  return sel.value;
+}
+
 
 // ── DEPARTMENTS ───────────────────────────────────────────────────────────────
 const DEPT_MAP = {
@@ -2668,13 +2952,14 @@ function updateContractTypes(preserveVal) {
   let types; // values stored on the contract; display labels come from typeLabel()
   if (isCrossRidge) {
     // CrossRidge real-estate deals only ('CrossRidge Lease' shows as 'Commercial Lease')
-    types = ['CrossRidge Lease', 'Land Sale', 'Other'];
+    types = ['CrossRidge Lease', 'Land Sale', 'Amendment', 'Other'];
   } else if (isWWD) {
     // WWD: only Distribution Agreements and Other
     types = [
       'Distribution Agr - Western Bound',
       'Distribution Agr - INSP',
       'Distribution Agr - OND',
+      'Amendment',
       'Other'
     ];
   } else {
@@ -2747,6 +3032,7 @@ function openModal(id) {
   document.getElementById('f-requester').value = c?.requester || '';
   updateContractTypes(c?.type);
   document.getElementById('f-type').value = c?.type || 'Service Agreement';
+  updateAmendmentButtonUI();
   // Territory — show only for applicable distribution agreement types
   const showTerritory = ['Distribution Agr - Western Bound','Distribution Agr - OND'].includes(c?.type);
   document.getElementById('f-territory-wrap').style.display = showTerritory ? '' : 'none';
@@ -2757,7 +3043,8 @@ function openModal(id) {
   document.getElementById('f-newfile').checked = c ? (c.newFile === true || c.newFile === 'true') : true;
   updateNewFileUI();
   document.getElementById('f-related').value = c?.related || '';
-  document.getElementById('f-assigned').value = c?.assigned || '';
+  refreshAssignedList();
+  setAssignedValue('f-assigned', 'f-assigned-other', c?.assigned || '');
   document.getElementById('f-start').value = c?.start || '';
   document.getElementById('f-end').value = c?.end || '';
   document.getElementById('f-end').dataset.auto = c?.endAuto ? 'true' : 'false';
@@ -2767,7 +3054,6 @@ function openModal(id) {
   document.getElementById('f-term-start-other').value = c?.termStartOther || '';
   document.getElementById('f-term-start-other-wrap').style.display = c?.termStartType === 'Other' ? '' : 'none';
   document.getElementById('f-term-perpetual').checked = c?.termPerpetual === true || c?.termPerpetual === 'true';
-  updateTermPerpetualUI();
   document.getElementById('f-remind').value = c?.remind || '';
   document.getElementById('f-renewal').value = c?.renewal || '30';
   document.getElementById('f-renewal-term').value = c?.renewalTerm || '';
@@ -2780,11 +3066,20 @@ function openModal(id) {
   document.getElementById('f-coi-required').checked = c?.coiRequired === true || c?.coiRequired === 'true';
   document.getElementById('f-coi-expiration').value = c?.coiExpiration || '';
   document.getElementById('f-coi-coverage').value = c?.coiCoverage || '';
+  document.getElementById('f-execution-fully-executed-date').value = c?.executionFullyExecutedDate || '';
+  document.getElementById('f-coi-due-date').value = c?.coiDueDate || '';
+  document.getElementById('f-coi-due-date').dataset.auto = c?.coiDueDateAuto ? 'true' : 'false';
+  document.getElementById('f-coi-received').checked = c?.coiReceived === true || c?.coiReceived === 'true';
   updateCoiUI();
+  document.getElementById('f-coi-out-required').checked = c?.coiOutRequired === true || c?.coiOutRequired === 'true';
+  document.getElementById('f-coi-out-expiration').value = c?.coiOutExpiration || '';
+  document.getElementById('f-coi-out-coverage').value = c?.coiOutCoverage || '';
+  updateCoiOutUI();
   document.getElementById('f-renewal-decision').value = c?.renewalDecision || '';
   document.getElementById('f-renewal-decision-date').value = c?.renewalDecisionDate || '';
   document.getElementById('f-renewal-decided-by').value = c?.renewalDecidedBy || '';
   document.getElementById('f-renewal-decision-notes').value = c?.renewalDecisionNotes || '';
+  updateTermPerpetualUI();
   document.getElementById('f-notes').value = c?.notes || '';
   // Requester Description — read-only, only shown if populated from intake
   const rdesc = c?.requesterDesc || '';
@@ -2803,6 +3098,7 @@ function openModal(id) {
   const fi = document.getElementById('f-file-input');
   if (fi) fi.value = '';
   _relatedIds = [...(c?.relatedIds || [])];
+  _amendmentOfId = c?.amendmentOfId || null;
   renderRelatedChips();
   document.getElementById('modal').classList.add('open');
   updateContractTypes(c?.type);
@@ -2842,7 +3138,7 @@ function saveContract() {
     executionStatus: document.getElementById('f-execution-status').value,
     filenum: filenumVal,
     related: document.getElementById('f-related').value.trim(),
-    assigned: document.getElementById('f-assigned').value.trim(),
+    assigned: getAssignedValue('f-assigned', 'f-assigned-other'),
     start: document.getElementById('f-start').value,
     end: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-end').value,
     termPerpetual: document.getElementById('f-term-perpetual').checked,
@@ -2850,7 +3146,7 @@ function saveContract() {
     termUnit: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-term-unit').value,
     termStartType: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-term-start-type').value,
     termStartOther: (!document.getElementById('f-term-perpetual').checked && document.getElementById('f-term-start-type').value === 'Other') ? document.getElementById('f-term-start-other').value.trim() : '',
-    remind: document.getElementById('f-remind').value,
+    remind: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-remind').value,
     reminderEmails: (document.getElementById('f-autorenew').checked && document.getElementById('f-remind').value.trim())
       ? document.getElementById('f-reminder-emails').value.trim() : '',
     autoRenew: document.getElementById('f-autorenew').checked,
@@ -2858,23 +3154,32 @@ function saveContract() {
     renewalTerm: document.getElementById('f-autorenew').checked ? document.getElementById('f-renewal-term').value : '',
     renewalTermOther: (document.getElementById('f-autorenew').checked && document.getElementById('f-renewal-term').value === 'Other')
       ? document.getElementById('f-renewal-term-other').value.trim() : '',
-    noticeDeadline: document.getElementById('f-notice-deadline').value,
+    noticeDeadline: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-notice-deadline').value,
     noticeDeadlineAuto: document.getElementById('f-notice-deadline').dataset.auto === 'true',
     endAuto: document.getElementById('f-end').dataset.auto === 'true',
     coiRequired: document.getElementById('f-coi-required').checked,
     coiExpiration: document.getElementById('f-coi-required').checked ? document.getElementById('f-coi-expiration').value : '',
     coiCoverage: document.getElementById('f-coi-required').checked ? document.getElementById('f-coi-coverage').value.trim() : '',
-    renewalDecision: document.getElementById('f-renewal-decision').value,
-    renewalDecisionDate: document.getElementById('f-renewal-decision-date').value,
-    renewalDecidedBy: document.getElementById('f-renewal-decided-by').value.trim(),
-    renewalDecisionNotes: document.getElementById('f-renewal-decision-notes').value.trim(),
+    executionFullyExecutedDate: document.getElementById('f-execution-fully-executed-date').value,
+    coiDueDate: document.getElementById('f-coi-required').checked ? document.getElementById('f-coi-due-date').value : '',
+    coiDueDateAuto: document.getElementById('f-coi-due-date').dataset.auto === 'true',
+    coiReceived: document.getElementById('f-coi-required').checked ? document.getElementById('f-coi-received').checked : false,
+    coiOutRequired: document.getElementById('f-coi-out-required').checked,
+    coiOutExpiration: document.getElementById('f-coi-out-required').checked ? document.getElementById('f-coi-out-expiration').value : '',
+    coiOutCoverage: document.getElementById('f-coi-out-required').checked ? document.getElementById('f-coi-out-coverage').value.trim() : '',
+    renewalDecision: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-renewal-decision').value,
+    renewalDecisionDate: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-renewal-decision-date').value,
+    renewalDecidedBy: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-renewal-decided-by').value.trim(),
+    renewalDecisionNotes: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-renewal-decision-notes').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
     requesterDesc: document.getElementById('f-requester-desc').value.trim(),
     attachments: [...cAttachments],
     aiSummary: document.getElementById('f-ai-summary-text').value.trim(),
     updates: editId ? (contracts.find(x=>x.id===editId)?.updates || []) : [],
     relatedIds: [..._relatedIds],
+    amendmentOfId: _amendmentOfId || '',
   };
+  const isNewRecord = !editId;
   if (editId) {
     const i = contracts.findIndex(c=>c.id===editId);
     contracts[i] = data;
@@ -2883,6 +3188,32 @@ function saveContract() {
     contracts.push(data);
     toast('Contract added.');
   }
+
+  // If this is an amendment, sync back to the original: bidirectional link,
+  // carry its expiration date forward (the amendment is the authoritative
+  // source for the newly extended term), and log the addition — but only on
+  // first creation, so re-saving an already-existing amendment doesn't spam
+  // duplicate log entries on the original every time it's touched again.
+  if (data.amendmentOfId) {
+    const orig = contracts.find(c => c.id === data.amendmentOfId);
+    if (orig && orig.id !== data.id) {
+      if (!Array.isArray(orig.relatedIds)) orig.relatedIds = [];
+      if (!orig.relatedIds.includes(data.id)) orig.relatedIds.push(data.id);
+      if (data.end) {
+        orig.end = data.end;
+        orig.endAuto = true;
+      }
+      if (isNewRecord) {
+        const amendmentNumber = countAmendmentsFor(data.amendmentOfId);
+        orig.updates = orig.updates || [];
+        orig.updates.push({
+          ts: Date.now(),
+          text: `Amendment No. ${amendmentNumber} added${data.filenum ? ' (File ' + data.filenum + ')' : ''}${data.end ? ' — new expiration: ' + data.end : ''}.`,
+        });
+      }
+    }
+  }
+
   save(); closeModal(); render(); scheduleDashboardCharts(); renderAlerts(); refreshPartyList(); refreshAssignedList(); refreshTerritoryList();
 }
 
@@ -3209,7 +3540,8 @@ function openMatterModal(id) {
   updateMatterTypeUI();
   document.getElementById('mf-opened').value = m?.opened || '';
   document.getElementById('mf-closed').value = m?.closed || '';
-  document.getElementById('mf-assigned').value = m?.assigned || '';
+  refreshAssignedList();
+  setAssignedValue('mf-assigned', 'mf-assigned-other', m?.assigned || '');
   document.getElementById('mf-notes').value = m?.notes || '';
   mAttachments = m?.attachments ? [...m.attachments] : [];
   renderMAttachList();
@@ -3270,7 +3602,7 @@ function saveMatter() {
     litHearingDate: document.getElementById('mf-type').value === 'Litigation' ? document.getElementById('mf-lit-hearingdate').value : '',
     opened: document.getElementById('mf-opened').value,
     closed: document.getElementById('mf-closed').value,
-    assigned: document.getElementById('mf-assigned').value.trim(),
+    assigned: getAssignedValue('mf-assigned', 'mf-assigned-other'),
     notes: document.getElementById('mf-notes').value.trim(),
     attachments: [...mAttachments],
     aiSummary: document.getElementById('mf-ai-summary-text').value.trim(),
@@ -3824,7 +4156,8 @@ function openReviewModal(id) {
     </div>`;
 
   document.getElementById('rv-status').value = r.status;
-  document.getElementById('rv-assigned').value = r.assigned || '';
+  refreshAssignedList();
+  setAssignedValue('rv-assigned', 'rv-assigned-other', r.assigned || '');
   document.getElementById('rv-notes').value = r.legalNotes || '';
   document.getElementById('intake-review-modal').classList.add('open');
 }
@@ -3838,7 +4171,7 @@ function saveReview() {
   const r = intakeRequests.find(x=>x.id===iEditId);
   if (!r) return;
   r.status = document.getElementById('rv-status').value;
-  r.assigned = document.getElementById('rv-assigned').value.trim();
+  r.assigned = getAssignedValue('rv-assigned', 'rv-assigned-other');
   r.legalNotes = document.getElementById('rv-notes').value.trim();
   iSave(); closeReviewModal(); renderIntake(); refreshAssignedList();
   toast('Request updated.');
@@ -3878,7 +4211,8 @@ function convertToContract() {
     updateDepartments(parts.length === 2 ? parts[1].trim() : undefined);
   }
   document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}`.trim();
-  document.getElementById('f-assigned').value = r.assigned || '';
+  refreshAssignedList();
+  setAssignedValue('f-assigned', 'f-assigned-other', r.assigned || '');
   // Default file-number mode from the intake's agreement type: "Change to an Existing
   // Agreement" → update an existing file (manual #); otherwise → new file (auto-assign).
   const isChange = (r.agrType || '').toLowerCase().includes('existing');
@@ -3896,7 +4230,8 @@ function convertToMatter() {
   openMatterModal();
   document.getElementById('mf-name').value = r.description.slice(0,80);
   document.getElementById('mf-notes').value = `[From Legal Intake — ${r.requestor}, ${r.dept}]\n${r.description}${r.link?'\n\nOneDrive: '+r.link:''}`;
-  document.getElementById('mf-assigned').value = r.assigned || '';
+  refreshAssignedList();
+  setAssignedValue('mf-assigned', 'mf-assigned-other', r.assigned || '');
   toast('Converted to Other Legal Matter — complete the form and save.');
 }
 
@@ -4263,7 +4598,7 @@ async function generateAnnualBudgetReport() {
 
     // Color palette — navy/gold to match LegalTrack feel
     const NAVY  = '1a2340';
-    const GOLD  = 'c8a96e';
+    const GOLD  = 'ffbf3b';
     const WHITE = 'FFFFFF';
     const LIGHT = 'f0ece4';
     const GRAY  = '888888';
@@ -4699,7 +5034,7 @@ async function generateMonthInReviewReport(year, month) {
     return ups.length ? ups[0].text : '';
   };
 
-  const NAVY = '1a2340', GOLD = 'c8a96e', GRAY = '666666', DKGRAY = '333333';
+  const NAVY = '1a2340', GOLD = 'ffbf3b', GRAY = '666666', DKGRAY = '333333';
   const COL_WIDTHS = [650, 1500, 850, 700, 2200, 2200, 700]; // DXA, sums under the 9360 usable width
 
   const headerCell = text => new TableCell({
@@ -4819,6 +5154,7 @@ document.querySelectorAll('.sortable-th').forEach(th => {
 
 // Contract modal
 document.getElementById('btn-modal-close').addEventListener('click', closeModal);
+document.getElementById('btn-add-amendment').addEventListener('click', () => openAmendmentModal(editId));
 document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
 document.getElementById('btn-modal-save').addEventListener('click', saveContract);
 document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
@@ -5097,10 +5433,46 @@ function updateCoiUI() {
 }
 document.getElementById('f-coi-required').addEventListener('change', updateCoiUI);
 
+// Auto-calculates COI Due Date as 30 days after the contract's execution date
+// (stamped the first time Execution Status becomes "Fully Executed"). Respects
+// a manually-entered due date, same auto/manual pattern as Expiration Date.
+function calcCoiDueDate() {
+  const execDate = document.getElementById('f-execution-fully-executed-date').value;
+  const calculated = addTermDuration(execDate, 30, 'Days');
+  if (!calculated) return;
+  const dueField = document.getElementById('f-coi-due-date');
+  const current = dueField.value;
+  if (!current || dueField.dataset.auto === 'true') {
+    dueField.value = calculated;
+    dueField.dataset.auto = 'true';
+  }
+}
+document.getElementById('f-execution-status').addEventListener('change', function() {
+  // Stamp the execution date once, the first time it becomes Fully Executed —
+  // re-selecting it later shouldn't reset an already-running 30-day clock.
+  if (this.value === 'Fully Executed') {
+    const execField = document.getElementById('f-execution-fully-executed-date');
+    if (!execField.value) execField.value = new Date().toISOString().slice(0, 10);
+    calcCoiDueDate();
+  }
+});
+document.getElementById('f-coi-due-date').addEventListener('change', function() {
+  // If user manually edits, stop auto-calculating from the execution date
+  this.dataset.auto = 'false';
+});
+function updateCoiOutUI() {
+  const on = document.getElementById('f-coi-out-required').checked;
+  document.getElementById('f-coi-out-detail').style.display = on ? '' : 'none';
+}
+document.getElementById('f-coi-out-required').addEventListener('change', updateCoiOutUI);
+
 function updateTermPerpetualUI() {
   const perpetual = document.getElementById('f-term-perpetual').checked;
   document.getElementById('f-term-detail-group').style.display = perpetual ? 'none' : '';
   document.getElementById('f-term-start-other-wrap').style.display = (!perpetual && document.getElementById('f-term-start-type').value === 'Other') ? '' : 'none';
+  document.getElementById('f-renewal-decision-wrap').style.display = perpetual ? 'none' : '';
+  document.getElementById('f-end-wrap').style.display = perpetual ? 'none' : '';
+  document.getElementById('f-autorenew-section-wrap').style.display = perpetual ? 'none' : '';
   const endField = document.getElementById('f-end');
   endField.disabled = perpetual;
   if (perpetual) {
@@ -5111,11 +5483,23 @@ function updateTermPerpetualUI() {
     document.getElementById('f-term-start-type').value = '';
     document.getElementById('f-term-start-other').value = '';
     endField.value = '';
-    endField.placeholder = 'Perpetual — never expires';
     const noticeField = document.getElementById('f-notice-deadline');
     if (noticeField.dataset.auto === 'true') noticeField.value = '';
-  } else {
-    endField.placeholder = '';
+    // A perpetual agreement never comes up for a renewal decision — clear any
+    // stale entry so it doesn't linger unseen behind the hidden fields.
+    document.getElementById('f-renewal-decision').value = '';
+    document.getElementById('f-renewal-decision-date').value = '';
+    document.getElementById('f-renewal-decided-by').value = '';
+    document.getElementById('f-renewal-decision-notes').value = '';
+    // Nothing to auto-renew, either — uncheck it and clear every dependent
+    // field, so unchecking Perpetual later doesn't reveal stale settings.
+    document.getElementById('f-autorenew').checked = false;
+    document.getElementById('f-renewal-term').value = '';
+    document.getElementById('f-renewal-term-other').value = '';
+    noticeField.value = '';
+    document.getElementById('f-remind').value = '';
+    document.getElementById('f-reminder-emails').value = '';
+    updateAutoRenewUI();
   }
 }
 document.getElementById('f-term-perpetual').addEventListener('change', updateTermPerpetualUI);
@@ -5159,7 +5543,16 @@ document.getElementById('f-notice-deadline').addEventListener('change', function
 });
 document.getElementById('f-type').addEventListener('change', function() {
   toggleTerritoryField(this.value);
+  updateAmendmentButtonUI();
 });
+
+// "Add Amendment" is only offered on a saved, existing contract that is not
+// itself an amendment — amendments always link back to the true original,
+// never to each other.
+function updateAmendmentButtonUI() {
+  const type = document.getElementById('f-type').value;
+  document.getElementById('btn-add-amendment').style.display = (editId && type !== 'Amendment') ? '' : 'none';
+}
 
 // Update log buttons
 document.getElementById('btn-add-update').addEventListener('click', addContractUpdate);
@@ -5332,7 +5725,7 @@ function globalSearch(q) {
     if (pmap[k].name.toLowerCase().includes(q)) results.push({ kind:'Party', id:k, title:pmap[k].name, sub:`${pmap[k].n} agreement${pmap[k].n === 1 ? '' : 's'}` });
   });
   if (!results.length) { box.innerHTML = '<div class="gs-empty">No matches</div>'; box.style.display = ''; return; }
-  const color = { Contract:'#c8a96e', Matter:'#7fa8d9', Intake:'#8fbf8f', Party:'#6fb0c0' };
+  const color = { Contract:'#ffbf3b', Matter:'#7fa8d9', Intake:'#8fbf8f', Party:'#6fb0c0' };
   const counts = {};
   results.forEach(r => counts[r.kind] = (counts[r.kind]||0)+1);
   const countStr = Object.keys(counts).map(k => `<span style="color:${color[k]}">${counts[k]} ${k}${counts[k]>1?'s':''}</span>`).join(' · ');
@@ -5546,7 +5939,8 @@ function duplicateContract(id) {
     updateContractTypes(src.type);
     document.getElementById('f-type').value = src.type || 'Service Agreement';
     document.getElementById('f-status').value = src.status || 'Active';
-    document.getElementById('f-assigned').value = src.assigned || '';
+    refreshAssignedList();
+    setAssignedValue('f-assigned', 'f-assigned-other', src.assigned || '');
     document.getElementById('f-start').value = src.start || '';
     document.getElementById('f-end').value = src.end || '';
     document.getElementById('f-remind').value = src.remind || '';
@@ -5559,10 +5953,40 @@ function duplicateContract(id) {
     document.getElementById('f-newfile').checked = true;
     updateNewFileUI();
     _relatedIds = [];
+    _amendmentOfId = null;
     renderRelatedChips();
     toast('Duplicated — review and save.');
   }, 60);
 }
+
+// Opens a new contract pre-filled to amend the given original: copies the
+// counterparty/division/department/requester, sets Type to Amendment, assigns
+// a new file #, auto-numbers the name, and links it back to the original.
+// Effective/Expiration Date are left blank — an amendment's dates are its own.
+function openAmendmentModal(sourceId) {
+  const src = contracts.find(c => c.id === sourceId);
+  if (!src) return;
+  const amendmentNumber = countAmendmentsFor(sourceId) + 1;
+  openModal(); // open blank first to wire up all the UI
+  setTimeout(() => {
+    document.getElementById('f-name').value = `${src.name || '(unnamed)'} — Amendment No. ${amendmentNumber}`;
+    document.getElementById('f-party').value = src.party || '';
+    document.getElementById('f-division').value = src.division || '';
+    updateDepartments(src.department);
+    document.getElementById('f-requester').value = src.requester || '';
+    updateContractTypes('Amendment');
+    document.getElementById('f-type').value = 'Amendment';
+    toggleTerritoryField('Amendment');
+    document.getElementById('f-newfile').checked = true;
+    updateNewFileUI();
+    _relatedIds = [sourceId];
+    _amendmentOfId = sourceId;
+    renderRelatedChips();
+    updateAmendmentButtonUI();
+    toast(`Creating Amendment No. ${amendmentNumber} — review and save.`);
+  }, 60);
+}
+
 
 // ── WORD EXPORT ───────────────────────────────────────────────────────────────
 async function exportWord() {
@@ -5576,7 +6000,7 @@ async function exportWord() {
   const headerCellStyle = (text) => new TableCell({
     shading: { fill: '1e1e1e' },
     borders: { top:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE} },
-    children: [new Paragraph({ children: [new TextRun({ text, bold:true, size:18, color:'c8a96e', font:'IBM Plex Mono' })] })]
+    children: [new Paragraph({ children: [new TextRun({ text, bold:true, size:18, color:'ffbf3b', font:'IBM Plex Mono' })] })]
   });
   const dataCellStyle = (text, mono=false) => new TableCell({
     borders: { top:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'2a2a2a'}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE} },
@@ -5627,6 +6051,13 @@ async function exportWord() {
 
 // ── RELATED CONTRACTS ─────────────────────────────────────────────────────────
 let _relatedIds = []; // working set for the currently open modal
+let _amendmentOfId = null; // set only via the "Add Amendment" flow; null otherwise
+
+// How many contracts are already recorded as amendments to this original —
+// used to auto-number a new one (e.g. "Amendment No. 3").
+function countAmendmentsFor(originalId) {
+  return contracts.filter(c => c.amendmentOfId === originalId).length;
+}
 
 function renderRelatedChips() {
   const wrap = document.getElementById('f-related-chips');
