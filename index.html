@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LegalTrack</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%226%22%20fill%3D%22%231a2340%22/%3E%0A%20%20%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20font-family%3D%22Georgia%2C%20%27Times%20New%20Roman%27%2C%20serif%22%20font-size%3D%2238%22%20font-weight%3D%22700%22%20fill%3D%22%23ffbf3b%22%20text-anchor%3D%22middle%22%3ELT%3C/text%3E%0A%3C/svg%3E%0A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%226%22%20fill%3D%22%23090c18%22/%3E%0A%20%20%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20font-family%3D%22Georgia%2C%20%27Times%20New%20Roman%27%2C%20serif%22%20font-size%3D%2238%22%20font-weight%3D%22700%22%20fill%3D%22%23ffbf3b%22%20text-anchor%3D%22middle%22%3ELT%3C/text%3E%0A%3C/svg%3E%0A">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -100,6 +100,7 @@ td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;}
 .pill-active{background:rgba(82,168,82,.15);color:var(--green);}
 .pill-expired{background:rgba(224,82,82,.15);color:var(--red);}
 .pill-pending{background:rgba(200,160,64,.15);color:var(--yellow);}
+.pill-cancelled{background:rgba(153,153,153,.15);color:var(--text-muted);}
 .pill-open{background:rgba(82,168,82,.15);color:var(--green);}
 .pill-closed{background:rgba(136,136,136,.1);color:var(--text-muted);}
 .pill-hold{background:rgba(200,160,64,.15);color:var(--yellow);}
@@ -178,14 +179,6 @@ textarea{resize:vertical;min-height:64px;}
 .convert-btn{background:var(--accent-dim);border:1px solid rgba(200,169,110,.3);color:var(--accent);border-radius:2px;padding:4px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;white-space:nowrap;}
 .convert-btn:hover{background:var(--accent);color:#0f0f0f;}
 
-/* AI SUMMARY */
-.ai-summary-wrap{border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-top:6px;}
-.ai-summary-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);}
-.ai-summary-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;}
-.ai-summary-actions{display:flex;gap:6px;}
-.ai-summary-body textarea{border:none;border-radius:0;background:var(--surface);min-height:180px;font-size:12px;line-height:1.6;resize:vertical;}
-.ai-summary-body textarea:focus{border:none;outline:none;box-shadow:inset 0 0 0 1px var(--accent);}
-.ai-summary-loading{padding:24px;text-align:center;color:var(--text-muted);font-size:12px;font-style:italic;}
 .btn-ai{background:var(--accent-dim);border:1px solid rgba(200,169,110,0.3);color:var(--accent);border-radius:2px;padding:5px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .btn-ai:hover{background:var(--accent);color:#0f0f0f;}
 .btn-ai:disabled{opacity:0.4;cursor:not-allowed;}
@@ -213,7 +206,7 @@ textarea{resize:vertical;min-height:64px;}
 
 <header>
   <div class="logo">
-    <svg width="30" height="30" viewBox="0 0 64 64" style="flex-shrink:0"><rect width="64" height="64" rx="6" fill="#1a2340" stroke="#ffbf3b" stroke-width="3"/><text x="32" y="46" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" fill="#ffbf3b" text-anchor="middle">LT</text></svg>
+    <svg width="30" height="30" viewBox="0 0 64 64" style="flex-shrink:0"><rect width="64" height="64" rx="6" fill="#090c18" stroke="#ffbf3b" stroke-width="3"/><text x="32" y="46" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" fill="#ffbf3b" text-anchor="middle">LT</text></svg>
     LegalTrack <span>/ Legal & Business Affairs</span>
   </div>
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -262,7 +255,6 @@ textarea{resize:vertical;min-height:64px;}
 <!-- ═══ DASHBOARD PANEL ═══ -->
 <div class="panel active" id="panel-dashboard">
   <div id="dash-alert-banner" style="display:none;margin-bottom:14px"></div>
-  <div class="stats" id="dash-stats"></div>
   <div class="dash-cols">
     <div class="dash-col">
       <h3 class="dash-h">Notice Deadlines Approaching <span class="dash-sub">auto-renewing — act before renewal locks in</span></h3>
@@ -293,7 +285,7 @@ textarea{resize:vertical;min-height:64px;}
     </div>
   </div>
   <div id="dash-noticepast-section" style="display:none;margin-top:16px">
-    <h3 class="dash-h" style="color:#e05a5a">⚠ Notice Deadline Overdue <span class="dash-sub">the notice window closed — this term is auto-renewing unless already acted on</span></h3>
+    <h3 class="dash-h" style="color:#e05a5a">⚠ Notice Deadline Passed — No Renewal Decision Logged <span class="dash-sub">the notice window closed; log the decision on the contract (renew / do not renew / renegotiate)</span></h3>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Contract</th><th>Counterparty</th><th>Notice Deadline</th><th>Ago</th></tr></thead>
@@ -396,10 +388,6 @@ textarea{resize:vertical;min-height:64px;}
     <h3 class="dash-h" style="margin-bottom:16px">Portfolio Overview</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
       <div class="surface2" style="border:1px solid var(--border);border-radius:8px;padding:16px">
-        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Contracts by Status</div>
-        <div style="position:relative;height:220px"><canvas id="chart-status"></canvas></div>
-      </div>
-      <div class="surface2" style="border:1px solid var(--border);border-radius:8px;padding:16px">
         <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Contracts by Division</div>
         <div style="position:relative;height:220px"><canvas id="chart-division"></canvas></div>
       </div>
@@ -423,8 +411,6 @@ textarea{resize:vertical;min-height:64px;}
     <div class="sidebar-item" data-filter="soon30"></div>
     <div class="sidebar-item" data-filter="soon60"></div>
     <div class="sidebar-item" data-filter="soon90"></div>
-    <div class="sidebar-item" data-filter="soon120"></div>
-    <div class="sidebar-item" data-filter="soon180"></div>
     <span class="badge" id="badge-all"></span>
     <span class="badge" id="badge-active"></span>
     <span class="badge" id="badge-pending"></span>
@@ -432,8 +418,6 @@ textarea{resize:vertical;min-height:64px;}
     <span class="badge red" id="badge-soon30"></span>
     <span class="badge" id="badge-soon60"></span>
     <span class="badge" id="badge-soon90"></span>
-    <span class="badge" id="badge-soon120"></span>
-    <span class="badge" id="badge-soon180"></span>
   </nav>
 
   <!-- Visible filter chips -->
@@ -441,19 +425,14 @@ textarea{resize:vertical;min-height:64px;}
     <div class="fchip active" data-filter="all" onclick="setFilter('all',this);syncChips('cFilterBar')">All <span class="n" id="fc-all">0</span></div>
     <div class="fchip" data-filter="active" onclick="setFilter('active',this);syncChips('cFilterBar')">Active <span class="n" id="fc-active">0</span></div>
     <div class="fchip" data-filter="pending" onclick="setFilter('pending',this);syncChips('cFilterBar')">Pending <span class="n" id="fc-pending">0</span></div>
-    <div class="fchip" data-filter="expired/terminated" onclick="setFilter('expired/terminated',this);syncChips('cFilterBar')">Expired/Term. <span class="n" id="fc-exp">0</span></div>
-    <div class="fchip" data-filter="soon30" onclick="setFilter('soon30',this);syncChips('cFilterBar')">≤30d <span class="n" id="fc-s30">0</span></div>
-    <div class="fchip" data-filter="soon60" onclick="setFilter('soon60',this);syncChips('cFilterBar')">≤60d <span class="n" id="fc-s60">0</span></div>
-    <div class="fchip" data-filter="soon90" onclick="setFilter('soon90',this);syncChips('cFilterBar')">≤90d <span class="n" id="fc-s90">0</span></div>
-    <div class="fchip" data-filter="soon120" onclick="setFilter('soon120',this);syncChips('cFilterBar')">≤120d <span class="n" id="fc-s120">0</span></div>
-    <div class="fchip" data-filter="soon180" onclick="setFilter('soon180',this);syncChips('cFilterBar')">≤180d <span class="n" id="fc-s180">0</span></div>
+    <div class="fchip" data-filter="expired/terminated" onclick="setFilter('expired/terminated',this);syncChips('cFilterBar')">Inactive <span class="n" id="fc-exp">0</span></div>
+    <div class="fchip" data-filter="soon30" onclick="setFilter('soon30',this);syncChips('cFilterBar')">Expires 0–30d <span class="n" id="fc-s30">0</span></div>
+    <div class="fchip" data-filter="soon60" onclick="setFilter('soon60',this);syncChips('cFilterBar')">Expires 31–60d <span class="n" id="fc-s60">0</span></div>
+    <div class="fchip" data-filter="soon90" onclick="setFilter('soon90',this);syncChips('cFilterBar')">Expires 61–90d <span class="n" id="fc-s90">0</span></div>
+    <div class="fchip" data-filter="notice60" onclick="setFilter('notice60',this);syncChips('cFilterBar')">Notice Due ≤60d <span class="n" id="fc-notice">0</span></div>
+    <div class="fchip" data-filter="coi" onclick="setFilter('coi',this);syncChips('cFilterBar')">COI Attention <span class="n" id="fc-coi">0</span></div>
   </div>
 
-  <div class="stats">
-    <div class="stat"><div class="stat-value" id="s-total">0</div><div class="stat-label">Total</div></div>
-    <div class="stat"><div class="stat-value" id="s-active">0</div><div class="stat-label">Active</div></div>
-    <div class="stat"><div class="stat-value" id="s-expiring">0</div><div class="stat-label">≤30d</div></div>
-  </div>
 
   <div class="toolbar">
     <div class="search-wrap">
@@ -492,12 +471,16 @@ textarea{resize:vertical;min-height:64px;}
   </div>
 
   <!-- Bulk Action Bar -->
-  <div id="bulk-bar" style="display:none;background:var(--accent-dim);border:1px solid rgba(200,169,110,.3);border-radius:4px;padding:8px 12px;margin-bottom:10px;display:none;align-items:center;gap:10px;flex-wrap:wrap">
+  <div id="bulk-bar" style="display:none;background:var(--accent-dim);border:1px solid rgba(255,191,59,.3);border-radius:4px;padding:8px 12px;margin-bottom:10px;align-items:center;gap:10px;flex-wrap:wrap">
     <span id="bulk-count" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)"></span>
     <select id="bulk-status-sel" style="width:auto;font-size:12px;padding:5px 8px">
       <option value="">— Set Status —</option>
-      <option>Active</option><option>Expired</option><option>Terminated</option><option>Pending</option><option>On Hold</option>
+      <option value="Pending">Pending (Not Fully Executed)</option>
+      <option value="Active">Active (Fully Executed)</option>
+      <option value="Expired/Terminated">Inactive (Expired/Terminated)</option>
+      <option value="Cancelled">Cancelled</option>
     </select>
+    <select id="bulk-assigned-sel" style="width:auto;font-size:12px;padding:5px 8px"></select>
     <button class="btn btn-primary btn-sm" id="btn-bulk-apply">Apply</button>
     <button class="btn btn-ghost btn-sm" id="btn-bulk-clear">✕ Clear selection</button>
   </div>
@@ -506,20 +489,12 @@ textarea{resize:vertical;min-height:64px;}
   <div id="adv-filter-panel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:12px">
     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
       <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
-        <label style="font-size:11px">Start Date From</label>
-        <input type="date" id="af-start-from" style="font-size:12px;padding:5px 8px">
+        <label style="font-size:11px">Timeframe From <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— contract active on/after</span></label>
+        <input type="date" id="af-from" style="font-size:12px;padding:5px 8px">
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
-        <label style="font-size:11px">Start Date To</label>
-        <input type="date" id="af-start-to" style="font-size:12px;padding:5px 8px">
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
-        <label style="font-size:11px">Expiration From</label>
-        <input type="date" id="af-end-from" style="font-size:12px;padding:5px 8px">
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;min-width:140px">
-        <label style="font-size:11px">Expiration To</label>
-        <input type="date" id="af-end-to" style="font-size:12px;padding:5px 8px">
+        <label style="font-size:11px">Timeframe To <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— contract started by</span></label>
+        <input type="date" id="af-to" style="font-size:12px;padding:5px 8px">
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;min-width:160px">
         <label style="font-size:11px">Assigned Attorney</label>
@@ -1062,45 +1037,25 @@ textarea{resize:vertical;min-height:64px;}
         <textarea id="mf-notes" placeholder="Key facts, contacts, strategy notes…"></textarea>
       </div>
       <div class="form-field">
-        <label>Attachments</label>
-        <div class="file-upload-area" id="mf-dropzone">
-          Click to attach files (Word, PDF, Excel) or drag and drop here
-          <input type="file" id="mf-file-input" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
-        </div>
-        <div class="attach-list" id="mf-attach-list"></div>
-        <div style="margin-top:8px">
-          <button class="btn-ai" id="btn-ai-summary-m" disabled>✦ Generate AI Summary</button>
-        </div>
-        <div id="mf-ai-summary-wrap" style="display:none" class="ai-summary-wrap">
-          <div class="ai-summary-header">
-            <span class="ai-summary-label">✦ AI Summary — editable</span>
-            <div class="ai-summary-actions">
-              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-m-copy">Copy</button>
-              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-m-notes">→ Notes</button>
-              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-m-clear">✕</button>
-            </div>
-          </div>
-          <div class="ai-summary-body">
-            <textarea id="mf-ai-summary-text" placeholder="AI summary will appear here…"></textarea>
-          </div>
+        <label>Document Links (OneDrive/SharePoint) <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— where the document(s) actually live; add as many as needed</span></label>
+        <div id="mf-links-list"></div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input type="text" id="mf-link-new" placeholder="Paste a OneDrive or SharePoint link" style="flex:1">
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-add-mlink" style="white-space:nowrap">+ Add Link</button>
         </div>
       </div>
         <div class="update-log-header">
           <label>Updates</label>
         </div>
         <div class="update-add-row">
-          <textarea id="mf-update-input" placeholder="Add a timestamped update…"></textarea>
+          <textarea id="mf-update-input" placeholder="Add a timestamped update… (paste a link and it'll be clickable)"></textarea>
           <button class="btn btn-ghost btn-sm" id="btn-add-matter-update" style="white-space:nowrap;align-self:flex-end">+ Add</button>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-          <label style="margin:0;cursor:pointer;color:var(--text-muted);font-size:11px;display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:normal;font-family:'IBM Plex Sans',sans-serif">
-            <input type="file" id="mf-update-file" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
-            📎 Attach files to update
-          </label>
-          <span style="font-size:10px;color:var(--text-muted);font-style:italic">(beta: filename only)</span>
-        </div>
-        <div class="attach-list" id="mf-update-attach-list"></div>
         <div id="mf-update-list"></div>
+        <details style="margin-top:12px">
+          <summary id="mf-history-summary" style="cursor:pointer;font-size:12px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace">🕘 Change History (0)</summary>
+          <div id="mf-history-list" style="margin-top:8px"></div>
+        </details>
       </div>
     </div>
     <div class="modal-footer">
@@ -1184,18 +1139,10 @@ textarea{resize:vertical;min-height:64px;}
         <div class="form-field">
           <label>Status</label>
           <select id="f-status">
-            <option>Pending</option>
-            <option>Active</option>
-            <option>Expired/Terminated</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Execution Status</label>
-          <select id="f-execution-status">
-            <option>Draft</option>
-            <option>Sent for Signature</option>
-            <option>Pending Countersignature</option>
-            <option>Fully Executed</option>
+            <option value="Pending">Pending (Not Fully Executed)</option>
+            <option value="Active">Active (Fully Executed)</option>
+            <option value="Expired/Terminated">Inactive (Expired/Terminated)</option>
+            <option value="Cancelled">Cancelled</option>
           </select>
         </div>
       </div>
@@ -1362,59 +1309,51 @@ textarea{resize:vertical;min-height:64px;}
           </div>
         </div>
       </div>
-      <div class="field-group">
+      <div class="field-group" style="align-items:start">
         <div class="form-field">
           <label>Counterparty Must Provide COI to Us?</label>
           <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
             <input type="checkbox" id="f-coi-required" style="width:auto;margin:0"> Yes — counterparty must maintain a COI on file with us
           </label>
-        </div>
-      </div>
-      <div id="f-coi-detail" style="display:none">
-        <div class="field-group">
-          <div class="form-field">
-            <label>COI Received?</label>
-            <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
-              <input type="checkbox" id="f-coi-received" style="width:auto;margin:0"> Yes — certificate is on file
-            </label>
-          </div>
-          <div class="form-field">
-            <label>COI Due Date <span id="f-coi-due-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— auto-set to 30 days after execution; edit to override</span></label>
-            <input type="date" id="f-coi-due-date">
-          </div>
-        </div>
-        <div class="field-group">
-          <div class="form-field">
-            <label>Counterparty's COI Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— shows on dashboard and alerts</span></label>
-            <input type="date" id="f-coi-expiration">
-          </div>
-          <div class="form-field">
-            <label>Coverage Description</label>
-            <input type="text" id="f-coi-coverage" placeholder="e.g. General Liability $1M/$2M; Auto $1M; Umbrella $5M">
+          <div id="f-coi-detail" style="display:none;margin-top:10px">
+            <div class="form-field" style="margin-bottom:10px">
+              <label>COI Received?</label>
+              <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
+                <input type="checkbox" id="f-coi-received" style="width:auto;margin:0"> Yes — certificate is on file
+              </label>
+            </div>
+            <div class="form-field" style="margin-bottom:10px">
+              <label>COI Due Date <span id="f-coi-due-hint" style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— 30 days after execution; edit to override</span></label>
+              <input type="date" id="f-coi-due-date">
+            </div>
+            <div class="form-field" style="margin-bottom:10px">
+              <label>Counterparty's COI Expiration <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— shows on dashboard/alerts</span></label>
+              <input type="date" id="f-coi-expiration">
+            </div>
+            <div class="form-field">
+              <label>Coverage Description</label>
+              <input type="text" id="f-coi-coverage" placeholder="e.g. GL $1M/$2M; Auto $1M; Umb $5M">
+            </div>
           </div>
         </div>
-      </div>
-      <input type="hidden" id="f-execution-fully-executed-date">
-      <div class="field-group">
         <div class="form-field">
           <label>We Must Provide COI to Counterparty?</label>
           <label style="display:flex;align-items:center;gap:8px;font-weight:normal;text-transform:none;letter-spacing:0;margin-top:4px">
             <input type="checkbox" id="f-coi-out-required" style="width:auto;margin:0"> Yes — we must furnish our COI to the counterparty
           </label>
-        </div>
-      </div>
-      <div id="f-coi-out-detail" style="display:none">
-        <div class="field-group">
-          <div class="form-field">
-            <label>Our COI Expiration Date <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— when our certificate needs renewing/resending</span></label>
-            <input type="date" id="f-coi-out-expiration">
-          </div>
-          <div class="form-field">
-            <label>Coverage Description</label>
-            <input type="text" id="f-coi-out-coverage" placeholder="e.g. General Liability $1M/$2M; Auto $1M; Umbrella $5M">
+          <div id="f-coi-out-detail" style="display:none;margin-top:10px">
+            <div class="form-field" style="margin-bottom:10px">
+              <label>Our COI Expiration <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— renew/resend by this date</span></label>
+              <input type="date" id="f-coi-out-expiration">
+            </div>
+            <div class="form-field">
+              <label>Coverage Description</label>
+              <input type="text" id="f-coi-out-coverage" placeholder="e.g. GL $1M/$2M; Auto $1M; Umb $5M">
+            </div>
           </div>
         </div>
       </div>
+      <input type="hidden" id="f-execution-fully-executed-date">
       <div class="form-field" id="f-requester-desc-wrap" style="display:none">
         <label>Requester Description</label>
         <textarea id="f-requester-desc" readonly style="background:var(--surface2);color:var(--text-muted);cursor:default;border-style:dashed;min-height:72px"></textarea>
@@ -1424,27 +1363,11 @@ textarea{resize:vertical;min-height:64px;}
         <textarea id="f-notes" placeholder="Key terms, contact info, reminders…"></textarea>
       </div>
       <div class="form-field">
-        <label>Attachments</label>
-        <div class="file-upload-area" id="f-dropzone">
-          Click to attach files (Word, PDF, Excel) or drag and drop here
-          <input type="file" id="f-file-input" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
-        </div>
-        <div class="attach-list" id="f-attach-list"></div>
-        <div style="margin-top:8px">
-          <button class="btn-ai" id="btn-ai-summary-c" disabled>✦ Generate AI Summary</button>
-        </div>
-        <div id="f-ai-summary-wrap" style="display:none" class="ai-summary-wrap">
-          <div class="ai-summary-header">
-            <span class="ai-summary-label">✦ AI Summary — editable</span>
-            <div class="ai-summary-actions">
-              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-c-copy">Copy</button>
-              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-c-notes">→ Notes</button>
-              <button class="btn btn-ghost btn-sm" id="btn-ai-summary-c-clear">✕</button>
-            </div>
-          </div>
-          <div class="ai-summary-body">
-            <textarea id="f-ai-summary-text" placeholder="AI summary will appear here…"></textarea>
-          </div>
+        <label>Document Links (OneDrive/SharePoint) <span style="color:var(--text-muted);font-size:9px;font-style:italic;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif">— where the signed document(s) actually live; add as many as needed</span></label>
+        <div id="f-links-list"></div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input type="text" id="f-link-new" placeholder="Paste a OneDrive or SharePoint link" style="flex:1">
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-add-link" style="white-space:nowrap">+ Add Link</button>
         </div>
       </div>
       <div class="update-log" id="f-updates-wrap">
@@ -1452,18 +1375,14 @@ textarea{resize:vertical;min-height:64px;}
           <label>Updates</label>
         </div>
         <div class="update-add-row">
-          <textarea id="f-update-input" placeholder="Add a timestamped update…"></textarea>
+          <textarea id="f-update-input" placeholder="Add a timestamped update… (paste a link and it'll be clickable)"></textarea>
           <button class="btn btn-ghost btn-sm" id="btn-add-update" style="white-space:nowrap;align-self:flex-end">+ Add</button>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-          <label style="margin:0;cursor:pointer;color:var(--text-muted);font-size:11px;display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:normal;font-family:'IBM Plex Sans',sans-serif">
-            <input type="file" id="f-update-file" multiple accept=".doc,.docx,.pdf,.xls,.xlsx" style="display:none">
-            📎 Attach files to update
-          </label>
-          <span style="font-size:10px;color:var(--text-muted);font-style:italic">(beta: filename only)</span>
-        </div>
-        <div class="attach-list" id="f-update-attach-list"></div>
         <div id="f-update-list"></div>
+        <details style="margin-top:12px">
+          <summary id="f-history-summary" style="cursor:pointer;font-size:12px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace">🕘 Change History (0)</summary>
+          <div id="f-history-list" style="margin-top:8px"></div>
+        </details>
       </div>
     </div>
     <div class="modal-footer">
@@ -1516,7 +1435,7 @@ let contracts = [];
 let matters = [];
 let editId = null;
 let activeFilter = 'all';
-let cAttachments = [];
+let cLinks = [];
 
 // ── GOOGLE SHEETS CONFIG ──────────────────────────────────────────────────────
 // PASTE YOUR VALUES HERE after completing the setup guide:
@@ -1541,8 +1460,8 @@ const SHEET_MATTERS   = 'Legal Matters';
 const SHEET_INTAKE    = 'Legal Intake';
 
 // Column headers for each sheet (order matters — matches row serialization below)
-const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther','noticeDeadlineAuto','endAuto','coiRequired','coiExpiration','coiCoverage','executionStatus','renewalDecision','renewalDecisionDate','renewalDecidedBy','renewalDecisionNotes','termPerpetual','coiOutRequired','coiOutExpiration','coiOutCoverage','executionFullyExecutedDate','coiDueDate','coiDueDateAuto','coiReceived','amendmentOfId'];
-const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction','litStage','litCaseNumber','litCourt','litRole','litOpposingParty','litOpposingCounsel','litFilingDate','litHearingDate'];
+const HEADERS_CONTRACTS = ['id','filenum','related','name','party','division','department','type','status','assigned','start','end','remind','renewal','noticeDeadline','notes','link','attachments','updates','value','territory','requester','requesterDesc','aiSummary','autoRenew','renewalTerm','renewalTermOther','reminderEmails','lastModifiedBy','lastModifiedAt','newFile','relatedIds','termLength','termUnit','termStartType','termStartOther','noticeDeadlineAuto','endAuto','coiRequired','coiExpiration','coiCoverage','executionStatus','renewalDecision','renewalDecisionDate','renewalDecidedBy','renewalDecisionNotes','termPerpetual','coiOutRequired','coiOutExpiration','coiOutCoverage','executionFullyExecutedDate','coiDueDate','coiDueDateAuto','coiReceived','amendmentOfId','links','history'];
+const HEADERS_MATTERS   = ['id','num','name','division','department','type','status','counsel','assigned','opened','closed','notes','updates','counselScope','lastModifiedBy','lastModifiedAt','renewalDate','tmStage','tmMark','tmSerialNumber','tmRegistrationNumber','tmFilingDate','tmClasses','tmJurisdiction','litStage','litCaseNumber','litCourt','litRole','litOpposingParty','litOpposingCounsel','litFilingDate','litHearingDate','links','history'];
 const HEADERS_INTAKE    = ['id','submitted','requestor','dept','type','counterparty','needby','description','link','attachments','status','assigned','legalNotes','agrType'];
 
 // ── GOOGLE AUTH (Google Identity Services token model) ────────────────────────
@@ -1736,7 +1655,7 @@ function isAutoRenew(c) {
 // (excludes auto-renewing contracts, which renew rather than expire).
 function isPastExpiration(c) {
   if (!c || !c.end) return false;
-  if ((c.status || '').toLowerCase() === 'expired/terminated') return false;
+  if (isInactiveStatus(c.status)) return false;
   if (isAutoRenew(c)) return false;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const d = new Date(c.end + 'T00:00:00');
@@ -1762,13 +1681,18 @@ function contractToRow(c) {
     c.executionFullyExecutedDate||'',c.coiDueDate||'',
     c.coiDueDateAuto===true||c.coiDueDateAuto==='true'?'true':'false',
     c.coiReceived===true||c.coiReceived==='true'?'true':'false',
-    c.amendmentOfId||''];
+    c.amendmentOfId||'',
+    jsonCell(c.links||[]),
+    jsonCell(c.history||[])];
 }
 function rowToContract(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
   o.attachments = parseCell(o.attachments) || [];
   o.updates     = parseCell(o.updates)     || [];
   o.relatedIds  = o.relatedIds ? o.relatedIds.split('|').filter(Boolean) : [];
+  o.links       = parseCell(o.links) || [];
+  o.history     = parseCell(o.history) || [];
+  if (!o.links.length && o.link) o.links = [o.link];
   return o;
 }
 function matterToRow(m) {
@@ -1777,11 +1701,15 @@ function matterToRow(m) {
     m.counselScope||'',
     m.lastModifiedBy||'',m.lastModifiedAt||'',m.renewalDate||'',
     m.tmStage||'',m.tmMark||'',m.tmSerialNumber||'',m.tmRegistrationNumber||'',m.tmFilingDate||'',m.tmClasses||'',m.tmJurisdiction||'',
-    m.litStage||'',m.litCaseNumber||'',m.litCourt||'',m.litRole||'',m.litOpposingParty||'',m.litOpposingCounsel||'',m.litFilingDate||'',m.litHearingDate||''];
+    m.litStage||'',m.litCaseNumber||'',m.litCourt||'',m.litRole||'',m.litOpposingParty||'',m.litOpposingCounsel||'',m.litFilingDate||'',m.litHearingDate||'',
+    jsonCell(m.links||[]),
+    jsonCell(m.history||[])];
 }
 function rowToMatter(row, headers) {
   const o = {}; headers.forEach((h,i) => o[h] = row[i]||'');
   o.updates = parseCell(o.updates) || [];
+  o.links   = parseCell(o.links) || [];
+  o.history = parseCell(o.history) || [];
   return o;
 }
 function intakeToRow(r) {
@@ -1893,17 +1821,17 @@ function mSave() { gSaveMatters(); }
 function iSave() { gSaveIntake(); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
-function renderCAttachList() {
-  const el = document.getElementById('f-attach-list');
+function renderLinksList() {
+  const el = document.getElementById('f-links-list');
   if (!el) return;
-  el.innerHTML = cAttachments.map((a,i) =>
+  el.innerHTML = cLinks.map((url,i) =>
     `<div class="attach-item">
-      <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
+      <a href="${esc(normalizeUrl(url))}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🔗 ${esc(url)}</a>
       <button class="attach-remove" data-ci="${i}">✕</button>
     </div>`
   ).join('');
   el.querySelectorAll('.attach-remove').forEach(btn =>
-    btn.addEventListener('click', () => { cAttachments.splice(parseInt(btn.dataset.ci),1); renderCAttachList(); }));
+    btn.addEventListener('click', () => { cLinks.splice(parseInt(btn.dataset.ci),1); renderLinksList(); }));
 }
 
 let _toastTimer = null;
@@ -1954,24 +1882,24 @@ function filtered() {
   const division = document.getElementById('divisionFilter').value;
   const department = document.getElementById('departmentFilter').value;
   // Advanced filters
-  const afStartFrom = document.getElementById('af-start-from')?.value || '';
-  const afStartTo   = document.getElementById('af-start-to')?.value   || '';
-  const afEndFrom   = document.getElementById('af-end-from')?.value   || '';
-  const afEndTo     = document.getElementById('af-end-to')?.value     || '';
+  const afFrom      = document.getElementById('af-from')?.value      || '';
+  const afTo        = document.getElementById('af-to')?.value        || '';
   const afAssigned  = document.getElementById('af-assigned')?.value   || '';
   const today = new Date(); today.setHours(0,0,0,0);
   const d30  = new Date(today); d30.setDate(d30.getDate()+30);
   const d60  = new Date(today); d60.setDate(d60.getDate()+60);
   const d90  = new Date(today); d90.setDate(d90.getDate()+90);
-  const d120 = new Date(today); d120.setDate(d120.getDate()+120);
-  const d180 = new Date(today); d180.setDate(d180.getDate()+180);
 
-  const soonMap = { soon30:d30, soon60:d60, soon90:d90, soon120:d120, soon180:d180 };
+  const soonMap = { soon30:d30, soon60:d60, soon90:d90 };
 
   return contracts.filter(c => {
     const end = c.end ? new Date(c.end) : null;
     if (soonMap[activeFilter]) {
-      if (!end || end < today || end > soonMap[activeFilter]) return false;
+      if (expiryBucket(c) !== activeFilter) return false;
+    } else if (activeFilter === 'notice60') {
+      if (!noticeSoon(c)) return false;
+    } else if (activeFilter === 'coi') {
+      if (!needsCoiAttention(c)) return false;
     } else if (activeFilter !== 'all') {
       if (c.status.toLowerCase() !== activeFilter) return false;
     }
@@ -1980,10 +1908,13 @@ function filtered() {
     if (department && c.department !== department) return false;
     if (q && !`${c.name} ${c.party} ${c.filenum} ${c.related} ${c.assigned} ${c.division} ${c.department} ${c.notes} ${c.type}`.toLowerCase().includes(q)) return false;
     // Advanced filter checks
-    if (afStartFrom && (!c.start || c.start < afStartFrom)) return false;
-    if (afStartTo   && (!c.start || c.start > afStartTo))   return false;
-    if (afEndFrom   && (!c.end   || c.end   < afEndFrom))   return false;
-    if (afEndTo     && (!c.end   || c.end   > afEndTo))     return false;
+    // Advanced filter: does the contract's term overlap the given timeframe?
+    // Excluded only if it definitively ended before "From", or definitively
+    // starts after "To" (or has no start at all, so we can't confirm it does).
+    // A blank end date (including Perpetual contracts) never fails the
+    // "From" side — an open-ended term is always still active going forward.
+    if (afFrom && c.end && c.end < afFrom) return false;
+    if (afTo   && (!c.start || c.start > afTo)) return false;
     if (afAssigned  && (c.assigned||'').toLowerCase() !== afAssigned.toLowerCase()) return false;
     return true;
   });
@@ -2009,8 +1940,108 @@ function fmtDate(d) {
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
+// A contract in either of these states never has (or no longer has) an
+// active term — used everywhere a deadline/alert/dashboard computation needs
+// to skip contracts that don't represent a live, executed agreement.
+function isInactiveStatus(status) {
+  return ['expired/terminated', 'cancelled'].includes((status || '').toLowerCase());
+}
+// A matter whose dated item (hearing / renewal) no longer needs tracking.
+// Litigation: Closed, or stage "Resolved / Closed". Trademarks: only when
+// "Abandoned / Withdrawn" — a Closed trademark matter can still hold a live
+// registration that needs renewing.
+function isDormantMatter(m) {
+  if (m.type === 'Trademarks') return /abandon/i.test(m.tmStage || '');
+  return (m.status || '').toLowerCase() === 'closed' || /resolved/i.test(m.litStage || '');
+}
+// ── CHANGE HISTORY ────────────────────────────────────────────────────────────
+// Field-level log kept on each contract/matter as a compact JSON array
+// ({ts, by, ch:[{f,a,b}]}). Notes and links are logged as "edited"/count only,
+// never as full text. Capped so the Sheet cell stays well under its size limit.
+const HISTORY_FIELDS_CONTRACT = [
+  ['filenum','File No.'],['name','Name'],['party','Counterparty'],['division','Division'],['department','Department'],
+  ['type','Type'],['status','Status'],['assigned','Assigned To'],['requester','Requester'],
+  ['start','Effective Date'],['end','Expiration Date'],['termPerpetual','Perpetual Term','bool'],
+  ['autoRenew','Auto-Renewal','auto'],['renewal','Cancellation Notice (days)'],['noticeDeadline','Notice Deadline'],
+  ['renewalDecision','Renewal Decision'],['renewalDecisionDate','Decision Date'],['renewalDecidedBy','Decided By'],
+  ['coiRequired','Counterparty COI Required','bool'],['coiReceived','COI Received','bool'],
+  ['coiDueDate','COI Due Date'],['coiExpiration','Counterparty COI Expiration'],
+  ['coiOutRequired','Our COI Required','bool'],['coiOutExpiration','Our COI Expiration'],
+  ['value','Value'],['territory','Territory']
+];
+const HISTORY_FIELDS_MATTER = [
+  ['num','Matter No.'],['name','Name'],['division','Division'],['department','Department'],['type','Type'],
+  ['status','Status'],['counsel','Outside Counsel'],['assigned','Assigned To'],['opened','Opened'],['closed','Closed'],
+  ['renewalDate','Renewal Date'],['tmStage','Trademark Stage'],['litStage','Litigation Stage'],
+  ['litCaseNumber','Case Number'],['litCourt','Court'],['litHearingDate','Next Hearing']
+];
+function _histVal(v, kind) {
+  if (kind === 'bool' || kind === 'auto') return (v === true || v === 'true') ? 'Yes' : 'No';
+  const s = String(v == null ? '' : v).trim();
+  return s ? (s.length > 60 ? s.slice(0, 57) + '…' : s) : '—';
+}
+function diffRecord(oldR, newR, fields) {
+  const ch = [];
+  fields.forEach(([k, label, kind]) => {
+    const get = r => kind === 'auto' ? isAutoRenew(r) : r[k];
+    const a = _histVal(get(oldR), kind), b = _histVal(get(newR), kind);
+    if (a !== b) ch.push({ f: label, a, b });
+  });
+  if ((oldR.notes || '').trim() !== (newR.notes || '').trim()) ch.push({ f: 'Notes', a: '', b: 'edited' });
+  if (JSON.stringify(oldR.links || []) !== JSON.stringify(newR.links || []))
+    ch.push({ f: 'Document links', a: String((oldR.links || []).length), b: String((newR.links || []).length) });
+  return ch;
+}
+function nextHistory(prev, changes, by) {
+  const h = Array.isArray(prev) ? [...prev] : [];
+  if (!changes.length) return h;
+  h.push({ ts: Date.now(), by: by || '', ch: changes });
+  while (h.length > 60) h.shift();
+  while (h.length > 1 && JSON.stringify(h).length > 30000) h.shift();
+  return h;
+}
+function renderHistory(listId, summaryId, history) {
+  const h = Array.isArray(history) ? history : [];
+  const sm = document.getElementById(summaryId);
+  if (sm) sm.textContent = `🕘 Change History (${h.length})`;
+  const el = document.getElementById(listId);
+  if (!el) return;
+  if (!h.length) { el.innerHTML = '<div class="update-empty">No recorded changes yet.</div>'; return; }
+  el.innerHTML = [...h].reverse().map(e => {
+    const lines = (e.ch || []).map(c =>
+      c.f === 'Record' ? `Record ${esc(c.b)}`
+      : (c.a === '' && c.b === 'edited') ? `${esc(c.f)} edited`
+      : `${esc(c.f)}: <span style="color:var(--text-muted)">${esc(c.a)}</span> → ${esc(c.b)}`
+    ).join('<br>');
+    return `<div class="update-entry"><div class="update-entry-body">
+      <div class="update-entry-ts">${fmtTimestamp(e.ts)}${e.by ? ' · ' + esc(e.by) : ''}</div>
+      <div class="update-entry-text">${lines}</div>
+    </div></div>`;
+  }).join('');
+}
+
+function linkify(escapedText) {
+  return escapedText.replace(/https?:\/\/[^\s<]+/g, raw => {
+    let url = raw, tail = '';
+    // esc() turned " < > into entities — the link ends where one begins
+    const ent = url.search(/&(?:quot|gt|lt);/);
+    if (ent !== -1) { tail = url.slice(ent); url = url.slice(0, ent); }
+    // Sentence punctuation (and an unbalanced closing paren) isn't part of the link
+    for (;;) {
+      if (/&[a-z]+;$/i.test(url)) break;
+      const last = url.slice(-1);
+      if (/[.,;:!?'*\]]/.test(last) ||
+          (last === ')' && (url.match(/\(/g) || []).length < (url.match(/\)/g) || []).length)) {
+        tail = last + tail; url = url.slice(0, -1); continue;
+      }
+      break;
+    }
+    if (url.length <= 8) return raw;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">${url}</a>${tail}`;
+  });
+}
 function statusPill(s) {
-  const map = { active:'pill-active', 'expired/terminated':'pill-expired', pending:'pill-pending' };
+  const map = { active:'pill-active', 'expired/terminated':'pill-expired', pending:'pill-pending', cancelled:'pill-cancelled' };
   return `<span class="pill ${map[s.toLowerCase()]||''}">${esc(s)}</span>`;
 }
 
@@ -2028,11 +2059,7 @@ function dashDaysCell(days) {
   return `<span style="color:${color}">${days === 0 ? 'today' : days + 'd'}</span>`;
 }
 function renderDashboard() {
-  const statsEl = document.getElementById('dash-stats');
-  if (!statsEl) return;
-  const isExpired = c => (c.status || '').toLowerCase() === 'expired/terminated';
-
-  const active = contracts.filter(c => (c.status || '').toLowerCase() === 'active');
+  const isExpired = c => isInactiveStatus(c.status);
 
   // Auto-renewing contracts with a notice deadline within the next 90 days
   // (overdue ones live exclusively in Notice Deadline Overdue below).
@@ -2045,7 +2072,7 @@ function renderDashboard() {
   // Auto-renewing contracts whose notice deadline has already passed —
   // the window to prevent renewal has closed for this term.
   const noticePast = contracts
-    .filter(c => isAutoRenew(c) && c.noticeDeadline && !isExpired(c))
+    .filter(c => isAutoRenew(c) && c.noticeDeadline && !isExpired(c) && !c.renewalDecision)
     .map(c => ({ c, days: dashDaysUntil(c.noticeDeadline) }))
     .filter(x => x.days !== null && x.days < 0)
     .sort((a, b) => a.days - b.days);
@@ -2058,8 +2085,6 @@ function renderDashboard() {
     .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
     .sort((a, b) => a.days - b.days);
 
-  const inRange = (arr, max) => arr.filter(x => x.days >= 0 && x.days <= max).length;
-
   // Contracts past their expiration date but still marked active
   const pastExp = contracts.filter(isPastExpiration)
     .map(c => ({ c, days: dashDaysUntil(c.end) }))
@@ -2067,28 +2092,28 @@ function renderDashboard() {
 
   // Trademark matters with a renewal date within the next 90 days
   const tmRenewal = matters
-    .filter(m => m.type === 'Trademarks' && m.renewalDate)
+    .filter(m => m.type === 'Trademarks' && m.renewalDate && !isDormantMatter(m))
     .map(m => ({ m, days: dashDaysUntil(m.renewalDate) }))
     .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
     .sort((a, b) => a.days - b.days);
 
   // Trademark matters whose renewal date has already passed
   const tmRenewalPast = matters
-    .filter(m => m.type === 'Trademarks' && m.renewalDate)
+    .filter(m => m.type === 'Trademarks' && m.renewalDate && !isDormantMatter(m))
     .map(m => ({ m, days: dashDaysUntil(m.renewalDate) }))
     .filter(x => x.days !== null && x.days < 0)
     .sort((a, b) => a.days - b.days);
 
   // Litigation matters with a hearing date within the next 90 days
   const litHearing = matters
-    .filter(m => m.type === 'Litigation' && m.litHearingDate)
+    .filter(m => m.type === 'Litigation' && m.litHearingDate && !isDormantMatter(m))
     .map(m => ({ m, days: dashDaysUntil(m.litHearingDate) }))
     .filter(x => x.days !== null && x.days >= 0 && x.days <= 90)
     .sort((a, b) => a.days - b.days);
 
   // Litigation matters whose hearing date has already passed
   const litHearingPast = matters
-    .filter(m => m.type === 'Litigation' && m.litHearingDate)
+    .filter(m => m.type === 'Litigation' && m.litHearingDate && !isDormantMatter(m))
     .map(m => ({ m, days: dashDaysUntil(m.litHearingDate) }))
     .filter(x => x.days !== null && x.days < 0)
     .sort((a, b) => a.days - b.days);
@@ -2134,14 +2159,6 @@ function renderDashboard() {
     .map(c => ({ c, days: dashDaysUntil(c.coiDueDate) }))
     .filter(x => x.days !== null && x.days < 0)
     .sort((a, b) => a.days - b.days);
-
-  statsEl.innerHTML = `
-    <div class="stat"><div class="stat-value">${active.length}</div><div class="stat-label">Active Contracts</div></div>
-    <div class="stat"><div class="stat-value">${inRange(expiring,30)}</div><div class="stat-label">Expiring ≤30d</div></div>
-    <div class="stat"><div class="stat-value">${inRange(expiring,60)}</div><div class="stat-label">Expiring ≤60d</div></div>
-    <div class="stat"><div class="stat-value">${inRange(expiring,90)}</div><div class="stat-label">Expiring ≤90d</div></div>
-    <div class="stat"><div class="stat-value">${notice.length}</div><div class="stat-label">Notice Deadlines ≤90d</div></div>
-    <div class="stat"><div class="stat-value" style="${pastExp.length ? 'color:#e05a5a' : ''}">${pastExp.length}</div><div class="stat-label">Past Expiration</div></div>`;
 
   const rowsHtml = (items, dateField) => items.length
     ? items.map(({ c, days }) => `
@@ -2333,7 +2350,7 @@ function computeAlerts() {
 
   // 1. Notice deadlines ≤30 days
   contracts.forEach(c => {
-    if (!c.noticeDeadline || (c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (!c.noticeDeadline || isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.noticeDeadline + 'T00:00:00') - now) / 86400000);
     if (days >= 0 && days <= 30) {
       alerts.push({ id: `notice-${c.id}`, type: 'notice', severity: days <= 7 ? 'high' : 'med',
@@ -2344,7 +2361,7 @@ function computeAlerts() {
 
   // 2. Expirations ≤30 days
   contracts.forEach(c => {
-    if (!c.end || (c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (!c.end || isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.end + 'T00:00:00') - now) / 86400000);
     if (days >= 0 && days <= 30) {
       alerts.push({ id: `exp-${c.id}`, type: 'expiring', severity: days <= 7 ? 'high' : 'med',
@@ -2361,6 +2378,17 @@ function computeAlerts() {
       contractId: c.id });
   });
 
+  // 4a. Notice deadline passed with no renewal decision logged
+  contracts.forEach(c => {
+    if (!isAutoRenew(c) || !c.noticeDeadline || isInactiveStatus(c.status) || c.renewalDecision) return;
+    const days = Math.round((new Date(c.noticeDeadline + 'T00:00:00') - now) / 86400000);
+    if (days < 0) {
+      alerts.push({ id: `decisionmissing-${c.id}`, type: 'decisionmissing', severity: 'high',
+        title: c.name || '(unnamed)', detail: `Notice deadline passed ${Math.abs(days)} day${Math.abs(days)===1?'':'s'} ago — no renewal decision logged`,
+        contractId: c.id });
+    }
+  });
+
   // 4. Intake requests pending >5 business days (excludes both terminal statuses)
   (typeof intakeRequests !== 'undefined' ? intakeRequests : [])
     .filter(r => !['closed','converted'].includes((r.status||'').toLowerCase()))
@@ -2375,7 +2403,7 @@ function computeAlerts() {
 
   // 5. Trademark renewals ≤30 days
   matters.forEach(m => {
-    if (m.type !== 'Trademarks' || !m.renewalDate) return;
+    if (m.type !== 'Trademarks' || !m.renewalDate || isDormantMatter(m)) return;
     const days = Math.round((new Date(m.renewalDate + 'T00:00:00') - now) / 86400000);
     if (days >= 0 && days <= 30) {
       alerts.push({ id: `tmrenewal-${m.id}`, type: 'tmrenewal', severity: days <= 7 ? 'high' : 'med',
@@ -2386,7 +2414,7 @@ function computeAlerts() {
 
   // 6. Trademark renewals overdue
   matters.forEach(m => {
-    if (m.type !== 'Trademarks' || !m.renewalDate) return;
+    if (m.type !== 'Trademarks' || !m.renewalDate || isDormantMatter(m)) return;
     const days = Math.round((new Date(m.renewalDate + 'T00:00:00') - now) / 86400000);
     if (days < 0) {
       alerts.push({ id: `tmrenewalpast-${m.id}`, type: 'tmrenewalpast', severity: 'high',
@@ -2397,7 +2425,7 @@ function computeAlerts() {
 
   // 7. Litigation hearings ≤30 days
   matters.forEach(m => {
-    if (m.type !== 'Litigation' || !m.litHearingDate) return;
+    if (m.type !== 'Litigation' || !m.litHearingDate || isDormantMatter(m)) return;
     const days = Math.round((new Date(m.litHearingDate + 'T00:00:00') - now) / 86400000);
     if (days >= 0 && days <= 30) {
       alerts.push({ id: `lithearing-${m.id}`, type: 'lithearing', severity: days <= 7 ? 'high' : 'med',
@@ -2408,7 +2436,7 @@ function computeAlerts() {
 
   // 8. Litigation hearings past — matter needs an update
   matters.forEach(m => {
-    if (m.type !== 'Litigation' || !m.litHearingDate) return;
+    if (m.type !== 'Litigation' || !m.litHearingDate || isDormantMatter(m)) return;
     const days = Math.round((new Date(m.litHearingDate + 'T00:00:00') - now) / 86400000);
     if (days < 0) {
       alerts.push({ id: `lithearingpast-${m.id}`, type: 'lithearingpast', severity: 'high',
@@ -2420,7 +2448,7 @@ function computeAlerts() {
   // 9. COI expiring ≤30 days
   contracts.forEach(c => {
     if (!(c.coiRequired === true || c.coiRequired === 'true') || !c.coiExpiration) return;
-    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.coiExpiration + 'T00:00:00') - now) / 86400000);
     if (days >= 0 && days <= 30) {
       alerts.push({ id: `coiexpiring-${c.id}`, type: 'coiexpiring', severity: days <= 7 ? 'high' : 'med',
@@ -2432,7 +2460,7 @@ function computeAlerts() {
   // 10. COI expired
   contracts.forEach(c => {
     if (!(c.coiRequired === true || c.coiRequired === 'true') || !c.coiExpiration) return;
-    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.coiExpiration + 'T00:00:00') - now) / 86400000);
     if (days < 0) {
       alerts.push({ id: `coiexpired-${c.id}`, type: 'coiexpired', severity: 'high',
@@ -2444,7 +2472,7 @@ function computeAlerts() {
   // 11. Our COI expiring ≤30 days
   contracts.forEach(c => {
     if (!(c.coiOutRequired === true || c.coiOutRequired === 'true') || !c.coiOutExpiration) return;
-    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.coiOutExpiration + 'T00:00:00') - now) / 86400000);
     if (days >= 0 && days <= 30) {
       alerts.push({ id: `coioutexpiring-${c.id}`, type: 'coioutexpiring', severity: days <= 7 ? 'high' : 'med',
@@ -2456,7 +2484,7 @@ function computeAlerts() {
   // 12. Our COI expired
   contracts.forEach(c => {
     if (!(c.coiOutRequired === true || c.coiOutRequired === 'true') || !c.coiOutExpiration) return;
-    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.coiOutExpiration + 'T00:00:00') - now) / 86400000);
     if (days < 0) {
       alerts.push({ id: `coioutexpired-${c.id}`, type: 'coioutexpired', severity: 'high',
@@ -2468,7 +2496,7 @@ function computeAlerts() {
   // 13. COI due soon, not yet received
   contracts.forEach(c => {
     if (!(c.coiRequired === true || c.coiRequired === 'true') || (c.coiReceived === true || c.coiReceived === 'true') || !c.coiDueDate) return;
-    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.coiDueDate + 'T00:00:00') - now) / 86400000);
     if (days >= 0 && days <= 30) {
       alerts.push({ id: `coinotreceivedsoon-${c.id}`, type: 'coinotreceivedsoon', severity: days <= 7 ? 'high' : 'med',
@@ -2480,7 +2508,7 @@ function computeAlerts() {
   // 14. COI not received, past due
   contracts.forEach(c => {
     if (!(c.coiRequired === true || c.coiRequired === 'true') || (c.coiReceived === true || c.coiReceived === 'true') || !c.coiDueDate) return;
-    if ((c.status||'').toLowerCase() === 'expired/terminated') return;
+    if (isInactiveStatus(c.status)) return;
     const days = Math.round((new Date(c.coiDueDate + 'T00:00:00') - now) / 86400000);
     if (days < 0) {
       alerts.push({ id: `coinotreceivedpast-${c.id}`, type: 'coinotreceivedpast', severity: 'high',
@@ -2509,8 +2537,8 @@ function renderAlerts() {
     if (alerts.length === 0) {
       list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">No alerts right now</div>`;
     } else {
-      const groups = { notice: [], expiring: [], pastexp: [], tmrenewal: [], tmrenewalpast: [], lithearing: [], lithearingpast: [], coiexpiring: [], coiexpired: [], coioutexpiring: [], coioutexpired: [], coinotreceivedsoon: [], coinotreceivedpast: [], intake: [] };
-      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', tmrenewal: '™️ Trademark Renewals', tmrenewalpast: '⚠ Trademark Renewal Overdue', lithearing: '⚖️ Upcoming Hearings', lithearingpast: '⚠ Past Hearing — Needs Update', coiexpiring: '📋 COI Expiring Soon', coiexpired: '⚠ COI Expired', coioutexpiring: '📋 Our COI Expiring Soon', coioutexpired: '⚠ Our COI Expired', coinotreceivedsoon: '📋 COI Due Soon', coinotreceivedpast: '⚠ COI Not Received — Past Due', intake: '📥 Intake Pending' };
+      const groups = { notice: [], expiring: [], pastexp: [], tmrenewal: [], tmrenewalpast: [], lithearing: [], lithearingpast: [], coiexpiring: [], coiexpired: [], coioutexpiring: [], coioutexpired: [], coinotreceivedsoon: [], coinotreceivedpast: [], decisionmissing: [], intake: [] };
+      const groupLabels = { notice: '⏰ Notice Deadlines', expiring: '📅 Expiring Soon', pastexp: '⚠ Past Expiration', tmrenewal: '™️ Trademark Renewals', tmrenewalpast: '⚠ Trademark Renewal Overdue', lithearing: '⚖️ Upcoming Hearings', lithearingpast: '⚠ Past Hearing — Needs Update', coiexpiring: '📋 COI Expiring Soon', coiexpired: '⚠ COI Expired', coioutexpiring: '📋 Our COI Expiring Soon', coioutexpired: '⚠ Our COI Expired', coinotreceivedsoon: '📋 COI Due Soon', coinotreceivedpast: '⚠ COI Not Received — Past Due', decisionmissing: '⚠ Renewal Decision Missing', intake: '📥 Intake Pending' };
       alerts.forEach(a => groups[a.type]?.push(a));
       list.innerHTML = Object.keys(groups).filter(k => groups[k].length).map(k => `
         <div style="padding:8px 14px 4px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-top:1px solid var(--border)">${groupLabels[k]} (${groups[k].length})</div>
@@ -2663,15 +2691,6 @@ function renderDashboardCharts() {
     });
   }
 
-  // Contracts by status
-  const statusCounts = {};
-  contracts.forEach(c => {
-    const s = (c.status || 'Unknown');
-    statusCounts[s] = (statusCounts[s] || 0) + 1;
-  });
-  const sLabels = Object.keys(statusCounts);
-  mkChart('chart-status', 'doughnut', sLabels, sLabels.map(k => statusCounts[k]), { cutout: '60%' });
-
   // Contracts by division
   const divCounts = {};
   contracts.forEach(c => {
@@ -2701,7 +2720,6 @@ let _sortCol = 'name', _sortDir = 'asc';
 
 function render() {
   updateBadges();
-  updateStats();
   renderDashboard();
   let rows = filtered();
 
@@ -2726,6 +2744,7 @@ function render() {
   const tbody = document.getElementById('tbody');
   if (!rows.length) {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="13">No contracts found</td></tr>`;
+    updateBulkBar();
     return;
   }
   tbody.innerHTML = rows.map(c => `
@@ -2746,7 +2765,8 @@ function render() {
         <div class="actions">
           <button class="icon-btn btn-edit" data-id="${c.id}" title="Edit">✎</button>
           <button class="icon-btn btn-dup" data-id="${c.id}" title="Duplicate">⧉</button>
-          ${c.end ? `<button class="icon-btn btn-ics-single" data-id="${c.id}" title="Export to Outlook">📅</button>` : ''}
+          ${contractLinkIcon(c)}
+          ${contractEvents(c).some(e => e.date >= localYMD()) ? `<button class="icon-btn btn-ics-single" data-id="${c.id}" title="Export upcoming dates to Outlook">📅</button>` : ''}
           <button class="icon-btn del btn-delete" data-id="${c.id}" title="Delete">✕</button>
         </div>
       </td>
@@ -2775,6 +2795,47 @@ function render() {
   // Sync select-all state
   const chkAll = document.getElementById('chk-all');
   if (chkAll) chkAll.checked = false;
+  updateBulkBar();
+}
+
+// Which single expiration window (if any) a contract falls into — windows are
+// non-overlapping: 0–30, 31–60, 61–90 days out. Past, missing,
+// and Inactive/Cancelled contracts fall in none.
+function expiryBucket(c) {
+  if (!c.end || isInactiveStatus(c.status)) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const end = new Date(c.end);
+  if (isNaN(end) || end < today) return null;
+  for (const [key, days] of [['soon30',30],['soon60',60],['soon90',90]]) {
+    const limit = new Date(today); limit.setDate(limit.getDate() + days);
+    if (end <= limit) return key;
+  }
+  return null;
+}
+
+// Auto-renewing contract whose notice deadline falls within the next 60 days.
+function noticeSoon(c) {
+  if (!isAutoRenew(c) || !c.noticeDeadline || isInactiveStatus(c.status)) return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const limit = new Date(today); limit.setDate(limit.getDate() + 60);
+  const nd = new Date(c.noticeDeadline + 'T00:00:00');
+  return nd >= today && nd <= limit;
+}
+
+// Any COI item that is overdue or due/expiring within the next 30 days — either
+// direction (counterparty's COI to us, or ours to them).
+function needsCoiAttention(c) {
+  if (isInactiveStatus(c.status)) return false;
+  const T = v => v === true || v === 'true';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const limit = new Date(today); limit.setDate(limit.getDate() + 30);
+  const soonOrPast = d => !!d && new Date(d + 'T00:00:00') <= limit;
+  if (T(c.coiRequired)) {
+    if (soonOrPast(c.coiExpiration)) return true;
+    if (!T(c.coiReceived) && soonOrPast(c.coiDueDate)) return true;
+  }
+  if (T(c.coiOutRequired) && soonOrPast(c.coiOutExpiration)) return true;
+  return false;
 }
 
 function updateBadges() {
@@ -2782,21 +2843,15 @@ function updateBadges() {
   const d30  = new Date(today); d30.setDate(d30.getDate()+30);
   const d60  = new Date(today); d60.setDate(d60.getDate()+60);
   const d90  = new Date(today); d90.setDate(d90.getDate()+90);
-  const d120 = new Date(today); d120.setDate(d120.getDate()+120);
-  const d180 = new Date(today); d180.setDate(d180.getDate()+180);
-  const counts = { all:0, active:0, pending:0, 'expired/terminated':0, soon30:0, soon60:0, soon90:0, soon120:0, soon180:0 };
+  const counts = { all:0, active:0, pending:0, 'expired/terminated':0, soon30:0, soon60:0, soon90:0, notice60:0, coi:0 };
   contracts.forEach(c => {
     counts.all++;
     const s = c.status.toLowerCase();
     if (counts[s] !== undefined) counts[s]++;
-    const end = c.end ? new Date(c.end) : null;
-    if (end && end >= today) {
-      if (end <= d30)  counts.soon30++;
-      if (end <= d60)  counts.soon60++;
-      if (end <= d90)  counts.soon90++;
-      if (end <= d120) counts.soon120++;
-      if (end <= d180) counts.soon180++;
-    }
+    const bucket = expiryBucket(c);
+    if (bucket) counts[bucket]++;
+    if (noticeSoon(c)) counts.notice60++;
+    if (needsCoiAttention(c)) counts.coi++;
   });
   Object.keys(counts).forEach(k => {
     const el = document.getElementById('badge-'+k);
@@ -2807,23 +2862,12 @@ function updateBadges() {
     all: 'fc-all', active: 'fc-active', pending: 'fc-pending',
     'expired/terminated': 'fc-exp',
     soon30: 'fc-s30', soon60: 'fc-s60', soon90: 'fc-s90',
-    soon120: 'fc-s120', soon180: 'fc-s180'
+    notice60: 'fc-notice', coi: 'fc-coi'
   };
   Object.keys(chipMap).forEach(k => {
     const el = document.getElementById(chipMap[k]);
     if (el) el.textContent = counts[k] !== undefined ? counts[k] : '';
   });
-}
-
-function updateStats() {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const d30 = new Date(today); d30.setDate(d30.getDate()+30);
-  document.getElementById('s-total').textContent = contracts.length;
-  document.getElementById('s-active').textContent = contracts.filter(c=>c.status==='Active').length;
-  document.getElementById('s-expiring').textContent = contracts.filter(c=>{
-    const e = c.end ? new Date(c.end):null;
-    return e && e>=today && e<=d30;
-  }).length;
 }
 
 function refreshIntakePartyList() {
@@ -2948,6 +2992,7 @@ function updateContractTypes(preserveVal) {
 
   const isWWD = dept === 'WWD';
   const isCrossRidge = div === 'CrossRidge';
+  const isCorporate = div === 'Corporate';
 
   let types; // values stored on the contract; display labels come from typeLabel()
   if (isCrossRidge) {
@@ -2961,6 +3006,12 @@ function updateContractTypes(preserveVal) {
       'Distribution Agr - OND',
       'Amendment',
       'Other'
+    ];
+  } else if (isCorporate) {
+    // Corporate: base types plus Intercompany Agreement and Audit Services
+    types = [
+      'Service Agreement', 'NDA', 'License Agreement', 'Letter Agreement',
+      'Intercompany Agreement', 'Audit Services', 'Amendment', 'Other'
     ];
   } else {
     // All other departments: base types
@@ -3038,7 +3089,6 @@ function openModal(id) {
   document.getElementById('f-territory-wrap').style.display = showTerritory ? '' : 'none';
   document.getElementById('f-territory').value = c?.territory || '';
   document.getElementById('f-status').value = c?.status || 'Active';
-  document.getElementById('f-execution-status').value = c?.executionStatus || 'Draft';
   document.getElementById('f-filenum').value = c?.filenum || '';
   document.getElementById('f-newfile').checked = c ? (c.newFile === true || c.newFile === 'true') : true;
   updateNewFileUI();
@@ -3081,22 +3131,15 @@ function openModal(id) {
   document.getElementById('f-renewal-decision-notes').value = c?.renewalDecisionNotes || '';
   updateTermPerpetualUI();
   document.getElementById('f-notes').value = c?.notes || '';
+  cLinks = c?.links && c.links.length ? [...c.links] : (c?.link ? [c.link] : []);
+  renderLinksList();
   // Requester Description — read-only, only shown if populated from intake
   const rdesc = c?.requesterDesc || '';
   document.getElementById('f-requester-desc').value = rdesc;
   document.getElementById('f-requester-desc-wrap').style.display = rdesc ? '' : 'none';
-  cAttachments = c?.attachments ? [...c.attachments] : [];
-  renderCAttachList();
-  document.getElementById('f-ai-summary-wrap').style.display = 'none';
-  document.getElementById('f-ai-summary-text').value = c?.aiSummary || '';
-  if (c?.aiSummary) document.getElementById('f-ai-summary-wrap').style.display = '';
-  document.getElementById('btn-ai-summary-c').disabled = cAttachments.length === 0;
   renderUpdateLog('f-update-list', c?.updates || []);
+  renderHistory('f-history-list', 'f-history-summary', c?.history);
   document.getElementById('f-update-input').value = '';
-  cUpdateAttachments = [];
-  renderUpdateAttachPending('f-update-attach-list', cUpdateAttachments);
-  const fi = document.getElementById('f-file-input');
-  if (fi) fi.value = '';
   _relatedIds = [...(c?.relatedIds || [])];
   _amendmentOfId = c?.amendmentOfId || null;
   renderRelatedChips();
@@ -3113,6 +3156,7 @@ function saveContract() {
   const name = document.getElementById('f-name').value.trim();
   const party = document.getElementById('f-party').value.trim();
   if (!name || !party) { toast('Name and counterparty are required.'); return; }
+  addLinkFromInput(); // keep a link that was typed but not yet added
   // File number: auto-assign for a new file; otherwise the user's entered value
   const isNewFile = document.getElementById('f-newfile').checked;
   let filenumVal;
@@ -3135,7 +3179,7 @@ function saveContract() {
     type: document.getElementById('f-type').value,
     territory: document.getElementById('f-territory').value.trim(),
     status: document.getElementById('f-status').value,
-    executionStatus: document.getElementById('f-execution-status').value,
+    executionStatus: '',
     filenum: filenumVal,
     related: document.getElementById('f-related').value.trim(),
     assigned: getAssignedValue('f-assigned', 'f-assigned-other'),
@@ -3172,13 +3216,18 @@ function saveContract() {
     renewalDecidedBy: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-renewal-decided-by').value.trim(),
     renewalDecisionNotes: document.getElementById('f-term-perpetual').checked ? '' : document.getElementById('f-renewal-decision-notes').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
+    link: '',
+    links: [...cLinks],
     requesterDesc: document.getElementById('f-requester-desc').value.trim(),
-    attachments: [...cAttachments],
-    aiSummary: document.getElementById('f-ai-summary-text').value.trim(),
+    attachments: [],
+    aiSummary: (editId ? contracts.find(x=>x.id===editId)?.aiSummary : '') || '',
     updates: editId ? (contracts.find(x=>x.id===editId)?.updates || []) : [],
     relatedIds: [..._relatedIds],
     amendmentOfId: _amendmentOfId || '',
   };
+  const oldC = editId ? contracts.find(x => x.id === editId) : null;
+  data.history = nextHistory(oldC ? oldC.history : [],
+    oldC ? diffRecord(oldC, data, HISTORY_FIELDS_CONTRACT) : [{ f: 'Record', a: '', b: 'created' }], currentUser());
   const isNewRecord = !editId;
   if (editId) {
     const i = contracts.findIndex(c=>c.id===editId);
@@ -3200,8 +3249,11 @@ function saveContract() {
       if (!Array.isArray(orig.relatedIds)) orig.relatedIds = [];
       if (!orig.relatedIds.includes(data.id)) orig.relatedIds.push(data.id);
       if (data.end) {
+        const prevEnd = orig.end;
         orig.end = data.end;
         orig.endAuto = true;
+        if (prevEnd !== orig.end)
+          orig.history = nextHistory(orig.history, [{ f: 'Expiration Date (via Amendment)', a: _histVal(prevEnd), b: _histVal(orig.end) }], currentUser());
       }
       if (isNewRecord) {
         const amendmentNumber = countAmendmentsFor(data.amendmentOfId);
@@ -3239,59 +3291,95 @@ function icsEscape(s) {
   return (s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
 }
 
-function buildICSEvent(c, reminderDays) {
-  if (!c.end) return null;
-  const uid = `contract-${c.id}@legaltrack`;
-  const dtstart = icsDate(c.end);
-  const endDate = new Date(c.end + 'T00:00:00');
-  endDate.setDate(endDate.getDate()+1);
-  const dtend = endDate.toISOString().slice(0,10).replace(/-/g,'');
+const ICS_KIND_LABEL = {
+  expire: 'Expires', notice: 'Notice deadline', coidue: 'COI due (counterparty)',
+  coiexp: 'Counterparty COI expires', coiout: 'Our COI expires',
+  hearing: 'Hearing', tmrenew: 'Trademark renewal'
+};
 
-  const remind = reminderDays || c.remind || 30;
-  const hasRenewal = isAutoRenew(c);
-  const noticeDate = c.noticeDeadline || null;
-
-  const termTxt = c.renewalTerm === 'Other' ? (c.renewalTermOther || 'Other') : (c.renewalTerm || '');
-  const noticeTxt = (c.renewal && c.renewal !== 'custom')
-    ? `${c.renewal}-day cancellation notice required.`
-    : 'cancellation notice — see notes.';
-  const renewalNote = hasRenewal
-    ? ` | Auto-renewal${termTxt ? ' ('+termTxt+')' : ''}: ${noticeTxt}${noticeDate ? ' Notice deadline: '+noticeDate+'.' : ''}`
-    : '';
-  const description = icsEscape(`Contract: ${c.name}\nCounterparty: ${c.party}\nType: ${typeLabel(c.type)}\nStatus: ${c.status}${renewalNote}${c.notes ? '\n\nNotes: '+c.notes : ''}`);
-
-  const summary = hasRenewal
-    ? `⚠️ AUTO-RENEWAL: ${c.name}${noticeDate ? ' — Notice deadline: '+noticeDate : ''}`
-    : `📋 CONTRACT EXPIRES: ${c.name}`;
-
-  let alarmBlock = '';
-  if (hasRenewal && noticeDate) {
-    // Primary alarm: X days before the Notice Deadline date
-    // Calculate days between notice deadline and expiration for TRIGGER offset from DTSTART (expiry)
-    const expiryMs = new Date(c.end + 'T00:00:00').getTime();
-    const noticeMs = new Date(noticeDate + 'T00:00:00').getTime();
-    const daysBeforeExpiry = Math.ceil((expiryMs - noticeMs) / 86400000);
-    const reminderTriggerDays = daysBeforeExpiry + parseInt(remind || 30);
-
-    alarmBlock = `BEGIN:VALARM\r\nTRIGGER:-P${reminderTriggerDays}D\r\nACTION:DISPLAY\r\nDESCRIPTION:REMINDER: ${icsEscape(c.name)} — right of non-renewal expires in ${remind} days (by ${noticeDate})\r\nEND:VALARM\r\n`;
-    // Second alarm: on the notice deadline itself
-    alarmBlock += `BEGIN:VALARM\r\nTRIGGER:-P${daysBeforeExpiry}D\r\nACTION:DISPLAY\r\nDESCRIPTION:TODAY IS NOTICE DEADLINE: ${icsEscape(c.name)} — send non-renewal notice today if not renewing\r\nEND:VALARM\r\n`;
-  } else if (remind) {
-    // No notice deadline set — fall back to X days before expiration
-    alarmBlock = `BEGIN:VALARM\r\nTRIGGER:-P${remind}D\r\nACTION:DISPLAY\r\nDESCRIPTION:Reminder: ${icsEscape(c.name)} expires in ${remind} days\r\nEND:VALARM\r\n`;
-  }
-
-  return `BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTART;VALUE=DATE:${dtstart}\r\nDTEND;VALUE=DATE:${dtend}\r\nSUMMARY:${icsEscape(summary)}\r\nDESCRIPTION:${description}\r\n${alarmBlock}END:VEVENT`;
+function localYMD(d) {
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function buildICS(contractList, reminderDays) {
-  const events = contractList
-    .filter(c => c.end)
-    .map(c => buildICSEvent(c, reminderDays))
-    .filter(Boolean)
-    .join('\r\n');
+// Every calendar-worthy date on a contract. Inactive/Cancelled contracts get none.
+function contractEvents(c, reminderDays) {
+  if (isInactiveStatus(c.status)) return [];
+  const T = v => v === true || v === 'true';
+  const remind = parseInt(reminderDays, 10) || parseInt(c.remind, 10) || 30;
+  const base = `Contract: ${c.name}\nCounterparty: ${c.party}\nType: ${typeLabel(c.type)}\nStatus: ${c.status}`;
+  const mk = (kind, date, summary, extra, alarms) =>
+    ({ kind, date, uid: `${kind}-${c.id}@legaltrack`, title: c.name, summary, description: base + extra, alarms });
+  const ev = [];
+  const auto = isAutoRenew(c);
+  if (c.end) {
+    ev.push(mk('expire', c.end,
+      auto ? `🔁 AUTO-RENEWS: ${c.name}` : `📋 CONTRACT EXPIRES: ${c.name}`,
+      c.notes ? `\n\nNotes: ${c.notes}` : '',
+      [{ days: remind, text: `${c.name} ${auto ? 'auto-renews' : 'expires'} in ${remind} days` }]));
+  }
+  if (auto && c.noticeDeadline) {
+    const noticeTxt = (c.renewal && c.renewal !== 'custom') ? `${c.renewal}-day cancellation notice required.` : 'Cancellation notice — see notes.';
+    ev.push(mk('notice', c.noticeDeadline, `⚠️ NOTICE DEADLINE: ${c.name}`,
+      `\n${noticeTxt}\nSend the non-renewal notice by this date if not renewing.`,
+      [{ days: remind, text: `Notice deadline for ${c.name} in ${remind} days` },
+       { days: 0, text: `TODAY IS THE NOTICE DEADLINE: ${c.name}` }]));
+  }
+  if (T(c.coiRequired)) {
+    if (!T(c.coiReceived) && c.coiDueDate)
+      ev.push(mk('coidue', c.coiDueDate, `📋 COI DUE FROM COUNTERPARTY: ${c.name}`,
+        `\nCertificate of insurance due from ${c.party}.`,
+        [{ days: 7, text: `COI due from ${c.party} in 7 days` }, { days: 0, text: `COI due today from ${c.party}` }]));
+    if (c.coiExpiration)
+      ev.push(mk('coiexp', c.coiExpiration, `📋 COUNTERPARTY COI EXPIRES: ${c.name}`,
+        `\nRequest an updated certificate from ${c.party}.`,
+        [{ days: 30, text: `${c.party}'s COI expires in 30 days` }]));
+  }
+  if (T(c.coiOutRequired) && c.coiOutExpiration)
+    ev.push(mk('coiout', c.coiOutExpiration, `📋 OUR COI EXPIRES: ${c.name}`,
+      `\nOur certificate furnished to ${c.party} needs renewing and resending.`,
+      [{ days: 30, text: `Our COI for ${c.name} expires in 30 days` }]));
+  return ev;
+}
 
-  return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//LegalTrack//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:Contract Deadlines\r\nX-WR-CALDESC:Contract expiry and renewal reminders\r\n${events}\r\nEND:VCALENDAR`;
+function matterEvents(m) {
+  if (isDormantMatter(m)) return [];
+  const mk = (kind, date, summary, extra, alarms) => ({
+    kind, date, uid: `${kind}-${m.id}@legaltrack`, title: m.name, summary, alarms,
+    description: `Matter: ${m.name}${m.num ? ' (' + m.num + ')' : ''}\nType: ${m.type}\nStatus: ${m.status}${extra}`
+  });
+  const ev = [];
+  if (m.type === 'Litigation' && m.litHearingDate)
+    ev.push(mk('hearing', m.litHearingDate, `⚖️ HEARING: ${m.name}${m.litCourt ? ' — ' + m.litCourt : ''}`,
+      m.litCaseNumber ? `\nCase No.: ${m.litCaseNumber}` : '',
+      [{ days: 7, text: `Hearing in 7 days: ${m.name}` }, { days: 1, text: `Hearing tomorrow: ${m.name}` }]));
+  if (m.type === 'Trademarks' && m.renewalDate)
+    ev.push(mk('tmrenew', m.renewalDate, `™️ TRADEMARK RENEWAL: ${m.name}`,
+      m.tmMark ? `\nMark: ${m.tmMark}` : '',
+      [{ days: 30, text: `Trademark renewal in 30 days: ${m.name}` }]));
+  return ev;
+}
+
+// Upcoming (today or later) dated items across contracts and matters, soonest first.
+function allDeadlineEvents(reminderDays) {
+  const today = localYMD();
+  return [...contracts.flatMap(c => contractEvents(c, reminderDays)), ...matters.flatMap(matterEvents)]
+    .filter(e => e.date >= today)
+    .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+}
+
+function buildICSEvent(ev) {
+  const [y, mo, d] = ev.date.split('-').map(Number);
+  const dtend = localYMD(new Date(y, mo - 1, d + 1)).replace(/-/g, '');
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const alarms = (ev.alarms || []).map(a =>
+    `BEGIN:VALARM\r\nTRIGGER:-P${a.days}D\r\nACTION:DISPLAY\r\nDESCRIPTION:${icsEscape(a.text)}\r\nEND:VALARM\r\n`).join('');
+  return `BEGIN:VEVENT\r\nUID:${ev.uid}\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${icsDate(ev.date)}\r\nDTEND;VALUE=DATE:${dtend}\r\nSUMMARY:${icsEscape(ev.summary)}\r\nDESCRIPTION:${icsEscape(ev.description)}\r\n${alarms}END:VEVENT`;
+}
+
+function buildICS(events) {
+  const body = events.map(buildICSEvent).join('\r\n');
+  return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//LegalTrack//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:LegalTrack Deadlines\r\nX-WR-CALDESC:Contract, COI, hearing and renewal deadlines\r\n${body}\r\nEND:VCALENDAR`;
 }
 
 function downloadICSBlob(icsContent, filename) {
@@ -3301,49 +3389,52 @@ function downloadICSBlob(icsContent, filename) {
   a.click();
 }
 
-// Single-contract ICS (from table row)
+// All upcoming dates on one contract (from its table row)
 function exportSingleICS(id) {
-  const c = contracts.find(x=>x.id===id);
-  if (!c || !c.end) { toast('No expiry date set on this contract.'); return; }
-  const ics = buildICS([c], c.remind || 30);
-  downloadICSBlob(ics, `${c.name.replace(/[^a-z0-9]/gi,'_')}.ics`);
+  const c = contracts.find(x => x.id === id);
+  if (!c) return;
+  const today = localYMD();
+  const ev = contractEvents(c, c.remind || 30).filter(e => e.date >= today);
+  if (!ev.length) { toast('No upcoming dates on this contract.'); return; }
+  downloadICSBlob(buildICS(ev), `${c.name.replace(/[^a-z0-9]/gi,'_')}.ics`);
+  toast(`${ev.length} calendar event${ev.length > 1 ? 's' : ''} downloaded — open to add to Outlook.`);
+}
+
+// One event from the export list
+function exportEventICS(uid) {
+  const ev = allDeadlineEvents(_icsReminderDays).find(e => e.uid === uid);
+  if (!ev) return;
+  downloadICSBlob(buildICS([ev]), `${ev.title.replace(/[^a-z0-9]/gi,'_')}_${ev.kind}.ics`);
   toast('Calendar event downloaded — open to add to Outlook.');
 }
 
 // Bulk ICS modal
 let _icsReminderDays = 30;
 function openICSModal() {
-  const withDates = contracts.filter(c=>c.end);
-  if (!withDates.length) { toast('No contracts have expiry dates set.'); return; }
   _icsReminderDays = 30;
+  const events = allDeadlineEvents(_icsReminderDays);
+  if (!events.length) { toast('No upcoming deadline dates to export.'); return; }
   const today = new Date(); today.setHours(0,0,0,0);
-
-  const rows = withDates
-    .sort((a,b)=>a.end<b.end?-1:1)
-    .map(c => {
-      const d = new Date(c.end+'T00:00:00');
-      const diff = Math.ceil((d-today)/86400000);
-      const diffLabel = diff < 0 ? `<span style="color:var(--red)">${Math.abs(diff)}d overdue</span>`
-        : diff <= 30 ? `<span style="color:var(--yellow)">${diff}d away</span>`
-        : `<span style="color:var(--text-muted)">${diff}d away</span>`;
-      const renewBadge = isAutoRenew(c) ? `<span class="pill pill-pending" style="font-size:10px;margin-left:6px">↺ auto-renew</span>` : '';
-      return `<div class="ics-row">
-        <div class="ics-row-info">
-          <div class="ics-row-name">${c.name}${renewBadge}</div>
-          <div class="ics-row-date">Expires ${c.end} &nbsp;·&nbsp; ${diffLabel}</div>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="exportSingleICS('${c.id}');closeICSModal()">↓ Single</button>
-      </div>`;
-    }).join('');
+  const rows = events.map(ev => {
+    const diff = Math.ceil((new Date(ev.date + 'T00:00:00') - today) / 86400000);
+    const diffLabel = diff <= 30 ? `<span style="color:var(--yellow)">${diff}d away</span>` : `<span style="color:var(--text-muted)">${diff}d away</span>`;
+    return `<div class="ics-row">
+      <div class="ics-row-info">
+        <div class="ics-row-name">${esc(ev.title)}<span class="pill pill-pending" style="font-size:10px;margin-left:6px">${esc(ICS_KIND_LABEL[ev.kind] || ev.kind)}</span></div>
+        <div class="ics-row-date">${ev.date} &nbsp;·&nbsp; ${diffLabel}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportEventICS('${ev.uid}');closeICSModal()">↓ Single</button>
+    </div>`;
+  }).join('');
 
   document.getElementById('ics-body').innerHTML = `
     <div class="reminder-row">
-      <label>Default reminder (days before expiry):</label>
+      <label>Default reminder (days before expiry / notice deadline):</label>
       <input type="number" value="30" min="1" max="365" style="width:70px" oninput="_icsReminderDays=parseInt(this.value)||30">
     </div>
     <div class="ics-options">${rows}</div>
     <div class="reminder-note">
-      ℹ️ The downloaded <strong>.ics</strong> file contains all contracts with expiry dates. Double-click it to import into Outlook — each contract becomes a calendar event with a pop-up reminder at the specified number of days before expiry. Contracts marked with auto-renewal get a <em>second</em> reminder at the cancellation notice deadline.
+      ℹ️ The downloaded <strong>.ics</strong> file contains all ${events.length} upcoming dates shown — contract expirations, notice deadlines, COI due/expiration dates, litigation hearings, and trademark renewals (Inactive and Cancelled contracts, and Closed matters, are skipped). Double-click it to import into Outlook; each date becomes an all-day event with pop-up reminders.
     </div>
   `;
   document.getElementById('ics-modal').classList.add('open');
@@ -3354,10 +3445,9 @@ function closeICSModal() {
 }
 
 function downloadICS() {
-  const withDates = contracts.filter(c=>c.end);
-  const ics = buildICS(withDates, _icsReminderDays);
-  downloadICSBlob(ics, `contract_deadlines_${new Date().toISOString().slice(0,10)}.ics`);
-  toast('Calendar file downloaded — open to import into Outlook.');
+  const events = allDeadlineEvents(_icsReminderDays);
+  downloadICSBlob(buildICS(events), `legaltrack_deadlines_${localYMD()}.ics`);
+  toast(`${events.length} dates downloaded — open to import into Outlook.`);
   closeICSModal();
 }
 
@@ -3454,6 +3544,7 @@ function renderMatters() {
       <td class="actions-cell">
         <div class="actions">
           <button class="icon-btn mbtn-edit" data-mid="${m.id}" title="Edit">✎</button>
+          ${contractLinkIcon(m)}
           <button class="icon-btn del mbtn-delete" data-mid="${m.id}" title="Delete">✕</button>
         </div>
       </td>
@@ -3543,16 +3634,11 @@ function openMatterModal(id) {
   refreshAssignedList();
   setAssignedValue('mf-assigned', 'mf-assigned-other', m?.assigned || '');
   document.getElementById('mf-notes').value = m?.notes || '';
-  mAttachments = m?.attachments ? [...m.attachments] : [];
-  renderMAttachList();
-  document.getElementById('mf-ai-summary-wrap').style.display = 'none';
-  document.getElementById('mf-ai-summary-text').value = m?.aiSummary || '';
-  if (m?.aiSummary) document.getElementById('mf-ai-summary-wrap').style.display = '';
-  document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
+  mLinks = m?.links && m.links.length ? [...m.links] : [];
+  renderMLinksList();
   renderUpdateLog('mf-update-list', m?.updates || []);
+  renderHistory('mf-history-list', 'mf-history-summary', m?.history);
   document.getElementById('mf-update-input').value = '';
-  mUpdateAttachments = [];
-  renderUpdateAttachPending('mf-update-attach-list', mUpdateAttachments);
   document.getElementById('matter-modal').classList.add('open');
   setTimeout(() => document.getElementById('mf-name').focus(), 100);
 }
@@ -3565,6 +3651,7 @@ function closeMatterModal() {
 function saveMatter() {
   const name = document.getElementById('mf-name').value.trim();
   if (!name) { toast('Matter name is required.'); return; }
+  addMLinkFromInput(); // keep a link that was typed but not yet added
   const numVal = document.getElementById('mf-num').value.trim();
   if (!numVal) {
     if (!confirm('No Matter No. entered. Save anyway?')) return;
@@ -3604,10 +3691,13 @@ function saveMatter() {
     closed: document.getElementById('mf-closed').value,
     assigned: getAssignedValue('mf-assigned', 'mf-assigned-other'),
     notes: document.getElementById('mf-notes').value.trim(),
-    attachments: [...mAttachments],
-    aiSummary: document.getElementById('mf-ai-summary-text').value.trim(),
+    links: [...mLinks],
+    aiSummary: (mEditId ? matters.find(x=>x.id===mEditId)?.aiSummary : '') || '',
     updates: mEditId ? (matters.find(x=>x.id===mEditId)?.updates || []) : [],
   };
+  const oldM = mEditId ? matters.find(x => x.id === mEditId) : null;
+  data.history = nextHistory(oldM ? oldM.history : [],
+    oldM ? diffRecord(oldM, data, HISTORY_FIELDS_MATTER) : [{ f: 'Record', a: '', b: 'created' }], currentUser());
   if (mEditId) {
     const i = matters.findIndex(m=>m.id===mEditId);
     matters[i] = data;
@@ -3677,9 +3767,7 @@ function exportMattersCSV() {
 // (defined fully below — see switchTab override near event wiring)
 
 // ── UPDATE LOG ────────────────────────────────────────────────────────────────
-let cUpdateAttachments = [];  // pending attachments for next contract update
-let mUpdateAttachments = [];  // pending attachments for next matter update
-let mAttachments = [];        // main matter attachments
+let mLinks = [];              // document links for the open matter
 
 // ── COUNTERPARTY ROLLUP ───────────────────────────────────────────────────────
 function partyKey(p) { return (p || '').trim().toLowerCase(); }
@@ -3735,24 +3823,6 @@ function fmtTimestamp(ts) {
     ' · ' + d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
 }
 
-function renderUpdateAttachPending(listId, attachArr) {
-  const el = document.getElementById(listId);
-  if (!el) return;
-  el.innerHTML = attachArr.map((a,i) =>
-    `<div class="attach-item">
-      <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
-      <button class="attach-remove" data-uai="${i}" data-ual="${listId}">✕</button>
-    </div>`
-  ).join('');
-  el.querySelectorAll('.attach-remove').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const arr = btn.dataset.ual === 'f-update-attach-list' ? cUpdateAttachments : mUpdateAttachments;
-      arr.splice(parseInt(btn.dataset.uai), 1);
-      renderUpdateAttachPending(btn.dataset.ual, arr);
-    });
-  });
-}
-
 function renderUpdateLog(listId, updates) {
   const el = document.getElementById(listId);
   if (!updates.length) {
@@ -3772,7 +3842,7 @@ function renderUpdateLog(listId, updates) {
     return `<div class="update-entry" data-uidx="${realIdx}">
       <div class="update-entry-body">
         <div class="update-entry-ts">${fmtTimestamp(u.ts)}</div>
-        <div class="update-entry-text">${u.text.replace(/</g,'&lt;')}</div>
+        <div class="update-entry-text">${linkify(esc(u.text))}</div>
         ${attachHtml}
       </div>
       <button class="icon-btn del update-del-btn" data-listid="${listId}" data-uidx="${realIdx}" title="Delete update">✕</button>
@@ -3800,35 +3870,29 @@ function deleteUpdate(listId, idx) {
 
 function addContractUpdate() {
   const text = document.getElementById('f-update-input').value.trim();
-  if (!text && !cUpdateAttachments.length) return;
+  if (!text) return;
   if (!editId) { toast('Save the contract first before adding updates.'); return; }
   const c = contracts.find(x=>x.id===editId);
   if (!c) return;
   if (!c.updates) c.updates = [];
-  c.updates.push({ ts: Date.now(), text: text || '(attachment only)', attachments: [...cUpdateAttachments] });
-  cUpdateAttachments = [];
-  renderUpdateAttachPending('f-update-attach-list', cUpdateAttachments);
+  c.updates.push({ ts: Date.now(), text });
   save(); render();
   renderUpdateLog('f-update-list', c.updates);
   document.getElementById('f-update-input').value = '';
-  document.getElementById('f-update-file').value = '';
   toast('Update added.');
 }
 
 function addMatterUpdate() {
   const text = document.getElementById('mf-update-input').value.trim();
-  if (!text && !mUpdateAttachments.length) return;
+  if (!text) return;
   if (!mEditId) { toast('Save the matter first before adding updates.'); return; }
   const m = matters.find(x=>x.id===mEditId);
   if (!m) return;
   if (!m.updates) m.updates = [];
-  m.updates.push({ ts: Date.now(), text: text || '(attachment only)', attachments: [...mUpdateAttachments] });
-  mUpdateAttachments = [];
-  renderUpdateAttachPending('mf-update-attach-list', mUpdateAttachments);
+  m.updates.push({ ts: Date.now(), text });
   mSave(); renderMatters();
   renderUpdateLog('mf-update-list', m.updates);
   document.getElementById('mf-update-input').value = '';
-  document.getElementById('mf-update-file').value = '';
   toast('Update added.');
 }
 
@@ -4211,6 +4275,8 @@ function convertToContract() {
     updateDepartments(parts.length === 2 ? parts[1].trim() : undefined);
   }
   document.getElementById('f-notes').value = `[From Legal Intake]${r.counterparty ? '\nCounterparty: '+r.counterparty : ''}`.trim();
+  cLinks = r.link ? [r.link] : [];
+  renderLinksList();
   refreshAssignedList();
   setAssignedValue('f-assigned', 'f-assigned-other', r.assigned || '');
   // Default file-number mode from the intake's agreement type: "Change to an Existing
@@ -4229,7 +4295,9 @@ function convertToMatter() {
   switchTab('matters');
   openMatterModal();
   document.getElementById('mf-name').value = r.description.slice(0,80);
-  document.getElementById('mf-notes').value = `[From Legal Intake — ${r.requestor}, ${r.dept}]\n${r.description}${r.link?'\n\nOneDrive: '+r.link:''}`;
+  document.getElementById('mf-notes').value = `[From Legal Intake — ${r.requestor}, ${r.dept}]\n${r.description}`;
+  mLinks = r.link ? [r.link] : [];
+  renderMLinksList();
   refreshAssignedList();
   setAssignedValue('mf-assigned', 'mf-assigned-other', r.assigned || '');
   toast('Converted to Other Legal Matter — complete the form and save.');
@@ -4249,21 +4317,25 @@ function exportIntakeCSV() {
 }
 
 // ── MATTER ATTACH LIST ────────────────────────────────────────────────────────
-function renderMAttachList() {
-  const el = document.getElementById('mf-attach-list');
+function renderMLinksList() {
+  const el = document.getElementById('mf-links-list');
   if (!el) return;
-  el.innerHTML = mAttachments.map((a,i) =>
+  el.innerHTML = mLinks.map((url,i) =>
     `<div class="attach-item">
-      <span>📄 ${a.name} <span style="color:var(--text-muted)">(${(a.size/1024).toFixed(1)} KB)</span></span>
+      <a href="${esc(normalizeUrl(url))}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🔗 ${esc(url)}</a>
       <button class="attach-remove" data-mi="${i}">✕</button>
     </div>`
   ).join('');
   el.querySelectorAll('.attach-remove').forEach(btn =>
-    btn.addEventListener('click', () => {
-      mAttachments.splice(parseInt(btn.dataset.mi),1);
-      renderMAttachList();
-      document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
-    }));
+    btn.addEventListener('click', () => { mLinks.splice(parseInt(btn.dataset.mi),1); renderMLinksList(); }));
+}
+function addMLinkFromInput() {
+  const input = document.getElementById('mf-link-new');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!mLinks.includes(val)) mLinks.push(val);
+  input.value = '';
+  renderMLinksList();
 }
 
 // ── AI SUMMARY ENGINE ─────────────────────────────────────────────────────────
@@ -4868,7 +4940,8 @@ function generateMattersTypeReport() {
 // ── INTAKE TURNAROUND REPORT ──────────────────────────────────────────────────
 function generateTurnaroundReport() {
   const now = new Date();
-  const intakeItems = (typeof intakes !== 'undefined' ? intakes : []);
+  const intakeItems = intakeRequests;
+  const subDate = i => i.submitted ? localYMD(new Date(i.submitted)) : '';
 
   let html = `<h2 style="font-family:serif;margin-bottom:4px">Legal Intake Turnaround Report</h2>`;
   html += `<p style="color:#888;font-size:13px;margin-bottom:20px">Generated ${now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>`;
@@ -4906,7 +4979,7 @@ function generateTurnaroundReport() {
     intakeItems.slice().sort((a,b)=>((a.submitted||''))<(b.submitted||'')?1:-1).forEach(i => {
       const bd = calcBd(i);
       const status = isClosed(i) ? (i.status || 'Closed') : 'Open';
-      html += `<tr><td>${esc(i.requestor || (i.description||'').slice(0,50) || '')}</td><td>${fmtDate(i.submitted)}</td><td>${esc(status)}</td><td>${bd !== null ? bd : '—'}</td></tr>`;
+      html += `<tr><td>${esc(i.requestor || (i.description||'').slice(0,50) || '')}</td><td>${fmtDate(subDate(i))}</td><td>${esc(status)}</td><td>${bd !== null ? bd : '—'}</td></tr>`;
     });
     html += `</tbody></table>`;
   }
@@ -4925,7 +4998,7 @@ function generateUpcomingRenewalsReport() {
   windows.forEach(days => {
     const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() + days);
     const group = contracts.filter(c => {
-      if ((c.status||'').toLowerCase() === 'expired/terminated') return false;
+      if (isInactiveStatus(c.status)) return false;
       if (!c.end) return false;
       const end = new Date(c.end);
       return end >= now && end <= cutoff;
@@ -5131,7 +5204,7 @@ document.getElementById('btn-ics').addEventListener('click', openICSModal);
 document.getElementById('btn-new').addEventListener('click', () => openModal());
 
 // Bulk bar
-document.getElementById('btn-bulk-apply').addEventListener('click', applyBulkStatus);
+document.getElementById('btn-bulk-apply').addEventListener('click', applyBulk);
 document.getElementById('btn-bulk-clear').addEventListener('click', () => {
   document.querySelectorAll('.row-chk').forEach(c => c.checked = false);
   const ca = document.getElementById('chk-all'); if (ca) ca.checked = false;
@@ -5177,106 +5250,17 @@ document.getElementById('departmentFilter').addEventListener('change', render);
 document.getElementById('typeFilter').addEventListener('change', render);
 // sortSel removed — sorting now via clickable column headers
 
-// Update log file attachments
-document.getElementById('f-update-file').addEventListener('click', function(e) { e.stopPropagation(); });
-document.querySelector('label[for="f-update-file"], #f-update-file').closest ? null : null;
-document.getElementById('f-update-file').parentElement.addEventListener('click', () => document.getElementById('f-update-file').click());
-document.getElementById('f-update-file').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(f => {
-    if (!cUpdateAttachments.find(a=>a.name===f.name)) cUpdateAttachments.push({name:f.name, size:f.size});
-  });
-  renderUpdateAttachPending('f-update-attach-list', cUpdateAttachments);
-});
-document.getElementById('mf-update-file').parentElement.addEventListener('click', () => document.getElementById('mf-update-file').click());
-document.getElementById('mf-update-file').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(f => {
-    if (!mUpdateAttachments.find(a=>a.name===f.name)) mUpdateAttachments.push({name:f.name, size:f.size});
-  });
-  renderUpdateAttachPending('mf-update-attach-list', mUpdateAttachments);
+// Matter document links
+document.getElementById('btn-add-mlink').addEventListener('click', addMLinkFromInput);
+document.getElementById('mf-link-new').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addMLinkFromInput(); }
 });
 
-// Matter modal file attachment
-document.getElementById('mf-dropzone').addEventListener('click', () => document.getElementById('mf-file-input').click());
-document.getElementById('mf-file-input').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(f => {
-    if (!mAttachments.find(a=>a.name===f.name)) mAttachments.push({name:f.name, size:f.size});
-  });
-  renderMAttachList();
-  document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
-});
-document.getElementById('mf-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
-document.getElementById('mf-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
-document.getElementById('mf-dropzone').addEventListener('drop', e => {
-  e.preventDefault(); e.currentTarget.style.borderColor='';
-  Array.from(e.dataTransfer.files).forEach(f => {
-    if (!mAttachments.find(a=>a.name===f.name)) mAttachments.push({name:f.name, size:f.size});
-  });
-  renderMAttachList();
-  document.getElementById('btn-ai-summary-m').disabled = mAttachments.length === 0;
-});
-
-// Enable AI summary button when files are attached (contract)
-document.getElementById('f-dropzone').addEventListener('click', () => document.getElementById('f-file-input').click());
-document.getElementById('f-dropzone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor='var(--accent)'; });
-document.getElementById('f-dropzone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor=''; });
-document.getElementById('f-file-input').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(f => {
-    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
-  });
-  renderCAttachList();
-  document.getElementById('btn-ai-summary-c').disabled = false;
-});
 document.getElementById('if-file-input').addEventListener('change', e => {
   Array.from(e.target.files).forEach(f => {
     if (!iAttachments.find(a=>a.name===f.name)) iAttachments.push({name:f.name, size:f.size});
   });
   renderAttachList();
-});
-
-// AI Summary — Contract
-document.getElementById('btn-ai-summary-c').addEventListener('click', () =>
-  generateAISummary('f-file-input', 'f-ai-summary-wrap', 'f-ai-summary-text', 'btn-ai-summary-c', null));
-document.getElementById('btn-ai-summary-c-copy').addEventListener('click', () => {
-  navigator.clipboard.writeText(document.getElementById('f-ai-summary-text').value);
-  toast('Copied to clipboard.');
-});
-document.getElementById('btn-ai-summary-c-notes').addEventListener('click', () => {
-  const existing = document.getElementById('f-notes').value.trim();
-  const summary = document.getElementById('f-ai-summary-text').value.trim();
-  document.getElementById('f-notes').value = existing ? existing + '\n\n' + summary : summary;
-  toast('Summary added to Notes.');
-});
-document.getElementById('btn-ai-summary-c-clear').addEventListener('click', () => {
-  document.getElementById('f-ai-summary-wrap').style.display = 'none';
-  document.getElementById('f-ai-summary-text').value = '';
-});
-
-// AI Summary — Matter
-document.getElementById('btn-ai-summary-m').addEventListener('click', () =>
-  generateAISummary('mf-file-input', 'mf-ai-summary-wrap', 'mf-ai-summary-text', 'btn-ai-summary-m', null));
-document.getElementById('btn-ai-summary-m-copy').addEventListener('click', () => {
-  navigator.clipboard.writeText(document.getElementById('mf-ai-summary-text').value);
-  toast('Copied to clipboard.');
-});
-document.getElementById('btn-ai-summary-m-notes').addEventListener('click', () => {
-  const existing = document.getElementById('mf-notes').value.trim();
-  const summary = document.getElementById('mf-ai-summary-text').value.trim();
-  document.getElementById('mf-notes').value = existing ? existing + '\n\n' + summary : summary;
-  toast('Summary added to Notes.');
-});
-document.getElementById('btn-ai-summary-m-clear').addEventListener('click', () => {
-  document.getElementById('mf-ai-summary-wrap').style.display = 'none';
-  document.getElementById('mf-ai-summary-text').value = '';
-});
-
-// Contract file dropzone — capture dropped files and enable AI button
-document.getElementById('f-dropzone').addEventListener('drop', e => {
-  e.preventDefault(); e.currentTarget.style.borderColor='';
-  Array.from(e.dataTransfer.files).forEach(f => {
-    if (!cAttachments.find(a=>a.name===f.name)) cAttachments.push({name:f.name, size:f.size});
-  });
-  renderCAttachList();
-  document.getElementById('btn-ai-summary-c').disabled = cAttachments.length === 0;
 });
 
 // Division → Department cascade in form, then update contract types
@@ -5427,6 +5411,31 @@ document.getElementById('f-end').addEventListener('change', function() {
   calcNoticeDeadline();
 });
 document.getElementById('f-autorenew').addEventListener('change', updateAutoRenewUI);
+function normalizeUrl(u) {
+  u = (u || '').trim();
+  if (!u) return '';
+  return /^https?:\/\//i.test(u) ? u : `https://${u}`;
+}
+function contractLinkIcon(c) {
+  const links = (c.links && c.links.length) ? c.links : (c.link ? [c.link] : []);
+  if (!links.length) return '';
+  const first = normalizeUrl(links[0]);
+  const extra = links.length > 1 ? `<span style="font-size:8px;color:var(--text-muted);margin-left:1px">+${links.length-1}</span>` : '';
+  return `<a class="icon-btn" href="${esc(first)}" target="_blank" rel="noopener noreferrer" title="Open document${links.length>1?'s ('+links.length+')':''}" onclick="event.stopPropagation()">🔗</a>${extra}`;
+}
+function addLinkFromInput() {
+  const input = document.getElementById('f-link-new');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!cLinks.includes(val)) cLinks.push(val);
+  input.value = '';
+  renderLinksList();
+}
+document.getElementById('btn-add-link').addEventListener('click', addLinkFromInput);
+document.getElementById('f-link-new').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addLinkFromInput(); }
+});
+
 function updateCoiUI() {
   const on = document.getElementById('f-coi-required').checked;
   document.getElementById('f-coi-detail').style.display = on ? '' : 'none';
@@ -5447,10 +5456,11 @@ function calcCoiDueDate() {
     dueField.dataset.auto = 'true';
   }
 }
-document.getElementById('f-execution-status').addEventListener('change', function() {
-  // Stamp the execution date once, the first time it becomes Fully Executed —
-  // re-selecting it later shouldn't reset an already-running 30-day clock.
-  if (this.value === 'Fully Executed') {
+document.getElementById('f-status').addEventListener('change', function() {
+  // Stamp the execution date once, the first time Status becomes Active
+  // (Fully Executed) — re-selecting it later shouldn't reset an
+  // already-running 30-day COI clock.
+  if (this.value === 'Active') {
     const execField = document.getElementById('f-execution-fully-executed-date');
     if (!execField.value) execField.value = new Date().toISOString().slice(0, 10);
     calcCoiDueDate();
@@ -5763,7 +5773,7 @@ function populateAfAssigned() {
 }
 
 function updateAdvBadge() {
-  const fields = ['af-start-from','af-start-to','af-end-from','af-end-to','af-assigned'];
+  const fields = ['af-from','af-to','af-assigned'];
   const active = fields.filter(id => (document.getElementById(id)?.value||'') !== '');
   const badge = document.getElementById('adv-filter-active-badge');
   const btn = document.getElementById('btn-adv-filter');
@@ -5786,12 +5796,12 @@ document.getElementById('btn-adv-filter').addEventListener('click', () => {
   if (!open) populateAfAssigned();
 });
 
-['af-start-from','af-start-to','af-end-from','af-end-to','af-assigned'].forEach(id => {
+['af-from','af-to','af-assigned'].forEach(id => {
   document.getElementById(id)?.addEventListener('change', () => { updateAdvBadge(); render(); });
 });
 
 document.getElementById('btn-adv-clear').addEventListener('click', () => {
-  ['af-start-from','af-start-to','af-end-from','af-end-to'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['af-from','af-to'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const sel = document.getElementById('af-assigned'); if (sel) sel.value = '';
   updateAdvBadge(); render();
 });
@@ -5836,31 +5846,31 @@ function captureFilterState() {
     department: document.getElementById('departmentFilter').value,
     type: document.getElementById('typeFilter').value,
     search: document.getElementById('searchInput').value,
-    afStartFrom: document.getElementById('af-start-from')?.value || '',
-    afStartTo:   document.getElementById('af-start-to')?.value   || '',
-    afEndFrom:   document.getElementById('af-end-from')?.value   || '',
-    afEndTo:     document.getElementById('af-end-to')?.value     || '',
+    afFrom:      document.getElementById('af-from')?.value      || '',
+    afTo:        document.getElementById('af-to')?.value        || '',
     afAssigned:  document.getElementById('af-assigned')?.value   || '',
   };
 }
 
+const VALID_FILTER_KEYS = ['all','active','pending','expired/terminated','soon30','soon60','soon90','notice60','coi'];
 function applyFilter(state) {
   if (state.filter) {
-    activeFilter = state.filter;
+    const fk = VALID_FILTER_KEYS.includes(state.filter) ? state.filter : 'all';  // chip may have been removed since saving
+    activeFilter = fk;
     document.querySelectorAll('#cFilterBar .fchip').forEach(el => {
-      el.classList.toggle('active', el.dataset.filter === state.filter);
+      el.classList.toggle('active', el.dataset.filter === fk);
     });
   }
   if (state.division !== undefined) document.getElementById('divisionFilter').value = state.division;
   if (state.department !== undefined) document.getElementById('departmentFilter').value = state.department;
   if (state.type !== undefined) document.getElementById('typeFilter').value = state.type;
   if (state.search !== undefined) document.getElementById('searchInput').value = state.search;
-  ['afStartFrom','afStartTo','afEndFrom','afEndTo','afAssigned'].forEach(k => {
+  ['afFrom','afTo','afAssigned'].forEach(k => {
     const id = 'af-' + k.replace(/([A-Z])/g, m => '-' + m.toLowerCase());
     const el = document.getElementById(id);
     if (el && state[k] !== undefined) el.value = state[k];
   });
-  if (state.afStartFrom||state.afStartTo||state.afEndFrom||state.afEndTo||state.afAssigned) {
+  if (state.afFrom||state.afTo||state.afAssigned) {
     document.getElementById('adv-filter-panel').style.display = '';
   }
   updateAdvBadge(); render();
@@ -5902,25 +5912,67 @@ function updateBulkBar() {
   const cnt = document.getElementById('bulk-count');
   if (ids.length > 0) {
     bar.style.display = 'flex';
+    fillBulkAssigned();
     cnt.textContent = `${ids.length} contract${ids.length > 1 ? 's' : ''} selected`;
   } else {
     bar.style.display = 'none';
   }
 }
 
-function applyBulkStatus() {
+// Same side effects as setting Status to Active in the contract form: stamp the
+// execution date once, and (if a COI is required) start the 30-day COI clock.
+function stampExecutionIfNeeded(c) {
+  if (!c.executionFullyExecutedDate) c.executionFullyExecutedDate = localYMD();
+  const coiReq = c.coiRequired === true || c.coiRequired === 'true';
+  if (coiReq && (!c.coiDueDate || c.coiDueDateAuto === true || c.coiDueDateAuto === 'true')) {
+    const due = addTermDuration(c.executionFullyExecutedDate, 30, 'Days');
+    if (due) { c.coiDueDate = due; c.coiDueDateAuto = true; }
+  }
+}
+
+function fillBulkAssigned() {
+  const sel = document.getElementById('bulk-assigned-sel');
+  if (!sel) return;
+  const extras = [...new Set([...contracts.map(c => c.assigned), ...matters.map(m => m.assigned)]
+    .filter(Boolean).filter(n => !ASSIGNED_DEFAULTS.includes(n)))].sort();
+  const keep = sel.value;
+  sel.innerHTML = '<option value="">— Set Assigned To —</option>' +
+    ASSIGNED_DEFAULTS.map(n => `<option>${esc(n)}</option>`).join('') +
+    extras.map(n => `<option>${esc(n)}</option>`).join('') +
+    '<option value="__other__">Other…</option><option value="__clear__">(Unassign)</option>';
+  sel.value = keep;
+}
+
+function applyBulk() {
   const ids = selectedIds();
   const status = document.getElementById('bulk-status-sel').value;
-  if (!status) { toast('Choose a status first.'); return; }
+  let assigned = document.getElementById('bulk-assigned-sel').value;
+  if (!status && !assigned) { toast('Choose a Status and/or Assigned To first.'); return; }
   if (!ids.length) return;
-  ids.forEach(id => {
-    const i = contracts.findIndex(c => c.id === id);
-    if (i >= 0) contracts[i].status = status;
+  if (assigned === '__other__') {
+    assigned = (prompt('Assign to (name):') || '').trim();
+    if (!assigned) return;
+  }
+  const targets = ids.map(id => contracts.find(c => c.id === id)).filter(Boolean);
+  const snapshot = targets.map(c => JSON.parse(JSON.stringify(c)));
+  const by = currentUser(), now = new Date().toISOString();
+  targets.forEach(c => {
+    const before = JSON.parse(JSON.stringify(c));
+    if (status) { c.status = status; if (status === 'Active') stampExecutionIfNeeded(c); }
+    if (assigned) c.assigned = assigned === '__clear__' ? '' : assigned;
+    c.lastModifiedBy = by; c.lastModifiedAt = now;
+    c.history = nextHistory(c.history, diffRecord(before, c, HISTORY_FIELDS_CONTRACT), by);
   });
-  save(); render(); scheduleDashboardCharts(); renderAlerts();
+  save(); refreshAssignedList(); render(); scheduleDashboardCharts(); renderAlerts();
   document.getElementById('bulk-bar').style.display = 'none';
   document.getElementById('bulk-status-sel').value = '';
-  toast(`Updated ${ids.length} contract${ids.length > 1 ? 's' : ''} to "${status}".`);
+  document.getElementById('bulk-assigned-sel').value = '';
+  const what = [status && `Status → ${status === 'Expired/Terminated' ? 'Inactive' : status}`, assigned && `Assigned → ${assigned === '__clear__' ? 'unassigned' : assigned}`].filter(Boolean).join(', ');
+  toastUndo(`Updated ${targets.length} contract${targets.length > 1 ? 's' : ''}: ${what}.`, () => {
+    snapshot.forEach(sn => { const i = contracts.findIndex(c => c.id === sn.id); if (i >= 0) contracts[i] = sn; });
+    save(); refreshAssignedList(); render(); scheduleDashboardCharts(); renderAlerts();
+    toast('Bulk change undone.');
+  });
 }
 
 // ── DUPLICATE CONTRACT ────────────────────────────────────────────────────────
